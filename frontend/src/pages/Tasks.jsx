@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../../src/datepicker-styles.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { API_BASE_URL } from '../services/progressService';
+import { API_BASE_URL, logTaskCompletion } from '../services/progressService';
 
 const priorityConfig = {
   low: { color: 'text-blue-500', label: 'Low' },
@@ -23,10 +23,10 @@ const Tasks = () => {
     title: '',
     description: '',
     priority: 'medium',
-    dueDate: '', 
+    dueDate: '',
   });
-  const [loading, setLoading] = useState(true); 
-  const [error, setError] = useState(null);     
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
 
   const fetchTasks = async () => {
@@ -127,6 +127,8 @@ const Tasks = () => {
 
       if (!currentCompletedStatus) {
         toast.success('🎉 Task completed!', { position: 'top-right', autoClose: 3000 });
+        // Update local storage for Progress page "Today's Stats"
+        logTaskCompletion({ id: taskId });
       } else {
         toast.info('Task marked as pending.', { position: 'top-right', autoClose: 3000 });
       }
@@ -180,7 +182,7 @@ const Tasks = () => {
               <span>Add Task</span>
             </button>
           </div>
-                    {loading && (
+          {loading && (
             <div className="text-center text-gray-400 text-lg flex items-center justify-center gap-2">
               <FaSpinner className="animate-spin" /> Loading tasks...
             </div>
@@ -190,7 +192,7 @@ const Tasks = () => {
               Error: {error}.
             </div>
           )}
-                    {!loading && !error && (
+          {!loading && !error && (
             <div className="space-y-8">
               <div>
                 <h2 className="text-xl font-semibold mb-4">Pending Tasks</h2>
@@ -331,9 +333,8 @@ const TaskCard = ({ task, onComplete, onDelete }) => {
         <div className="flex items-start gap-4 flex-grow">
           <button
             onClick={() => onComplete(task.id, task.completed)}
-            className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-              task.completed ? 'bg-white border-white' : 'border-gray-400 hover:border-white'
-            }`}
+            className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${task.completed ? 'bg-white border-white' : 'border-gray-400 hover:border-white'
+              }`}
           >
             {task.completed && <FaCheck className="text-black text-xs" />}
           </button>
@@ -348,11 +349,11 @@ const TaskCard = ({ task, onComplete, onDelete }) => {
                 <span className="text-sm text-gray-400">{priorityConfig[task.priority]?.label}</span>
               </div>
             </div>
-            
+
             {task.description && (
               <p className="text-sm text-gray-400 mb-2">{task.description}</p>
             )}
-            
+
             {task.due_date && (
               <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
                 <FaCalendarAlt />

@@ -16,6 +16,8 @@ class User(SQLModel, table=True):
     # NEW: Define relationship to SessionLog and Task
     sessions: List["SessionLog"] = Relationship(back_populates="user")
     tasks: List["Task"] = Relationship(back_populates="owner")
+    messages: List["Message"] = Relationship(back_populates="user")
+    flashcard_sets: List["FlashcardSet"] = Relationship(back_populates="user")
 
 
 # Schema for user creation (what the frontend sends for registration)
@@ -128,3 +130,104 @@ class TaskResponse(BaseModel): # Use TaskResponse for clarity instead of TaskInD
     owner_id: str # Include owner_id in the response
 
     model_config = {"from_attributes": True} # Enable Pydantic to read from ORM models
+
+# --- Community / Chat Models ---
+
+from sqlalchemy import Column, String
+
+class MessageVote(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    value: int # 1 for upvote, -1 for downvote
+    
+    user_id: str = Field(foreign_key="user.id", index=True)
+    message_id: int = Field(foreign_key="message.id", index=True)
+    
+    user: Optional[User] = Relationship()
+    message: Optional["Message"] = Relationship(back_populates="votes")
+
+class Channel(SQLModel, table=True):
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    name: str = Field(index=True)
+    slug: str = Field(unique=True, index=True)
+    description: Optional[str] = None
+    
+    messages: List["Message"] = Relationship(back_populates="channel")
+
+class Message(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    content: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    
+    channel_id: str = Field(foreign_key="channel.id", index=True)
+    user_id: str = Field(foreign_key="user.id", index=True)
+    
+    channel: Optional[Channel] = Relationship(back_populates="messages")
+    user: Optional[User] = Relationship(back_populates="messages")
+    votes: List["MessageVote"] = Relationship(back_populates="message")
+
+class ChannelCreate(BaseModel):
+    name: str
+    slug: str
+    description: Optional[str] = None
+
+class ChannelResponse(BaseModel):
+    id: str
+    name: str
+    slug: str
+    description: Optional[str] = None
+
+class MessageCreate(BaseModel):
+    content: str
+
+class MessageResponse(BaseModel):
+    id: int
+    content: str
+    timestamp: datetime
+    user_id: str
+    channel_id: str
+    user_email: Optional[str] = None
+    
+    # New fields for voting
+    score: int = 0
+    user_vote: int = 0 # 0 = none, 1 = upvote, -1 = downvote
+
+    model_config = {"from_attributes": True}
+
+# --- Flashcard Models ---
+
+class FlashcardSet(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    title: str
+    category: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    user_id: str = Field(foreign_key="user.id", index=True)
+    
+    user: Optional[User] = Relationship(back_populates="flashcard_sets")
+    flashcards: List["Flashcard"] = Relationship(back_populates="flashcard_set")
+
+class Flashcard(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    question: str
+    answer: str
+    set_id: str = Field(foreign_key="flashcardset.id", index=True)
+    
+    flashcard_set: Optional[FlashcardSet] = Relationship(back_populates="flashcards")
+
+class FlashcardSetResponse(BaseModel):
+    id: str
+    title: str
+    category: str
+    created_at: datetime
+    
+    model_config = {"from_attributes": True}
+
+class FlashcardResponse(BaseModel):
+    id: str
+    question: str
+    answer: str
+    
+    model_config = {"from_attributes": True}
+
+class FlashcardSetDetailResponse(FlashcardSetResponse):
+    flashcards: List[FlashcardResponse]
+

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status # touched to force reload
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Dict
 import os
@@ -20,9 +20,13 @@ from .schemas import (
     UserCreate, UserLogin, UserResponse, Token, Message, User,
     Task, TaskCreate, TaskUpdate, TaskResponse, # Existing Task imports
     # NEW: Pomodoro Session Log Models
-    SessionLog, SessionLogCreate, SessionLogResponse 
+    SessionLog, SessionLogCreate, SessionLogResponse,
+    # NEW: Community Models
+    MessageVote
 )
 
+# Import new routers
+from .routes import community, websocket, flashcards
 
 # Load environment variables from .env file
 load_dotenv()
@@ -119,7 +123,7 @@ allowed_origins = [url.strip() for url in settings.FRONTEND_URLS.split(',')]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins, # Allow your frontend origin(s) from settings
+    allow_origins=["*"], # Allow ALL origins for debugging
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -131,16 +135,18 @@ def on_startup():
     print("Application startup - Creating database tables...")
     create_db_and_tables()
     print("Database tables created/checked.")
+    print("Flashcards router loaded.")
+
+# --- Include New Routers ---
+app.include_router(community.router)
+app.include_router(websocket.router)
+app.include_router(flashcards.router)
 
 # --- API Endpoints (Routes) ---
 
 @app.get("/", summary="Root endpoint")
 async def read_root():
     return {"message": "Welcome to the WorkShop Backend API!"}
-
-@app.get("/api/message", response_model=Message, summary="Get a simple message")
-async def get_simple_message():
-    return {"content": "Hello from the FastAPI Python backend!"}
 
 # --- User Authentication Endpoints (Using Database) ---
 
@@ -241,6 +247,24 @@ async def log_pomodoro_session(
     
     # Return the created log data
     return db_log
+
+@app.get(
+    "/api/v1/sessions/all",
+    response_model=Dict[str, List[SessionLogResponse]],
+    summary="Get all completed sessions for the current user"
+)
+async def get_all_sessions(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Retrieves all completed Pomodoro sessions for the currently authenticated user.
+    """
+    sessions = session.exec(
+        select(SessionLog).where(SessionLog.user_id == current_user.id)
+    ).all()
+    
+    return {"sessions": sessions}
 
 
 # --- Task Management Endpoints (Now using Database) ---

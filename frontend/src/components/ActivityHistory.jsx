@@ -22,7 +22,7 @@ const ActivityHistory = ({ history }) => {
         {data.map(({ date, pomodoros, tasksCompleted }) => (
           <div key={date} className="flex-1 flex flex-col items-center gap-2 text-center">
             <div className="w-full h-full flex items-end">
-              <motion.div 
+              <motion.div
                 className="w-full bg-white/10 rounded-t-md hover:bg-white/20 relative"
                 style={{ height: `${(pomodoros / maxPomodoros) * 100}%` }}
                 initial={{ height: 0 }}
@@ -36,10 +36,8 @@ const ActivityHistory = ({ history }) => {
           </div>
         ))}
       </div>
-      <div className="text-center mt-4 text-sm text-gray-500">
-        Upgrade to Premium to view history up to one year.
-      </div>
     </div>
+
   );
 };
 
