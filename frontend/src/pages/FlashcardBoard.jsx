@@ -13,7 +13,7 @@ const FlashcardBoard = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchSets = async () => {
+        const fetchData = async () => {
             const token = localStorage.getItem('accessToken');
             if (!token) {
                 navigate('/login');
@@ -21,18 +21,30 @@ const FlashcardBoard = () => {
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/flashcards/sets`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                // Fetch Legacy Sets
+                const setsResponse = await fetch(`${API_BASE_URL}/api/v1/flashcards/sets`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
+                const setsData = setsResponse.ok ? await setsResponse.json() : [];
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch flashcard sets');
-                }
+                // Fetch Collections (New Hierarchical Models)
+                const collectionsResponse = await fetch(`${API_BASE_URL}/api/v1/flashcards/collections`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const collectionsData = collectionsResponse.ok ? await collectionsResponse.json() : [];
 
-                const data = await response.json();
-                setSets(data);
+                // Format Collections to match display structure
+                const formattedCollections = collectionsData.map(c => ({
+                    id: c.id,
+                    title: c.name,
+                    category: 'File Collection',
+                    created_at: c.date_created,
+                    isCollection: true,
+                    file_source: c.file_source
+                }));
+
+                // Merge all
+                setSets([...setsData, ...formattedCollections]);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -40,8 +52,16 @@ const FlashcardBoard = () => {
             }
         };
 
-        fetchSets();
+        fetchData();
     }, [navigate]);
+
+    const handleSetClick = (set) => {
+        if (set.isCollection) {
+            navigate(`/flashcards/collection/${set.id}`);
+        } else {
+            navigate(`/flashcards/${set.id}`);
+        }
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-[#121212] text-white">
@@ -83,10 +103,12 @@ const FlashcardBoard = () => {
                                 key={set.id}
                                 whileHover={{ y: -5 }}
                                 className="bg-[#1A1A1A] p-6 rounded-xl border border-gray-800 hover:border-purple-500/50 transition-colors group cursor-pointer"
-                                onClick={() => navigate(`/flashcards/${set.id}`)}
+                                onClick={() => handleSetClick(set)}
                             >
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className="bg-purple-900/30 text-purple-400 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
+                                    <div className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${set.isCollection ? 'bg-blue-900/30 text-blue-400' :
+                                        'bg-purple-900/30 text-purple-400'
+                                        }`}>
                                         {set.category}
                                     </div>
                                     <FaLayerGroup className="text-gray-600 group-hover:text-purple-500 transition-colors" />

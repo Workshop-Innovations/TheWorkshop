@@ -23,6 +23,7 @@ import CommunityPage from './pages/CommunityPage';
 import FlashcardBoard from './pages/FlashcardBoard';
 import FlashcardCreate from './pages/FlashcardCreate';
 import FlashcardStudy from './pages/FlashcardStudy';
+import FlashcardCollectionStudy from './pages/FlashcardCollectionStudy';
 import './App.css';
 
 const AppContent = () => {
@@ -122,6 +123,14 @@ const AppContent = () => {
           element={
             <PrivateRoute>
               <FlashcardStudy />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/flashcards/collection/:collectionId"
+          element={
+            <PrivateRoute>
+              <FlashcardCollectionStudy />
             </PrivateRoute>
           }
         />

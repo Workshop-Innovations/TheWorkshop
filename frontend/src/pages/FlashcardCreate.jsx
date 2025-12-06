@@ -9,40 +9,29 @@ import { API_BASE_URL } from '../services/progressService';
 
 const FlashcardCreate = () => {
     const navigate = useNavigate();
-    const [title, setTitle] = useState('');
-    const [category, setCategory] = useState('General');
-    const [file, setFile] = useState(null);
+    const [fileUrl, setFileUrl] = useState('');
+    const [fileName, setFileName] = useState('');
     const [loading, setLoading] = useState(false);
-
-    const categories = ['General', 'Science', 'History', 'Math', 'Literature', 'Programming', 'Languages'];
-
-    const handleFileChange = (e) => {
-        if (e.target.files[0]) {
-            setFile(e.target.files[0]);
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!file || !title) {
-            toast.error("Please provide a title and upload a document.");
+
+        if (!fileUrl || !fileName) {
+            toast.error("Please provide a file URL and set name.");
             return;
         }
 
         setLoading(true);
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('category', category);
-        formData.append('file', file);
 
         try {
             const token = localStorage.getItem('accessToken');
-            const response = await fetch(`${API_BASE_URL}/api/v1/flashcards/generate`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/flashcards/generate_from_file`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                body: JSON.stringify({ file_url: fileUrl, file_name: fileName })
             });
 
             if (!response.ok) {
@@ -52,7 +41,7 @@ const FlashcardCreate = () => {
 
             const data = await response.json();
             toast.success("Flashcards generated successfully!");
-            navigate(`/flashcards/${data.id}`);
+            navigate('/flashcards'); // Navigate to board to see all cards
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -82,49 +71,30 @@ const FlashcardCreate = () => {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Set Title</label>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Set Name</label>
                             <input
                                 type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                value={fileName}
+                                onChange={(e) => setFileName(e.target.value)}
                                 className="w-full bg-[#242424] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
-                                placeholder="e.g., Biology Chapter 1"
+                                placeholder="e.g., Chemistry Notes"
                                 required
                             />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
-                            <select
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
+                            <label className="block text-sm font-medium text-gray-300 mb-2">File URL (Publicly Accessible)</label>
+                            <input
+                                type="url"
+                                value={fileUrl}
+                                onChange={(e) => setFileUrl(e.target.value)}
                                 className="w-full bg-[#242424] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
-                            >
-                                {categories.map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
+                                placeholder="e.g., https://example.com/notes.pdf"
+                                required
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Note: The file must be accessible by Make.com (public URL).</p>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Upload Document (Text/PDF)</label>
-                            <div className="border-2 border-dashed border-gray-700 rounded-xl p-8 text-center hover:border-purple-500 transition-colors bg-[#242424]/50">
-                                <input
-                                    type="file"
-                                    id="file-upload"
-                                    accept=".txt,.pdf"
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                />
-                                <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center">
-                                    <FaCloudUploadAlt className="text-4xl text-gray-500 mb-2" />
-                                    <span className="text-purple-400 font-semibold text-lg">Click to upload</span>
-                                    <span className="text-gray-500 text-sm mt-1">
-                                        {file ? file.name : "Supported formats: .txt, .pdf"}
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
+                        {/* File upload removed as per new requirement */}
 
                         <motion.button
                             whileHover={{ scale: 1.02 }}

@@ -17,7 +17,8 @@ class User(SQLModel, table=True):
     sessions: List["SessionLog"] = Relationship(back_populates="user")
     tasks: List["Task"] = Relationship(back_populates="owner")
     messages: List["Message"] = Relationship(back_populates="user")
-    flashcard_sets: List["FlashcardSet"] = Relationship(back_populates="user")
+    messages: List["Message"] = Relationship(back_populates="user")
+    # flashcard_sets: List["FlashcardSet"] = Relationship(back_populates="user") # Commented out legacy relationship
 
 
 # Schema for user creation (what the frontend sends for registration)
@@ -195,24 +196,36 @@ class MessageResponse(BaseModel):
 
 # --- Flashcard Models ---
 
-class FlashcardSet(SQLModel, table=True):
+# Legacy Models (Renamed to avoid conflict, but kept for reference)
+class FlashcardSetLegacy(SQLModel, table=True):
+    __tablename__ = "flashcardset_legacy" # Explicit table name to avoid conflicts if needed
     id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     title: str
     category: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     user_id: str = Field(foreign_key="user.id", index=True)
     
-    user: Optional[User] = Relationship(back_populates="flashcard_sets")
-    flashcards: List["Flashcard"] = Relationship(back_populates="flashcard_set")
+    # user: Optional[User] = Relationship(back_populates="flashcard_sets") # Commented out to avoid relationship conflicts
+    flashcards: List["FlashcardLegacy"] = Relationship(back_populates="flashcard_set")
 
-class Flashcard(SQLModel, table=True):
+class FlashcardLegacy(SQLModel, table=True):
+    __tablename__ = "flashcard_legacy"
     id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     question: str
     answer: str
-    set_id: str = Field(foreign_key="flashcardset.id", index=True)
+    set_id: str = Field(foreign_key="flashcardset_legacy.id", index=True)
     
-    flashcard_set: Optional[FlashcardSet] = Relationship(back_populates="flashcards")
+    flashcard_set: Optional[FlashcardSetLegacy] = Relationship(back_populates="flashcards")
 
+
+
+# Schema for Make.com response validation
+class FlashcardContent(BaseModel):
+    term: str
+    definition: str
+
+
+# Legacy Response Models (kept if needed for old endpoints, but updated references)
 class FlashcardSetResponse(BaseModel):
     id: str
     title: str
@@ -221,7 +234,7 @@ class FlashcardSetResponse(BaseModel):
     
     model_config = {"from_attributes": True}
 
-class FlashcardResponse(BaseModel):
+class FlashcardLegacyResponse(BaseModel):
     id: str
     question: str
     answer: str
@@ -229,5 +242,48 @@ class FlashcardResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 class FlashcardSetDetailResponse(FlashcardSetResponse):
-    flashcards: List[FlashcardResponse]
+    flashcards: List[FlashcardLegacyResponse]
+
+
+# New SQLModel: FlashcardCollection
+class FlashcardCollection(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id", index=True)
+    name: str = Field(nullable=False) # e.g., "Cards from Chemistry 101 Notes"
+    file_source: str = Field(nullable=False) # The URL of the PDF/file used
+    date_created: datetime = Field(default_factory=datetime.utcnow)
+    
+    cards: List["FlashcardCard"] = Relationship(back_populates="collection")
+
+# New SQLModel: FlashcardCard (The individual Q/A pair)
+class FlashcardCard(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    collection_id: str = Field(foreign_key="flashcardcollection.id", index=True)
+    term: str = Field(nullable=False) # Question
+    definition: str = Field(nullable=False) # Answer
+    
+    collection: Optional[FlashcardCollection] = Relationship(back_populates="cards")
+
+# Schema for data sent from frontend to FastAPI
+class FileGenerationRequest(BaseModel):
+    file_url: str # The publicly accessible link to the PDF/document
+    file_name: str # The name of the file (for collection naming)
+
+class FlashcardCardResponse(BaseModel):
+    id: str
+    term: str
+    definition: str
+    
+    model_config = {"from_attributes": True}
+
+class FlashcardCollectionResponse(BaseModel):
+    id: str
+    name: str
+    file_source: str
+    date_created: datetime
+    
+    model_config = {"from_attributes": True}
+
+class FlashcardCollectionDetailResponse(FlashcardCollectionResponse):
+    cards: List[FlashcardCardResponse]
 

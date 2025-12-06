@@ -9,9 +9,12 @@ from datetime import datetime, timezone
 from ..database import get_session
 from ..dependencies import get_current_user
 from ..schemas import (
-    User, FlashcardSet, Flashcard, 
-    FlashcardSetResponse, FlashcardResponse, FlashcardSetDetailResponse
+    User, FlashcardSetLegacy, FlashcardLegacy,
+    FlashcardSetResponse, FlashcardLegacyResponse, FlashcardSetDetailResponse,
+    FlashcardCollection, FlashcardCard, FileGenerationRequest,
+    FlashcardCollectionResponse, FlashcardCollectionDetailResponse, FlashcardCardResponse
 )
+from ..services.flashcard_service import fetch_cards_from_file
 
 router = APIRouter(
     prefix="/api/v1/flashcards",
@@ -23,8 +26,89 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
-@router.post("/generate", response_model=FlashcardSetDetailResponse, status_code=status.HTTP_201_CREATED)
-async def generate_flashcards(
+
+
+@router.post("/generate_from_file", response_model=FlashcardCollectionDetailResponse, status_code=status.HTTP_201_CREATED)
+async def generate_flashcards_from_file_url(
+    request: FileGenerationRequest,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    # Fetch from Make.com using file URL
+    generated_cards = await fetch_cards_from_file(request.file_url, request.file_name, current_user.id)
+    
+    # Create Collection
+    collection = FlashcardCollection(
+        id=str(uuid4()),
+        user_id=current_user.id,
+        name=request.file_name,
+        file_source=request.file_url,
+        date_created=datetime.now(timezone.utc)
+    )
+    session.add(collection)
+    session.commit()
+    session.refresh(collection)
+    
+    # Create Cards
+    saved_cards = []
+    for card_data in generated_cards:
+        new_card = FlashcardCard(
+            id=str(uuid4()),
+            collection_id=collection.id,
+            term=card_data.term,
+            definition=card_data.definition
+        )
+        session.add(new_card)
+        saved_cards.append(new_card)
+        
+    session.commit()
+    
+    # Refresh to return full data
+    session.refresh(collection)
+    # We need to manually construct response or ensure relationships are loaded
+    # SQLModel relationships are lazy by default, but session.refresh might not load them immediately if not accessed.
+    # Let's query the cards to be safe or rely on response_model to trigger loading if configured.
+    # For explicit loading:
+    cards = session.exec(select(FlashcardCard).where(FlashcardCard.collection_id == collection.id)).all()
+    
+    return FlashcardCollectionDetailResponse(
+        id=collection.id,
+        name=collection.name,
+        file_source=collection.file_source,
+        date_created=collection.date_created,
+        cards=[FlashcardCardResponse.model_validate(c) for c in cards]
+    )
+
+@router.get("/collections", response_model=List[FlashcardCollectionResponse])
+async def get_collections(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    collections = session.exec(select(FlashcardCollection).where(FlashcardCollection.user_id == current_user.id)).all()
+    return collections
+
+@router.get("/collections/{collection_id}", response_model=FlashcardCollectionDetailResponse)
+async def get_collection(
+    collection_id: str,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    collection = session.exec(select(FlashcardCollection).where(FlashcardCollection.id == collection_id, FlashcardCollection.user_id == current_user.id)).first()
+    if not collection:
+        raise HTTPException(status_code=404, detail="Collection not found")
+        
+    cards = session.exec(select(FlashcardCard).where(FlashcardCard.collection_id == collection_id)).all()
+    
+    return FlashcardCollectionDetailResponse(
+        id=collection.id,
+        name=collection.name,
+        file_source=collection.file_source,
+        date_created=collection.date_created,
+        cards=[FlashcardCardResponse.model_validate(c) for c in cards]
+    )
+
+@router.post("/generate/file", response_model=FlashcardSetDetailResponse, status_code=status.HTTP_201_CREATED)
+async def generate_flashcards_from_file(
     title: str = Form(...),
     category: str = Form(...),
     file: UploadFile = File(...),
@@ -86,7 +170,7 @@ async def generate_flashcards(
          raise HTTPException(status_code=500, detail="Failed to parse AI response.")
 
     # Create Set
-    flashcard_set = FlashcardSet(
+    flashcard_set = FlashcardSetLegacy(
         id=str(uuid4()),
         title=title,
         category=category,
@@ -100,7 +184,7 @@ async def generate_flashcards(
     # Create Cards
     created_cards = []
     for card_data in flashcards_data:
-        card = Flashcard(
+        card = FlashcardLegacy(
             id=str(uuid4()),
             question=card_data["question"],
             answer=card_data["answer"],
@@ -117,16 +201,16 @@ async def generate_flashcards(
         title=flashcard_set.title,
         category=flashcard_set.category,
         created_at=flashcard_set.created_at,
-        flashcards=[FlashcardResponse.model_validate(c) for c in created_cards]
+        flashcards=[FlashcardLegacyResponse.model_validate(c) for c in created_cards]
     )
 
 @router.post("/sets", response_model=FlashcardSetResponse, status_code=status.HTTP_201_CREATED)
 async def create_flashcard_set(
-    flashcard_set_data: FlashcardSet, 
+    flashcard_set_data: FlashcardSetLegacy, 
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    new_set = FlashcardSet(
+    new_set = FlashcardSetLegacy(
         id=str(uuid4()),
         title=flashcard_set_data.title,
         category=flashcard_set_data.category,
@@ -144,7 +228,7 @@ async def get_flashcard_sets(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    sets = session.exec(select(FlashcardSet).where(FlashcardSet.user_id == current_user.id)).all()
+    sets = session.exec(select(FlashcardSetLegacy).where(FlashcardSetLegacy.user_id == current_user.id)).all()
     return sets
 
 @router.get("/sets/{set_id}", response_model=FlashcardSetDetailResponse)
@@ -153,24 +237,24 @@ async def get_flashcard_set(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    flashcard_set = session.exec(select(FlashcardSet).where(FlashcardSet.id == set_id, FlashcardSet.user_id == current_user.id)).first()
+    flashcard_set = session.exec(select(FlashcardSetLegacy).where(FlashcardSetLegacy.id == set_id, FlashcardSetLegacy.user_id == current_user.id)).first()
     if not flashcard_set:
         raise HTTPException(status_code=404, detail="Flashcard set not found")
     return flashcard_set
 
-@router.post("/sets/{set_id}/cards", response_model=FlashcardResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/sets/{set_id}/cards", response_model=FlashcardLegacyResponse, status_code=status.HTTP_201_CREATED)
 async def create_flashcard(
     set_id: str,
-    flashcard_data: Flashcard,
+    flashcard_data: FlashcardLegacy,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
     # Verify set ownership
-    flashcard_set = session.exec(select(FlashcardSet).where(FlashcardSet.id == set_id, FlashcardSet.user_id == current_user.id)).first()
+    flashcard_set = session.exec(select(FlashcardSetLegacy).where(FlashcardSetLegacy.id == set_id, FlashcardSetLegacy.user_id == current_user.id)).first()
     if not flashcard_set:
         raise HTTPException(status_code=404, detail="Flashcard set not found")
 
-    new_card = Flashcard(
+    new_card = FlashcardLegacy(
         id=str(uuid4()),
         question=flashcard_data.question,
         answer=flashcard_data.answer,
