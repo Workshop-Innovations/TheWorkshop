@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { motion } from 'framer-motion'
 import { FaClipboardCheck, FaFileDownload, FaExternalLinkAlt } from 'react-icons/fa'
+import { Link, useNavigate } from 'react-router-dom';
 
 const CURRICULUMS = [
   { id: 'igcse', name: 'IGCSE (Cambridge)' },

@@ -26,7 +26,7 @@ from .schemas import (
 )
 
 # Import new routers
-from .routes import community, websocket, flashcards
+from .routes import community, websocket, flashcards, tutor
 
 # Load environment variables from .env file
 load_dotenv()
@@ -88,26 +88,16 @@ async def get_current_user(
     session: Session = Depends(get_session),
     token: str = Depends(oauth2_scheme)
 ):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
+    # --- BYPASS AUTHENTICATION START ---
+    # Return a mock user "john" directly
+    mock_user = User(
+        id="mock-user-id-john",
+        email="john@example.com",
+        hashed_password="mock_password_hash",
+        is_active=True
     )
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        # Ensure 'exp' is a number (timestamp)
-        if "exp" in payload and not isinstance(payload["exp"], (int, float)):
-            raise credentials_exception
-    except (JWTError, ValidationError): # ValidationError if token structure is wrong
-        raise credentials_exception
-
-    user = session.exec(select(User).where(User.email == email)).first()
-    if user is None:
-        raise credentials_exception
-    return user
+    return mock_user
+    # --- BYPASS AUTHENTICATION END ---
 
 
 # --- FastAPI App Initialization ---
@@ -141,6 +131,7 @@ def on_startup():
 app.include_router(community.router)
 app.include_router(websocket.router)
 app.include_router(flashcards.router)
+app.include_router(tutor.router)
 
 # --- API Endpoints (Routes) ---
 

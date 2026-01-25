@@ -9,15 +9,25 @@ import { API_BASE_URL } from '../services/progressService';
 
 const FlashcardCreate = () => {
     const navigate = useNavigate();
-    const [fileUrl, setFileUrl] = useState('');
+    const [file, setFile] = useState(null);
     const [fileName, setFileName] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const handleFileChange = (e) => {
+        if (e.target.files[0]) {
+            setFile(e.target.files[0]);
+            // Auto-set name if empty
+            if (!fileName) {
+                setFileName(e.target.files[0].name.split('.')[0]);
+            }
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!fileUrl || !fileName) {
-            toast.error("Please provide a file URL and set name.");
+        if (!file || !fileName) {
+            toast.error("Please provide a file and set name.");
             return;
         }
 
@@ -25,13 +35,18 @@ const FlashcardCreate = () => {
 
         try {
             const token = localStorage.getItem('accessToken');
-            const response = await fetch(`${API_BASE_URL}/api/v1/flashcards/generate_from_file`, {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', fileName);
+            formData.append('category', 'General'); // Default category
+
+            const response = await fetch(`${API_BASE_URL}/api/v1/flashcards/generate/file`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    // Content-Type is auto-set by browser for FormData
                 },
-                body: JSON.stringify({ file_url: fileUrl, file_name: fileName })
+                body: formData
             });
 
             if (!response.ok) {
@@ -41,9 +56,10 @@ const FlashcardCreate = () => {
 
             const data = await response.json();
             toast.success("Flashcards generated successfully!");
-            navigate('/flashcards'); // Navigate to board to see all cards
+            navigate('/flashcards'); // Navigate to board
         } catch (err) {
-            toast.error(err.message);
+            console.error(err);
+            toast.error(err.message || "An error occurred");
         } finally {
             setLoading(false);
         }
@@ -81,17 +97,25 @@ const FlashcardCreate = () => {
                                 required
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">File URL (Publicly Accessible)</label>
+                        <div className="border-2 border-dashed border-gray-700 hover:border-primary rounded-xl p-8 text-center transition-colors bg-[#242424]/50">
                             <input
-                                type="url"
-                                value={fileUrl}
-                                onChange={(e) => setFileUrl(e.target.value)}
-                                className="w-full bg-[#242424] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
-                                placeholder="e.g., https://example.com/notes.pdf"
-                                required
+                                type="file"
+                                id="fileUpload"
+                                onChange={handleFileChange}
+                                className="hidden"
+                                accept=".txt,.pdf,.md"
                             />
-                            <p className="text-xs text-gray-500 mt-1">Note: The file must be accessible by Make.com (public URL).</p>
+                            <label htmlFor="fileUpload" className="cursor-pointer flex flex-col items-center gap-4">
+                                <FaCloudUploadAlt className="text-5xl text-gray-400" />
+                                <div>
+                                    <p className="text-lg font-medium text-white">
+                                        {file ? file.name : "Click to upload your notes"}
+                                    </p>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Supports .txt, .pdf, .md
+                                    </p>
+                                </div>
+                            </label>
                         </div>
 
                         {/* File upload removed as per new requirement */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaBug } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Feedback = () => {
   const supportEmail = 'support@workshopai.com';

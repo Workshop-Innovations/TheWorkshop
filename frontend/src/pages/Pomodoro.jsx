@@ -7,24 +7,26 @@ import 'react-toastify/dist/ReactToastify.css'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { ALL_PASSIVE_REWARDS } from '../constants/rewardConstants';
+import { ALL_PASSIVE_REWARDS } from '../constants/rewardConstants'; 
+import { Link, useNavigate } from 'react-router-dom';
 
 // --- ProgressView Component Definition (Updated) ---
-const ProgressView = ({ totalFocusMinutes }) => {
+const ProgressView = ({ totalCompletedPomodoros }) => {
   // Utility function to determine progress label
   const formatRequirementRemaining = (remaining) => {
-    return `${remaining} minutes to go`;
+    if (remaining === 1) return '1 session to go';
+    return `${remaining} sessions to go`;
   };
 
   // 1. Calculate progress and remaining sessions
   const nextRewards = ALL_PASSIVE_REWARDS
     .map(reward => ({
       ...reward,
-      minutesRemaining: reward.minutesRequired - totalFocusMinutes,
-      progressPercent: Math.min(100, (totalFocusMinutes / reward.minutesRequired) * 100)
+      sessionsRemaining: reward.requirement - totalCompletedPomodoros,
+      progressPercent: Math.min(100, (totalCompletedPomodoros / reward.requirement) * 100)
     }))
-    .filter(reward => reward.minutesRemaining > 0) // Keep only unachieved rewards
-    .sort((a, b) => a.minutesRemaining - b.minutesRemaining) // Sort by minutes remaining (closest first)
+    .filter(reward => reward.sessionsRemaining > 0) // Keep only unachieved rewards
+    .sort((a, b) => a.sessionsRemaining - b.sessionsRemaining) // Sort by sessions remaining (closest first)
     .slice(0, 5); // Take the closest 5 rewards
 
 
@@ -39,11 +41,11 @@ const ProgressView = ({ totalFocusMinutes }) => {
     >
       <div className="text-center mb-6 border-b border-white/10 pb-4">
         <h2 className="text-3xl font-extrabold text-white">Focus Challenges</h2>
-        <p className="text-sm text-gray-400 mt-1">Total Focus Time</p>
+        <p className="text-sm text-gray-400 mt-1">Total Completed Pomodoro Sessions</p>
         <div className="flex items-center justify-center gap-2 mt-2">
-          <FaRedo className="text-blue-400 text-3xl" />
-          <span className="text-4xl font-mono font-bold text-green-400">{totalFocusMinutes}</span>
-          <span className="text-2xl text-gray-300">minutes</span>
+            <FaRedo className="text-blue-400 text-3xl" />
+            <span className="text-4xl font-mono font-bold text-green-400">{totalCompletedPomodoros}</span>
+            <span className="text-2xl text-gray-300">sessions</span>
         </div>
       </div>
 
@@ -61,7 +63,7 @@ const ProgressView = ({ totalFocusMinutes }) => {
                 <div>
                   <p className="font-bold text-lg text-green-400">{reward.name}</p>
                   <p className="text-xs text-gray-400 mt-0.5 capitalize">
-                    {reward.type} Reward | Target: {reward.minutesRequired} minutes
+                    {reward.type} Reward | Target: {reward.requirement} sessions
                   </p>
                 </div>
                 <div className="text-right">
@@ -69,7 +71,7 @@ const ProgressView = ({ totalFocusMinutes }) => {
                     Unlock: {reward.type}
                   </p>
                   <p className="text-sm text-red-300 mt-1 font-bold">
-                    {formatRequirementRemaining(reward.minutesRemaining)}
+                    {formatRequirementRemaining(reward.sessionsRemaining)}
                   </p>
                 </div>
               </div>
@@ -93,30 +95,7 @@ const ProgressView = ({ totalFocusMinutes }) => {
   );
 };
 
-
-// Moved components outside to prevent re-creation on render
-const SettingInput = ({ label, value, onChange }) => (
-  <div>
-    <label className="block text-xs text-gray-400 mb-1">{label}</label>
-    <input
-      type="number"
-      value={value}
-      onChange={(e) => onChange(parseInt(e.target.value))}
-      className="w-full p-2 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20"
-      min="1"
-    />
-  </div>
-);
-
-const ToggleSwitch = ({ checked, onChange }) => (
-  <label className="relative inline-flex items-center cursor-pointer">
-    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
-    <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-white/30 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-  </label>
-);
-
 // Define the Pomodoro Component:
-
 const Pomodoro = () => {
   // Destructure all necessary values from the Pomodoro context
   const {
@@ -135,8 +114,8 @@ const Pomodoro = () => {
   } = usePomodoro();
 
 
-  // **FIXED: Now safely retrieving totalFocusMinutes from userStats**
-  const totalFocusMinutes = userStats?.totalFocusMinutes || 0;
+  // **FIXED: Now safely retrieving totalCompletedPomodoros from userStats**
+  const totalCompletedPomodoros = userStats?.totalCompletedPomodoros || 0;
 
 
   const [currentView, setCurrentView] = useState('timer'); // 'timer' or 'progress'
@@ -164,7 +143,25 @@ const Pomodoro = () => {
   };
 
 
+const SettingInput = ({ label, value, onChange }) => (
+  <div>
+    <label className="block text-xs text-gray-400 mb-1">{label}</label>
+    <input
+      type="number"
+      value={value}
+      onChange={(e) => onChange(parseInt(e.target.value))}
+      className="w-full p-2 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20"
+      min="1"
+    />
+  </div>
+);
 
+const ToggleSwitch = ({ checked, onChange }) => (
+  <label className="relative inline-flex items-center cursor-pointer">
+    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
+    <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-white/30 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+  </label>
+);
 
 
   return (
@@ -173,27 +170,29 @@ const Pomodoro = () => {
       <ToastContainer theme="dark" position="bottom-right" />
 
       <div className="container mx-auto px-4 py-32 pt-24">
-
+        
         {/* NEW: Timer/Progress Toggle Buttons added here */}
         <div className="flex justify-center mb-8">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setCurrentView('timer')}
-            className={`py-2 px-6 rounded-l-full font-semibold transition-colors duration-200 text-sm md:text-base ${currentView === 'timer' ? 'bg-white text-black' : 'bg-[#1A1A1A] text-gray-400 hover:bg-[#242424]'
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setCurrentView('timer')}
+              className={`py-2 px-6 rounded-l-full font-semibold transition-colors duration-200 text-sm md:text-base ${
+                currentView === 'timer' ? 'bg-white text-black' : 'bg-[#1A1A1A] text-gray-400 hover:bg-[#242424]'
               }`}
-          >
-            Timer
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setCurrentView('progress')}
-            className={`py-2 px-6 rounded-r-full font-semibold transition-colors duration-200 text-sm md:text-base ${currentView === 'progress' ? 'bg-white text-black' : 'bg-[#1A1A1A] text-gray-400 hover:bg-[#242424]'
+            >
+              Timer
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setCurrentView('progress')}
+              className={`py-2 px-6 rounded-r-full font-semibold transition-colors duration-200 text-sm md:text-base ${
+                currentView === 'progress' ? 'bg-white text-black' : 'bg-[#1A1A1A] text-gray-400 hover:bg-[#242424]'
               }`}
-          >
-            Progress (Challenges)
-          </motion.button>
+            >
+              Progress (Challenges)
+            </motion.button>
         </div>
 
 
@@ -208,35 +207,38 @@ const Pomodoro = () => {
               transition={{ duration: 0.3 }}
               className={`relative max-w-2xl mx-auto p-12 rounded-lg bg-[#1A1A1A] border border-white/10`}
             >
-
+              
               {/* Existing Timer UI Content Starts Here */}
               <div className={`absolute top-4 right-4 h-3 w-3 rounded-full ${isRunning ? modeColor[mode] : 'bg-gray-500'}`} />
 
               <div className="flex justify-between items-center mb-12">
                 <div className="flex gap-4">
                   <motion.button
-                    whileHover={{ scale: 1.05, backgroundColor: mode === 'pomodoro' ? '' : '#242424' }}
+                    whileHover={{ scale: 1.05, backgroundColor: mode === 'pomodoro' ? '' : '#242424'}}
                     whileTap={{ scale: 0.95 }}
-                    className={`px-4 py-2 rounded-md font-semibold transition-all duration-300 ${mode === 'pomodoro' ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'
-                      }`}
+                    className={`px-4 py-2 rounded-md font-semibold transition-all duration-300 ${
+                      mode === 'pomodoro' ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                    }`}
                     onClick={() => handleModeChange('pomodoro')}
                   >
                     Pomodoro
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.05, backgroundColor: mode === 'shortBreak' ? '' : '#242424' }}
+                    whileHover={{ scale: 1.05, backgroundColor: mode === 'shortBreak' ? '' : '#242424'}}
                     whileTap={{ scale: 0.95 }}
-                    className={`px-4 py-2 rounded-md font-semibold transition-all duration-300 ${mode === 'shortBreak' ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'
-                      }`}
+                    className={`px-4 py-2 rounded-md font-semibold transition-all duration-300 ${
+                      mode === 'shortBreak' ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                    }`}
                     onClick={() => handleModeChange('shortBreak')}
                   >
                     Short Break
                   </motion.button>
                   <motion.button
-                    whileHover={{ scale: 1.05, backgroundColor: mode === 'longBreak' ? '' : '#242424' }}
+                    whileHover={{ scale: 1.05, backgroundColor: mode === 'longBreak' ? '' : '#242424'}}
                     whileTap={{ scale: 0.95 }}
-                    className={`px-4 py-2 rounded-md font-semibold transition-all duration-300 ${mode === 'longBreak' ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'
-                      }`}
+                    className={`px-4 py-2 rounded-md font-semibold transition-all duration-300 ${
+                      mode === 'longBreak' ? 'bg-white text-black' : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                    }`}
                     onClick={() => handleModeChange('longBreak')}
                   >
                     Long Break
@@ -292,15 +294,15 @@ const Pomodoro = () => {
             </motion.div>
           )}
           {currentView === 'progress' && (
-            // Pass the total focus minutes to the Progress View
-            <ProgressView totalFocusMinutes={totalFocusMinutes} />
+            // Pass the total completed pomodoros to the Progress View
+            <ProgressView totalCompletedPomodoros={totalCompletedPomodoros} />
           )}
         </AnimatePresence>
       </div>
 
       {showSettings && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <motion.div
+          <motion.div 
             className="bg-[#1A1A1A] p-6 rounded-lg w-full max-w-md border border-white/10"
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -309,21 +311,21 @@ const Pomodoro = () => {
             <h2 className="text-2xl font-bold mb-6">Settings</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-3 gap-4">
-                <SettingInput label="Pomodoro" value={tempSettings?.pomodoro} onChange={val => setTempSettings({ ...tempSettings, pomodoro: val })} />
-                <SettingInput label="Short Break" value={tempSettings?.shortBreak} onChange={val => setTempSettings({ ...tempSettings, shortBreak: val })} />
-                <SettingInput label="Long Break" value={tempSettings?.longBreak} onChange={val => setTempSettings({ ...tempSettings, longBreak: val })} />
+                <SettingInput label="Pomodoro" value={tempSettings?.pomodoro} onChange={val => setTempSettings({...tempSettings, pomodoro: val})} />
+                <SettingInput label="Short Break" value={tempSettings?.shortBreak} onChange={val => setTempSettings({...tempSettings, shortBreak: val})} />
+                <SettingInput label="Long Break" value={tempSettings?.longBreak} onChange={val => setTempSettings({...tempSettings, longBreak: val})} />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                {/* <SettingInput label="Coins/Pomodoro" value={tempSettings?.coinsPerPomodoro} onChange={val => setTempSettings({ ...tempSettings, coinsPerPomodoro: val })} /> */}
-                <SettingInput label="Sessions/Long Break" value={tempSettings?.pomodorosUntilLongBreak} onChange={val => setTempSettings({ ...tempSettings, pomodorosUntilLongBreak: val })} />
+                <SettingInput label="Coins/Pomodoro" value={tempSettings?.coinsPerPomodoro} onChange={val => setTempSettings({...tempSettings, coinsPerPomodoro: val})} />
+                <SettingInput label="Sessions/Long Break" value={tempSettings?.pomodorosUntilLongBreak} onChange={val => setTempSettings({...tempSettings, pomodorosUntilLongBreak: val})} />
               </div>
               <div className="flex justify-between items-center bg-[#242424] p-3 rounded-md">
                 <label className="text-sm text-gray-300">Auto-start Pomodoros</label>
-                <ToggleSwitch checked={tempSettings?.autoStartPomodoros} onChange={val => setTempSettings({ ...tempSettings, autoStartPomodoros: val })} />
+                <ToggleSwitch checked={tempSettings?.autoStartPomodoros} onChange={val => setTempSettings({...tempSettings, autoStartPomodoros: val})} />
               </div>
               <div className="flex justify-between items-center bg-[#242424] p-3 rounded-md">
                 <label className="text-sm text-gray-300">Auto-start Breaks</label>
-                <ToggleSwitch checked={tempSettings?.autoStartBreaks} onChange={val => setTempSettings({ ...tempSettings, autoStartBreaks: val })} />
+                <ToggleSwitch checked={tempSettings?.autoStartBreaks} onChange={val => setTempSettings({...tempSettings, autoStartBreaks: val})} />
               </div>
             </div>
 

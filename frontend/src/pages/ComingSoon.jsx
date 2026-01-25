@@ -2,6 +2,7 @@ import { FaTrophy, FaMedal, FaChartLine, FaCrown, FaLock } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { Link, useNavigate } from 'react-router-dom';
 
 const ComingSoon = () => {
   return (

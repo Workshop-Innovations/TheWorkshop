@@ -140,34 +140,38 @@ async def generate_flashcards_from_file(
         raise HTTPException(status_code=400, detail="File is empty.")
 
     # Call Gemini
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     
     prompt = (
-        f"Generate exactly 50 question-and-answer pairs based on the following text. "
-        f"Format the output as a single continuous string where pairs are separated by '|||' "
-        f"and the question and answer are separated by ':::'. "
-        f"Example: 'Question 1:::Answer 1|||Question 2:::Answer 2'. "
-        f"Do not use JSON. Do not number them. Just the raw string.\n\n"
-        f"Text: {content[:10000]}" # Limit context if needed
+        f"Generate exactly 20 question-and-answer pairs based on the following text. "
+        f"Return the output strictly as a JSON list of objects, where each object has 'question' and 'answer' keys. "
+        f"Example: [{{\"question\": \"Q1\", \"answer\": \"A1\"}}, ...]\n\n"
+        f"Text: {content[:15000]}" # Increased context limit
     )
 
     try:
-        response = model.generate_content(prompt)
+        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
         generated_text = response.text
     except Exception as e:
+        print(f"Gemini Error: {e}")
         raise HTTPException(status_code=500, detail=f"AI Generation failed: {str(e)}")
 
     # Parse response
-    pairs = generated_text.split('|||')
-    flashcards_data = []
-    
-    for pair in pairs:
-        if ':::' in pair:
-            q, a = pair.split(':::', 1)
-            flashcards_data.append({"question": q.strip(), "answer": a.strip()})
-    
+    import json
+    try:
+        flashcards_data = json.loads(generated_text)
+        if not isinstance(flashcards_data, list):
+             # Handle case where it might be wrapped
+             if "cards" in flashcards_data:
+                 flashcards_data = flashcards_data["cards"]
+             else:
+                 raise ValueError("JSON is not a list")
+    except Exception as e:
+        print(f"Parsing Error: {e}, Content: {generated_text}")
+        raise HTTPException(status_code=500, detail="Failed to parse AI response. Please try again.")
+
     if not flashcards_data:
-         raise HTTPException(status_code=500, detail="Failed to parse AI response.")
+         raise HTTPException(status_code=500, detail="No flashcards generated.")
 
     # Create Set
     flashcard_set = FlashcardSetLegacy(

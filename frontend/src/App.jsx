@@ -4,7 +4,6 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PomodoroProvider, usePomodoro } from './context/PomodoroContext';
 import { AuthProvider } from './context/AuthContext';
-import { CommunityProvider } from './context/CommunityContext';
 import MinimizedPomodoro from './components/MinimizedPomodoro';
 import PrivateRoute from './components/PrivateRoute';
 import Landing from './pages/Landing';
@@ -17,13 +16,8 @@ import Register from './pages/Register';
 import ComingSoon from './pages/ComingSoon';
 import Feedback from './pages/Feedback';
 import Progress from './pages/Progress';
-import Profile from './pages/Profile';
+import Profile from './pages/Profile'; //
 import Materials from './pages/Materials';
-import CommunityPage from './pages/CommunityPage';
-import FlashcardBoard from './pages/FlashcardBoard';
-import FlashcardCreate from './pages/FlashcardCreate';
-import FlashcardStudy from './pages/FlashcardStudy';
-import FlashcardCollectionStudy from './pages/FlashcardCollectionStudy';
 import './App.css';
 
 const AppContent = () => {
@@ -92,48 +86,6 @@ const AppContent = () => {
             </PrivateRoute>
           }
         />
-
-        <Route
-          path="/community"
-          element={
-            <PrivateRoute>
-              <CommunityPage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/flashcards"
-          element={
-            <PrivateRoute>
-              <FlashcardBoard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/flashcards/create"
-          element={
-            <PrivateRoute>
-              <FlashcardCreate />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/flashcards/:id"
-          element={
-            <PrivateRoute>
-              <FlashcardStudy />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/flashcards/collection/:collectionId"
-          element={
-            <PrivateRoute>
-              <FlashcardCollectionStudy />
-            </PrivateRoute>
-          }
-        />
       </Routes>
 
       <AnimatePresence>
@@ -147,11 +99,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <CommunityProvider>
-          <PomodoroProvider>
-            <AppContent />
-          </PomodoroProvider>
-        </CommunityProvider>
+        <PomodoroProvider>
+          <AppContent />
+        </PomodoroProvider>
       </AuthProvider>
 
       <ToastContainer

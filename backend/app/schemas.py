@@ -284,6 +284,24 @@ class FlashcardCollectionResponse(BaseModel):
     
     model_config = {"from_attributes": True}
 
-class FlashcardCollectionDetailResponse(FlashcardCollectionResponse):
     cards: List[FlashcardCardResponse]
+
+
+# --- AI Tutor Models ---
+
+class TutorDocument(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id", index=True)
+    filename: str
+    content: str = Field(sa_column_kwargs={"type_": String}) # Use generic String, or Text for large content if supported by dialect
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class TutorChatRequest(BaseModel):
+    document_id: str
+    message: str
+    history: List[dict] = [] # List of {role: "user"|"model", parts: ["text"]}
+
+class TutorChatResponse(BaseModel):
+    response: str
+
 
