@@ -10,7 +10,10 @@ from ..schemas import (
 )
 from ..main import get_session, get_current_user
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/api/v1/community",
+    tags=["community"]
+)
 
 @router.post("/channels/{channel_id}/submissions", response_model=PeerReviewSubmissionResponse, status_code=status.HTTP_201_CREATED)
 async def create_submission(

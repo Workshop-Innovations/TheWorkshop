@@ -14,7 +14,9 @@ from ..schemas import (
     FlashcardCollection, FlashcardCard, FileGenerationRequest,
     FlashcardCollectionResponse, FlashcardCardResponse
 )
-from ..services.flashcard_service import fetch_cards_from_file
+import tempfile
+import shutil
+import json
 
 router = APIRouter(
     prefix="/api/v1/flashcards",
@@ -28,56 +30,7 @@ if GEMINI_API_KEY:
 
 
 
-@router.post("/generate_from_file", response_model=FlashcardCollectionResponse, status_code=status.HTTP_201_CREATED)
-async def generate_flashcards_from_file_url(
-    request: FileGenerationRequest,
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
-):
-    # Fetch from Make.com using file URL
-    generated_cards = await fetch_cards_from_file(request.file_url, request.file_name, current_user.id)
-    
-    # Create Collection
-    collection = FlashcardCollection(
-        id=str(uuid4()),
-        user_id=current_user.id,
-        name=request.file_name,
-        file_source=request.file_url,
-        date_created=datetime.now(timezone.utc)
-    )
-    session.add(collection)
-    session.commit()
-    session.refresh(collection)
-    
-    # Create Cards
-    saved_cards = []
-    for card_data in generated_cards:
-        new_card = FlashcardCard(
-            id=str(uuid4()),
-            collection_id=collection.id,
-            term=card_data.term,
-            definition=card_data.definition
-        )
-        session.add(new_card)
-        saved_cards.append(new_card)
-        
-    session.commit()
-    
-    # Refresh to return full data
-    session.refresh(collection)
-    # We need to manually construct response or ensure relationships are loaded
-    # SQLModel relationships are lazy by default, but session.refresh might not load them immediately if not accessed.
-    # Let's query the cards to be safe or rely on response_model to trigger loading if configured.
-    # For explicit loading:
-    cards = session.exec(select(FlashcardCard).where(FlashcardCard.collection_id == collection.id)).all()
-    
-    return FlashcardCollectionResponse(
-        id=collection.id,
-        name=collection.name,
-        file_source=collection.file_source,
-        date_created=collection.date_created,
-        cards=[FlashcardCardResponse.model_validate(c) for c in cards]
-    )
+
 
 @router.get("/collections", response_model=List[FlashcardCollectionResponse])
 async def get_collections(
@@ -121,53 +74,81 @@ async def generate_flashcards_from_file(
             detail="Gemini API Key not configured."
         )
 
-    # Read file content
-    content = ""
-    if file.content_type == "application/pdf":
-        try:
-            content_bytes = await file.read()
-            content = content_bytes.decode("utf-8")
-        except UnicodeDecodeError:
-             raise HTTPException(status_code=400, detail="Only text files are supported for now (or text-based PDFs).")
-    else:
-        content_bytes = await file.read()
-        try:
-            content = content_bytes.decode("utf-8")
-        except:
-             raise HTTPException(status_code=400, detail="Could not decode file content.")
+    # Validate file type
+    # For now, Gemini supports PDF, text, images, etc. We'll focus on PDF and text.
+    supported_types = ["application/pdf", "text/plain", "text/csv", "application/json"]
+    if file.content_type not in supported_types and not file.content_type.startswith("image/"):
+         # Optionally allow images if you want visual flashcards later
+         pass
 
-    if not content:
-        raise HTTPException(status_code=400, detail="File is empty.")
-
-    # Call Gemini
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Save uploaded file to a temporary file because genai.upload_file requires a path
+    suffix = f".{file.filename.split('.')[-1]}" if '.' in file.filename else ".tmp"
     
-    prompt = (
-        f"Generate exactly 20 question-and-answer pairs based on the following text. "
-        f"Return the output strictly as a JSON list of objects, where each object has 'question' and 'answer' keys. "
-        f"Example: [{{\"question\": \"Q1\", \"answer\": \"A1\"}}, ...]\n\n"
-        f"Text: {content[:15000]}" # Increased context limit
-    )
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
+            shutil.copyfileobj(file.file, tmp_file)
+            tmp_path = tmp_file.name
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save temporary file: {str(e)}")
 
     try:
-        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
+        # Upload to Gemini
+        # It's good practice to display name for debugging in AI Studio
+        uploaded_file = genai.upload_file(tmp_path, mime_type=file.content_type)
+        
+        # Configure model
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        prompt = (
+            "Generate exactly 20 question-and-answer pairs based on the content of the attached file. "
+            "Return the output strictly as a JSON list of objects, where each object has 'question' and 'answer' keys. "
+            "Example: [{\"question\": \"What is X?\", \"answer\": \"X is Y\"}]"
+        )
+        
+        # Generate content with file and prompt
+        response = model.generate_content(
+            [uploaded_file, prompt],
+            generation_config={"response_mime_type": "application/json"}
+        )
+        
         generated_text = response.text
+        
+        # Clean up Gemini file (optional, but good practice if not needed anymore)
+        uploaded_file.delete()
+        
     except Exception as e:
-        print(f"Gemini Error: {e}")
+        print(f"Gemini API Error: {e}")
+        try:
+            os.remove(tmp_path)
+        except:
+            pass
         raise HTTPException(status_code=500, detail=f"AI Generation failed: {str(e)}")
+    
+    # Clean up local temp file
+    try:
+        os.remove(tmp_path)
+    except:
+        pass
 
-    # Parse response
-    import json
+    # Parse JSON
     try:
         flashcards_data = json.loads(generated_text)
+        if hasattr(flashcards_data, "cards"): # Handle if struct is nested (some models do this)
+             flashcards_data = flashcards_data.cards
+        
         if not isinstance(flashcards_data, list):
-             # Handle case where it might be wrapped
-             if "cards" in flashcards_data:
-                 flashcards_data = flashcards_data["cards"]
-             else:
-                 raise ValueError("JSON is not a list")
+             # Try to find a list in the dictionary if it returned an object
+             if isinstance(flashcards_data, dict):
+                 for key in flashcards_data:
+                     if isinstance(flashcards_data[key], list):
+                         flashcards_data = flashcards_data[key]
+                         break
+             
+        if not isinstance(flashcards_data, list):
+             raise ValueError("JSON output is not a list")
+
     except Exception as e:
-        print(f"Parsing Error: {e}, Content: {generated_text}")
+        print(f"JSON Parsing Error: {e}, Content: {generated_text}")
         raise HTTPException(status_code=500, detail="Failed to parse AI response. Please try again.")
 
     if not flashcards_data:
@@ -188,14 +169,19 @@ async def generate_flashcards_from_file(
     # Create Cards
     created_cards = []
     for card_data in flashcards_data:
-        card = FlashcardLegacy(
-            id=str(uuid4()),
-            question=card_data["question"],
-            answer=card_data["answer"],
-            set_id=flashcard_set.id
-        )
-        session.add(card)
-        created_cards.append(card)
+        # Robustly handle keys
+        q = card_data.get("question") or card_data.get("term") or card_data.get("q")
+        a = card_data.get("answer") or card_data.get("definition") or card_data.get("a")
+        
+        if q and a:
+            card = FlashcardLegacy(
+                id=str(uuid4()),
+                question=str(q),
+                answer=str(a),
+                set_id=flashcard_set.id
+            )
+            session.add(card)
+            created_cards.append(card)
     
     session.commit()
     

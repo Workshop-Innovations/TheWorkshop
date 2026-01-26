@@ -26,11 +26,7 @@ from .schemas import (
     ChannelCreate, ChannelResponse, MessageCreate, MessageResponse,
     # DM Models
     DMConversation, DMMessage,
-    DMConversationResponse, DMMessageCreate, DMMessageResponse
-    UserCreate, UserLogin, UserResponse, Token, Message, User,
-    Task, TaskCreate, TaskUpdate, TaskResponse, # Existing Task imports
-    # NEW: Pomodoro Session Log Models
-    SessionLog, SessionLogCreate, SessionLogResponse 
+    DMConversationResponse, DMMessageCreate, DMMessageResponse,
 )
 
 # Import new routers
@@ -110,26 +106,6 @@ async def get_current_user(
         raise credentials_exception
     
     user = session.exec(select(User).where(User.email == username)).first()
-    if user is None:
-        raise credentials_exception
-    return user
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        # Ensure 'exp' is a number (timestamp)
-        if "exp" in payload and not isinstance(payload["exp"], (int, float)):
-            raise credentials_exception
-    except (JWTError, ValidationError): # ValidationError if token structure is wrong
-        raise credentials_exception
-
-    user = session.exec(select(User).where(User.email == email)).first()
     if user is None:
         raise credentials_exception
     return user
