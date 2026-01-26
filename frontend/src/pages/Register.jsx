@@ -17,9 +17,9 @@ const Register = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
 
-    setError(''); 
+    setError('');
     setSuccess('');
 
     if (password !== confirmPassword) {
@@ -33,17 +33,17 @@ const Register = () => {
         password,
       });
 
-      if (response.status === 201) { 
+      if (response.status === 201) {
         try {
           const mapRaw = localStorage.getItem('usernameEmailMap') || '{}';
           const map = JSON.parse(mapRaw);
           map[username] = email;
           localStorage.setItem('usernameEmailMap', JSON.stringify(map));
-        } catch {}
+        } catch { }
         setSuccess('Registration successful! Redirecting to login...');
         setTimeout(() => {
           navigate('/login');
-        }, 1500); 
+        }, 1500);
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -62,25 +62,32 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212]">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-md mx-auto bg-[#1A1A1A] p-8 rounded-lg">
-          <h1 className="text-3xl font-bold mb-6">Create Account</h1>
-          
-          {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
-          {success && <p className="text-green-500 mb-4 text-center">{success}</p>}
+      <div className="flex-grow flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8 bg-white p-10 rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100">
+          <div>
+            <h2 className="mt-2 text-center text-3xl font-extrabold text-slate-900 tracking-tight">
+              Create Account
+            </h2>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              Join WorkShop and start achieving your goals
+            </p>
+          </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          {error && <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">{error}</div>}
+          {success && <div className="p-3 rounded-lg bg-green-50 text-green-600 text-sm font-medium text-center border border-green-100">{success}</div>}
+
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="block text-sm font-medium mb-2">
+              <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1">
                 Username
               </label>
               <input
                 type="text"
                 id="username"
-                className="w-full p-3 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20"
+                className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
                 placeholder="Choose a username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -89,13 +96,13 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
                 Email
               </label>
               <input
                 type="email"
                 id="email"
-                className="w-full p-3 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20"
+                className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -104,14 +111,14 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
                 Password
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  className="w-full p-3 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20"
+                  className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
                   placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -120,7 +127,7 @@ const Register = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
@@ -128,14 +135,14 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
                 Confirm Password
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   id="confirmPassword"
-                  className="w-full p-3 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20"
+                  className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -144,17 +151,19 @@ const Register = () => {
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-3 bg-white text-black border border-transparent rounded-md font-bold hover:bg-gray-200 transition-colors"
-            >
-              Create Account
-            </button>
+            <div>
+              <button
+                type="submit"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5"
+              >
+                Create Account
+              </button>
+            </div>
           </form>
 
-          <p className="mt-4 text-center text-gray-400">
+          <p className="mt-4 text-center text-sm text-slate-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-white hover:underline">
+            <Link to="/login" className="font-medium text-primary hover:text-primary-dark transition-colors">
               Sign In
             </Link>
           </p>

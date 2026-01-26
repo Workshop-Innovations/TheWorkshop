@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 // Note: setActiveReward is not yet imported here, but you will need it later.
 // FIX: Added .js extension to resolve bundler path error
-import { getProgressData, saveProgressData, logPomodoro, logBreak, getTimerState, saveTimerState, clearTimerState } from '../services/progressService.js';
+import { getProgressData, saveProgressData, logPomodoro, logBreak, getTimerState, saveTimerState, clearTimerState, fetchCompletedSessions } from '../services/progressService.js';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,10 +43,10 @@ export const PomodoroProvider = ({ children }) => {
     const [userStats, setUserStats] = useState(DEFAULT_USER_STATS);
 
     const handleCompletion = useCallback((isSkip = false) => {
-        
+
         let nextMode = 'pomodoro';
         let newPomodoroCount = pomodoroCount;
-        
+
         let newUserStats = { ...userStats };
 
         if (mode === 'pomodoro') {
@@ -54,22 +54,22 @@ export const PomodoroProvider = ({ children }) => {
                 // 1. Log Pomodoro
                 logPomodoro(settings.pomodoro, settings.coinsPerPomodoro, pomodoroCount);
                 toast.success(`🎉 Well done! You've earned ${settings.coinsPerPomodoro} coins!`);
-                
+
                 newPomodoroCount++;
-                
+
                 // 2. Update Total Pomodoros in Stats
                 newUserStats.totalCompletedPomodoros += 1;
-                
+
                 // 3. Update Service and Local State
                 const currentProgress = getProgressData();
-                saveProgressData({ ...currentProgress, userStats: newUserStats }); 
-                
+                saveProgressData({ ...currentProgress, userStats: newUserStats });
+
                 setUserStats(newUserStats);
                 setPomodoroCount(newPomodoroCount);
             }
-            
+
             nextMode = newPomodoroCount % settings.pomodorosUntilLongBreak === 0 ? 'longBreak' : 'shortBreak';
-            
+
         } else {
             // Break completion logic
             if (mode === 'shortBreak') {
@@ -99,7 +99,7 @@ export const PomodoroProvider = ({ children }) => {
         setTime(newTime);
 
         const shouldAutoStart = (nextMode === 'pomodoro' && settings.autoStartPomodoros) ||
-                                 ((nextMode === 'shortBreak' || nextMode === 'longBreak') && settings.autoStartBreaks);
+            ((nextMode === 'shortBreak' || nextMode === 'longBreak') && settings.autoStartBreaks);
 
         if (shouldAutoStart) {
             setIsRunning(true);
@@ -112,7 +112,7 @@ export const PomodoroProvider = ({ children }) => {
         // Load Timer State
         const savedState = getTimerState();
         let shouldComplete = false;
-        
+
         if (savedState) {
             setMode(savedState.mode);
             setPomodoroCount(savedState.pomodoroCount);
@@ -124,7 +124,7 @@ export const PomodoroProvider = ({ children }) => {
                     setIsRunning(true);
                 } else {
                     // Timer expired while offline. Flag it for completion.
-                    shouldComplete = true; 
+                    shouldComplete = true;
                 }
             } else if (savedState.remainingTime) {
                 setTime(savedState.remainingTime);
@@ -134,24 +134,47 @@ export const PomodoroProvider = ({ children }) => {
 
         // FIX for Maximum update depth exceeded: Run completion logic after state checks.
         if (shouldComplete) {
-            handleCompletion(); 
+            handleCompletion();
             // Return early to ensure the stats loading doesn't interfere with the completion state update.
             return;
         }
-        
+
         // Load User Stats (Runs only if shouldComplete is false)
         try {
             const data = getProgressData();
             if (data && data.userStats) {
-                setUserStats(prevStats => ({ 
-                    ...DEFAULT_USER_STATS, 
-                    ...data.userStats 
+                // Initialize with local data first for speed
+                setUserStats(prevStats => ({
+                    ...DEFAULT_USER_STATS,
+                    ...data.userStats
                 }));
             }
+
+            // Sync with backend
+            fetchCompletedSessions().then(sessions => {
+                if (sessions && Array.isArray(sessions)) {
+                    // Calculate totals from backend logs
+                    const totalPoms = sessions.filter(s => s.session_type === 'focus' || s.session_type === 'pomodoro').length;
+
+                    setUserStats(prev => {
+                        const newStats = {
+                            ...prev,
+                            totalCompletedPomodoros: totalPoms
+                        };
+
+                        // Sync back to local storage
+                        const currentData = getProgressData();
+                        saveProgressData({ ...currentData, userStats: newStats });
+
+                        return newStats;
+                    });
+                }
+            }).catch(err => console.error("Failed to sync stats:", err));
+
         } catch (e) {
             console.error("Error loading progress data:", e);
         }
-    }, [handleCompletion]); 
+    }, [handleCompletion]);
 
     // 2. Timer Interval
     useEffect(() => {
@@ -167,7 +190,7 @@ export const PomodoroProvider = ({ children }) => {
     const handleStart = () => {
         setIsRunning(true);
         // FIX: Ensuring the saveTimerState object is correctly closed (syntax fix)
-        saveTimerState({ endTime: Date.now() + time * 1000, mode, pomodoroCount }); 
+        saveTimerState({ endTime: Date.now() + time * 1000, mode, pomodoroCount });
     };
 
     const handlePause = () => {

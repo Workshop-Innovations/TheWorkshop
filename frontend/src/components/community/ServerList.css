@@ -1,0 +1,152 @@
+.server-list {
+    width: 72px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 12px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    height: 100%;
+    border-right: 1px solid var(--border-color);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+    z-index: 30;
+}
+
+.server-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 16px;
+    position: relative;
+}
+
+.server-icon:hover {
+    border-radius: 16px;
+    background: var(--bg-accent);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.server-icon.active {
+    border-radius: 16px;
+    background: var(--bg-accent);
+    color: white;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--bg-accent);
+}
+
+/* Home Icon Special Styling */
+.server-icon.home-icon {
+    background: var(--bg-accent-light);
+    color: var(--bg-accent);
+}
+
+.server-icon.home-icon:hover,
+.server-icon.home-icon.active {
+    background: var(--bg-accent);
+    color: white;
+}
+
+.server-icon.home-icon svg {
+    fill: currentColor;
+    transition: fill 0.2s;
+}
+
+/* Add Server Button */
+.server-icon.add-server {
+    background: transparent;
+    border: 1px dashed var(--text-muted);
+    color: var(--text-muted);
+}
+
+.server-icon.add-server:hover {
+    border-color: var(--bg-accent);
+    color: var(--bg-accent);
+    background: var(--bg-accent-light);
+    border-radius: 50%;
+    transform: rotate(90deg);
+}
+
+.server-separator {
+    width: 32px;
+    height: 2px;
+    background: var(--border-color);
+    margin: 4px 0;
+    border-radius: 1px;
+}
+
+/* Tooltip */
+.server-icon::after {
+    content: attr(title);
+    position: absolute;
+    left: 64px;
+    background: #1e293b;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+    pointer-events: none;
+    z-index: 100;
+    transform: translateX(-10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.server-icon:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+/* Modal Styling for Light Theme */
+.modal-overlay {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background: white;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+}
+
+.modal-form h3 {
+    color: var(--text-primary);
+}
+
+.modal-tabs button {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+.modal-tabs button.active {
+    background: var(--bg-accent);
+    color: white;
+}
+
+.modal-form input {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.modal-form input:focus {
+    border-color: var(--bg-accent);
+    background: white;
+}

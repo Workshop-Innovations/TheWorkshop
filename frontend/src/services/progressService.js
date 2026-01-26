@@ -1,12 +1,12 @@
 // --- Global State for API Logging Guard ---
-let lastLoggedPomodoroCount = 0; 
+let lastLoggedPomodoroCount = 0;
 
 // 🎯 UPDATED FIX: Use Vite Environment Variables (import.meta.env)
 // The VITE_API_BASE_URL will be set by:
 // 1. .env.local (for local development)
 // 2. Render Environment Variables (for production deployment)
 // The fallback (||) ensures local development works even if the .env file is missing.
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'; 
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Helper function to retrieve the authentication token
 const getAuthToken = () => {
@@ -54,7 +54,7 @@ export const getProgressData = () => {
             };
         }
         // --- End Migration Logic ---
-        
+
         return parsedData;
 
     } catch (error) {
@@ -75,8 +75,8 @@ export const logPomodoro = async (minutes, coinsEarned = 10, currentCount) => {
         const authToken = getAuthToken();
         if (authToken) {
             const maxRetries = 3;
-            let delay = 1000; 
-            
+            let delay = 1000;
+
             for (let attempt = 0; attempt < maxRetries; attempt++) {
                 try {
                     // Uses the dynamically set API_BASE_URL
@@ -84,13 +84,13 @@ export const logPomodoro = async (minutes, coinsEarned = 10, currentCount) => {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                         body: JSON.stringify({
-                            mode: 'pomodoro', 
+                            mode: 'pomodoro',
                             duration: minutes * 60, // Duration in seconds
                             coinsEarned: coinsEarned,
                             completedAt: new Date().toISOString(),
                         }),
                     });
-            
+
                     if (response.ok) {
                         lastLoggedPomodoroCount = currentCount; // SUCCESS: Update the tracker
                         console.log(`Pomodoro #${currentCount} successfully logged to backend.`);
@@ -99,17 +99,17 @@ export const logPomodoro = async (minutes, coinsEarned = 10, currentCount) => {
                         // Retry on server errors (5xx)
                         if (response.status >= 500 && attempt < maxRetries - 1) {
                             await new Promise(resolve => setTimeout(resolve, delay));
-                            delay *= 2; 
+                            delay *= 2;
                         } else {
                             const errorData = await response.json().catch(() => ({ message: response.statusText }));
                             console.error('Failed to log session to backend:', errorData);
-                            break; 
+                            break;
                         }
                     }
                 } catch (error) {
                     if (attempt < maxRetries - 1) {
                         await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2; 
+                        delay *= 2;
                     } else {
                         console.error('Final attempt failed to log session:', error);
                     }
@@ -136,7 +136,7 @@ export const logPomodoro = async (minutes, coinsEarned = 10, currentCount) => {
         data.history[today].focusTime += minutes;
         data.coins += coinsEarned;
         // NEW: Update total completed pomodoros for reward tracking
-        data.userStats.totalCompletedPomodoros += 1; 
+        data.userStats.totalCompletedPomodoros += 1;
     }
 
     saveProgressData(data);
@@ -236,7 +236,7 @@ export const fetchCompletedSessions = async () => {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${authToken}`, 
+                'Authorization': `Bearer ${authToken}`,
             },
         });
 
@@ -246,7 +246,7 @@ export const fetchCompletedSessions = async () => {
         } else {
             console.error(`Failed to fetch sessions: ${response.statusText}`);
             // Fallback for failed fetch, perhaps returning local data?
-            return []; 
+            return [];
         }
     } catch (error) {
         console.error('Network error during session fetch:', error);
@@ -258,7 +258,7 @@ export const redeemReward = (reward) => {
     const data = getProgressData();
     if (data.coins >= reward.cost) {
         data.coins -= reward.cost;
-        const updatedRewards = data.rewards.map(r => 
+        const updatedRewards = data.rewards.map(r =>
             r.id === reward.id ? { ...r, redeemed: true, redeemedAt: new Date().toISOString() } : r
         );
         data.rewards = updatedRewards;

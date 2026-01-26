@@ -15,57 +15,65 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       <Navbar />
       <main className="container mx-auto px-4 pt-32 pb-24">
         <header className="mb-12 text-center">
-          <h1 className="text-5xl font-bold">Profile & Settings</h1>
-          <p className="text-gray-400 mt-2">Manage your account details and preferences.</p>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Profile & Settings</h1>
+          <p className="text-slate-500 mt-2 text-lg">Manage your account details and preferences.</p>
         </header>
 
-        <div className="max-w-2xl mx-auto bg-[#1A1A1A] p-8 rounded-lg shadow-lg mb-8 text-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
-              <FaUser className="text-3xl text-white/80" />
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 mb-8 text-center border border-slate-100">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center border-4 border-blue-100">
+              <FaUser className="text-4xl text-blue-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">{user.username}</h2>
-              <p className="text-gray-400 text-sm">{user.email}</p>
+              <h2 className="text-3xl font-bold text-slate-900">{user.username}</h2>
+              <p className="text-slate-400 font-medium">{user.email}</p>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Free Plan</span>
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Student</span>
             </div>
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto bg-[#1A1A1A] p-8 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-bold mb-6">Personal Information</h2>
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+          <h2 className="text-2xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">Personal Information</h2>
           <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <FaUser className="text-gray-400 text-xl" />
+            <div className="flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
+                <FaUser className="text-xl" />
+              </div>
               <div>
-                <p className="text-sm text-gray-400">Username</p>
-                <p className="text-lg">{user.username}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Username</p>
+                <p className="text-lg font-semibold text-slate-700">{user.username}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <FaEnvelope className="text-gray-400 text-xl" />
+            <div className="flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
+                <FaEnvelope className="text-xl" />
+              </div>
               <div>
-                <p className="text-sm text-gray-400">Email</p>
-                <p className="text-lg">{user.email}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Email</p>
+                <p className="text-lg font-semibold text-slate-700">{user.email}</p>
               </div>
             </div>
           </div>
-          <button className="mt-8 w-full py-3 bg-white text-black rounded-md font-bold hover:bg-gray-200 transition-colors">
+          <button className="mt-8 w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20">
             Edit Profile
           </button>
         </div>
 
-        <div className="max-w-2xl mx-auto bg-[#1A1A1A] p-8 rounded-lg shadow-lg mt-8">
-          <h2 className="text-2xl font-bold mb-6">Account Actions</h2>
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 mt-8 border border-slate-100">
+          <h2 className="text-2xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">Account Actions</h2>
           <div className="space-y-4">
-            <button className="w-full flex items-center justify-center gap-3 py-3 bg-blue-600 text-white rounded-md font-bold hover:bg-blue-700 transition-colors">
-              <FaGoogle />
+            <button className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-200 transition-all">
+              <FaGoogle className="text-blue-500" />
               <span>Sync with Google</span>
             </button>
-            <button className="w-full flex items-center justify-center gap-3 py-3 bg-red-600 text-white rounded-md font-bold hover:bg-red-700 transition-colors mt-4">
+            <button className="w-full flex items-center justify-center gap-3 py-4 bg-red-50 text-red-500 rounded-xl font-bold hover:bg-red-100 transition-colors mt-4">
               <FaTrash />
               <span>Delete Account</span>
             </button>

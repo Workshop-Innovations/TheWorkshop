@@ -1,128 +1,112 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaSignOutAlt } from 'react-icons/fa';
-const Navbar = ({ 
-    currentView = 'timer', // Default view to 'timer' for safety
-    setCurrentView = () => {}, // Default to a no-op function if not passed
-}) => {
-  const navigate = useNavigate(); 
 
-  // ADD: State to track authentication status
+const Navbar = () => {
+  const navigate = useNavigate();
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // ADD: Effect to check login status on mount and listen for localStorage changes
   useEffect(() => {
-    const checkLoginStatus = () => {
-      // NOTE: Using a mock access token check for demonstration
-      const token = localStorage.getItem('accessToken');
-      setIsLoggedIn(!!token); // Set true if token exists, false otherwise
+    // Scroll listener for floating effect
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
     };
 
-    // Initial check when component mounts
-    checkLoginStatus();
+    // Auth status check
+    const checkLoginStatus = () => {
+      const token = localStorage.getItem('accessToken');
+      setIsLoggedIn(!!token);
+    };
 
-    // Listen for storage events (e.g., login/logout from another tab)
+    window.addEventListener('scroll', handleScroll);
+    checkLoginStatus();
     window.addEventListener('storage', checkLoginStatus);
 
-    // Cleanup the event listener when component unmounts
     return () => {
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('storage', checkLoginStatus);
     };
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
-  // ADD: Logout function
   const handleLogout = () => {
-    localStorage.removeItem('accessToken'); // Clear the token
-    setIsLoggedIn(false); // Update local state
-    navigate('/login'); // Redirect to login page
-  };
-  
-  const motionProps = {
-    whileHover: { scale: 1.05 },
-    transition: { type: 'spring', stiffness: 400, damping: 10 },
+    localStorage.removeItem('accessToken');
+    setIsLoggedIn(false);
+    navigate('/login');
   };
 
   return (
-    <div className="w-full fixed top-0 left-0 z-50 bg-[#121212] border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav className="flex items-center justify-between h-16">
+    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 pointer-events-none flex justify-center ${isScrolled ? 'pt-4' : 'pt-0'}`}>
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className={`pointer-events-auto transition-all duration-500 ease-in-out
+          ${isScrolled
+            ? 'w-[90%] md:w-[80%] max-w-5xl bg-white/80 backdrop-blur-md rounded-full px-6 py-3 shadow-lg shadow-blue-900/5 border border-white/40'
+            : 'w-full bg-transparent px-6 py-4 border-b border-transparent'
+          }
+        `}
+      >
+        <div className={`max-w-7xl mx-auto flex items-center justify-between ${!isScrolled && 'px-4'}`}>
 
-          {/* --- START OF MAIN TITLE/NAV LINK --- */}
-          {isLoggedIn ? (
-            <div className="flex items-center gap-6">
-              {/* If logged in, the link goes to the main dashboard page */}
-              <Link to="/dashboard" className="text-3xl font-bold text-white">Dashboard</Link> 
+          {/* LOGO */}
+          <Link to={isLoggedIn ? "/dashboard" : "/"} className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-105 transition-transform">
+              W
             </div>
-          ) : ( 
-            <motion.div {...motionProps}>
-              <Link to={'/'} className="text-3xl font-bold">
-                WorkShop
-              </Link>
-            </motion.div>
-          )}
-          {/* --- END OF MAIN TITLE/NAV LINK --- */}
+            <span className={`text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 ${!isScrolled && 'text-slate-900'}`}>
+              WorkShop
+            </span>
+          </Link>
 
-        {isLoggedIn ? ( // Use isLoggedIn here
-          <div className="flex items-center gap-2 sm:gap-4">
-            <motion.button 
-              onClick={() => navigate('/profile')} 
-              {...motionProps}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base text-white border border-white/20 rounded-md hover:bg-white/5"
-            >
-              <FaUser />
-              <span className="hidden sm:inline">Profile</span>
-            </motion.button>
-            <motion.button 
-              onClick={handleLogout} // ADD: onClick handler
-              {...motionProps}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold border border-white/20 rounded-md hover:bg-white/5"
-            >
-              <FaSignOutAlt />
-              <span className="hidden sm:inline">Sign Out</span>
-            </motion.button>
-            <motion.div {...motionProps}>
-                <Link to="/materials" className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold border border-white/20 rounded-md hover:bg-white/5">
-                  Materials
+          {/* LINKS */}
+          <div className="flex items-center gap-2 md:gap-6">
+            {isLoggedIn ? (
+              <>
+                <NavLink to="/dashboard" label="Dashboard" />
+                <NavLink to="/past-papers" label="Papers" className="hidden sm:block" />
+                <NavLink to="/ai-tutor" label="Study Suite" className="hidden sm:block" />
+
+                <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
+
+                <button onClick={handleLogout} className="text-sm font-medium text-slate-500 hover:text-red-500 transition-colors">
+                  Sign Out
+                </button>
+                <Link to="/profile" className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary p-[2px]">
+                  <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-primary text-xs font-bold">
+                    ME
+                  </div>
                 </Link>
-              </motion.div>
-            {/* Keeping Feedback link under authenticated for now, consistent with original */}
-            <Link to="/feedback" className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold border border-white/20 rounded-md hover:bg-white/5">
-              Feedback
-            </Link>
+              </>
+            ) : (
+              <>
+                <div className="hidden md:flex items-center gap-6">
+                  <NavLink to="/pricing" label="Pricing" />
+                  <NavLink to="/login" label="Log In" />
+                </div>
+                <Link
+                  to="/register"
+                  className="px-5 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-full shadow-lg hover:bg-primary transition-all hover:-translate-y-0.5"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
-        ) : ( // If not logged in
-          <div className="flex items-center gap-2 sm:gap-4">
-            <motion.div {...motionProps}>
-              <Link 
-                to="/login" 
-                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold border border-white/20 rounded-md hover:bg-white/5"
-              >
-                Login
-              </Link>
-            </motion.div>
-
-            <motion.div {...motionProps}>
-              <Link 
-                to="/register" 
-                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold bg-white text-black border border-transparent rounded-md hover:bg-gray-200"
-              >
-                Register
-              </Link>
-            </motion.div>
-
-            {/* Keeping Feedback link under unauthenticated for now, consistent with original */}
-            <motion.div {...motionProps}>
-              <Link to="/feedback" className="px-3 sm:px-4 py-2 text-sm sm:text-base font-semibold border border-white/20 rounded-md hover:bg-white/5">
-                Feedback
-              </Link>
-            </motion.div>
-          </div>
-        )}
-        </nav>
-      </div>
+        </div>
+      </motion.nav>
     </div>
-  )
-}
+  );
+};
+
+const NavLink = ({ to, label, className }) => (
+  <Link
+    to={to}
+    className={`text-sm font-medium text-slate-600 hover:text-primary transition-colors ${className}`}
+  >
+    {label}
+  </Link>
+);
 
 export default Navbar;

@@ -17,12 +17,24 @@ from sqlmodel import Field, Session, SQLModel, create_engine, select
 
 # --- IMPORTANT: Ensure you have a 'schemas.py' file in the same directory (app/)
 from .schemas import (
+    UserCreate, UserLogin, UserResponse, Token, User,
+    Task, TaskCreate, TaskUpdate, TaskResponse,
+    SessionLog, SessionLogCreate, SessionLogResponse,
+    # Community Models
+    Community, CommunityMember, Channel, Message, MessageVote,
+    CommunityCreate, CommunityResponse, CommunityMemberResponse,
+    ChannelCreate, ChannelResponse, MessageCreate, MessageResponse,
+    # DM Models
+    DMConversation, DMMessage,
+    DMConversationResponse, DMMessageCreate, DMMessageResponse
     UserCreate, UserLogin, UserResponse, Token, Message, User,
     Task, TaskCreate, TaskUpdate, TaskResponse, # Existing Task imports
     # NEW: Pomodoro Session Log Models
     SessionLog, SessionLogCreate, SessionLogResponse 
 )
 
+# Import new routers
+from .routes import community, websocket, flashcards, tutor, notes, reviews
 
 # Load environment variables from .env file
 load_dotenv()
@@ -91,6 +103,23 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    user = session.exec(select(User).where(User.email == username)).first()
+    if user is None:
+        raise credentials_exception
+    return user
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
@@ -131,6 +160,15 @@ def on_startup():
     print("Application startup - Creating database tables...")
     create_db_and_tables()
     print("Database tables created/checked.")
+    print("Flashcards router loaded.")
+
+# --- Include New Routers ---
+app.include_router(community.router)
+app.include_router(websocket.router)
+app.include_router(flashcards.router)
+app.include_router(tutor.router)
+app.include_router(notes.router)
+app.include_router(reviews.router)
 
 # --- API Endpoints (Routes) ---
 

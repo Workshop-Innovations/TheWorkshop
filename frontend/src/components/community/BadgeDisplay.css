@@ -1,0 +1,72 @@
+.badge-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.badge-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+    cursor: default;
+}
+
+.badge-item:hover {
+    transform: scale(1.1);
+}
+
+.badge-icon {
+    font-size: 1rem;
+}
+
+.badge-name {
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.badge-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Size variants */
+.badge-sm .badge-item {
+    padding: 2px 6px;
+}
+
+.badge-sm .badge-icon {
+    font-size: 0.8rem;
+}
+
+.badge-md .badge-item {
+    padding: 4px 8px;
+}
+
+.badge-md .badge-icon {
+    font-size: 1rem;
+}
+
+.badge-lg .badge-item {
+    padding: 6px 12px;
+}
+
+.badge-lg .badge-icon {
+    font-size: 1.25rem;
+}
+
+.badge-lg .badge-name {
+    font-size: 0.85rem;
+}

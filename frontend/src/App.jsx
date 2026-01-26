@@ -4,6 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PomodoroProvider, usePomodoro } from './context/PomodoroContext';
 import { AuthProvider } from './context/AuthContext';
+import { CommunityProvider } from './context/CommunityContext';
 import MinimizedPomodoro from './components/MinimizedPomodoro';
 import PrivateRoute from './components/PrivateRoute';
 import Landing from './pages/Landing';
@@ -16,8 +17,13 @@ import Register from './pages/Register';
 import ComingSoon from './pages/ComingSoon';
 import Feedback from './pages/Feedback';
 import Progress from './pages/Progress';
-import Profile from './pages/Profile'; //
+import Profile from './pages/Profile';
 import Materials from './pages/Materials';
+import CommunityPage from './pages/CommunityPage';
+import PastPapers from './pages/PastPapers';
+import AITutor from './pages/AITutor';
+import Community from './pages/Community';
+import Pricing from './pages/Pricing';
 import './App.css';
 
 const AppContent = () => {
@@ -26,11 +32,12 @@ const AppContent = () => {
   const showMinimizedTimer = isRunning && location.pathname !== '/pomodoro';
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white">
+    <div className="min-h-screen bg-background-secondary text-slate-900 font-sans selection:bg-primary-light selection:text-white">
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/rewards" element={<Store />} />
         <Route path="/coming-soon" element={<ComingSoon />} />
         <Route path="/feedback" element={<Feedback />} />
@@ -86,6 +93,32 @@ const AppContent = () => {
             </PrivateRoute>
           }
         />
+
+        {/* Education Pivot Routes */}
+        <Route
+          path="/past-papers"
+          element={
+            <PrivateRoute>
+              <PastPapers />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/ai-tutor"
+          element={
+            <PrivateRoute>
+              <AITutor />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <PrivateRoute>
+              <Community />
+            </PrivateRoute>
+          }
+        />
       </Routes>
 
       <AnimatePresence>
@@ -100,7 +133,9 @@ function App() {
     <Router>
       <AuthProvider>
         <PomodoroProvider>
-          <AppContent />
+          <CommunityProvider>
+            <AppContent />
+          </CommunityProvider>
         </PomodoroProvider>
       </AuthProvider>
 
