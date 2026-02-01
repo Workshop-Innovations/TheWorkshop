@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { FaRobot, FaPaperPlane, FaUpload, FaLightbulb, FaListAlt, FaFileAlt, FaSpinner, FaTimes, FaCheck, FaUndo, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { API_BASE_URL } from '../services/progressService';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = API_BASE_URL;
 
 const AITutor = () => {
     const [documents, setDocuments] = useState([]);

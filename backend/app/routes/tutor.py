@@ -126,7 +126,7 @@ async def chat_with_tutor(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
     
     context_prompt = (
         f"You are a helpful AI Tutor. You are answering questions based on the following document context. "
@@ -162,7 +162,7 @@ async def generate_quiz(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
     
     prompt = (
         f"Based on the following document content, generate exactly 10 multiple-choice quiz questions. "
@@ -206,7 +206,7 @@ async def generate_flashcards(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
     
     prompt = (
         f"Based on the following document content, generate exactly 15 flashcards for studying. "

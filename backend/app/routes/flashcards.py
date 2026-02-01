@@ -97,7 +97,7 @@ async def generate_flashcards_from_file(
         uploaded_file = genai.upload_file(tmp_path, mime_type=file.content_type)
         
         # Configure model
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
         prompt = (
             "Generate exactly 20 question-and-answer pairs based on the content of the attached file. "

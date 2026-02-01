@@ -75,8 +75,9 @@ const Landing = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <motion.div
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              animate={{ y: [0, -15, 0] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              style={{ willChange: 'transform' }}
               className="absolute z-20 w-72 bg-white rounded-2xl shadow-2xl p-6 border border-slate-100 top-10 left-0 lg:left-10 rotate-[-6deg]"
             >
               <div className="flex items-center gap-4 mb-6">
@@ -99,8 +100,9 @@ const Landing = () => {
             </motion.div>
 
             <motion.div
-              animate={{ y: [0, 20, 0] }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              animate={{ y: [0, 15, 0] }}
+              transition={{ duration: 9, repeat: Infinity, ease: "linear", delay: 0.5 }}
+              style={{ willChange: 'transform' }}
               className="absolute z-10 w-72 bg-slate-900 rounded-2xl shadow-2xl p-6 text-white border border-slate-700 top-20 right-0 lg:right-10 rotate-[6deg]"
             >
               <div className="flex items-center gap-4 mb-6">

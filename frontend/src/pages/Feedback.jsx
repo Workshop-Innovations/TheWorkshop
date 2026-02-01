@@ -1,12 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaBug } from 'react-icons/fa';
+import Navbar from '../components/Navbar';
 
 const Feedback = () => {
   const supportEmail = 'support@workshopai.com';
 
   return (
     <div className="min-h-screen bg-[#121212] text-white pt-24 pb-16">
+      <Navbar />
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -14,8 +16,8 @@ const Feedback = () => {
           transition={{ duration: 0.5 }}
           className="max-w-2xl mx-auto"
         >
-          <h1 className="text-3xl font-bold mb-8">Feedback & Support</h1>
-          
+          <h1 className="text-3xl font-bold mb-8">Feedback &amp; Support</h1>
+
           <div className="space-y-8">
             <motion.div
               whileHover={{ scale: 1.02 }}
@@ -35,8 +37,6 @@ const Feedback = () => {
                 Send Feedback Email
               </a>
             </motion.div>
-
-
 
             <motion.div
               whileHover={{ scale: 1.02 }}
