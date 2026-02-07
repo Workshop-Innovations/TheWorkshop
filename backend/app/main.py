@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Dict
 import os
 from dotenv import load_dotenv
+
+# Load environment variables from .env file immediately
+load_dotenv()
+
 from uuid import uuid4
 from datetime import datetime, timedelta, timezone 
 from fastapi.security import OAuth2PasswordBearer
@@ -10,10 +14,11 @@ from jose import JWTError, jwt
 from pydantic import ValidationError, BaseModel, EmailStr
 
 # Password hashing
-from passlib.context import CryptContext
+
 
 # SQLModel imports
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from sqlmodel import Field, Session, SQLModel, select
+from .database import engine, create_db_and_tables, get_session
 
 # --- IMPORTANT: Ensure you have a 'schemas.py' file in the same directory (app/)
 from .schemas import (
@@ -30,7 +35,7 @@ from .schemas import (
 )
 
 # Import new routers
-from .routes import community, websocket, flashcards, tutor, notes, reviews
+from .routes import community, websocket, flashcards, tutor, notes, reviews, subjects, users, system
 
 # Load environment variables from .env file
 load_dotenv()
@@ -49,17 +54,13 @@ class Settings(BaseModel):
 settings = Settings()
 
 # --- Password Hashing Context ---
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") # Moved to .utils
 
 # --- OAuth2PasswordBearer for token extraction ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
 # --- Password Utility Functions ---
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
+from .utils import verify_password, get_password_hash
 
 # --- JWT Utility Functions ---
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -73,19 +74,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 # --- Database Engine and Session Setup ---
-# Use connect_args for SQLite to allow multiple threads to access the database
-# Only apply to SQLite, which is for local development
-connect_args = {"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
-engine = create_engine(settings.DATABASE_URL, echo=True, connect_args=connect_args)
-
-def create_db_and_tables():
-    # This function creates all tables defined as SQLModel(table=True)
-    SQLModel.metadata.create_all(engine)
-
-# Dependency to get a database session
-def get_session():
-    with Session(engine) as session:
-        yield session
+# Imported from database.py to avoid circular imports
 
 # --- Dependency to get the current user from the token ---
 async def get_current_user(
@@ -105,7 +94,7 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
     
-    user = session.exec(select(User).where(User.email == username)).first()
+    user = session.exec(select(User).where(User.username == username)).first()
     if user is None:
         raise credentials_exception
     return user
@@ -138,6 +127,8 @@ def on_startup():
     print("Database tables created/checked.")
     print("Flashcards router loaded.")
 
+from fastapi.staticfiles import StaticFiles
+
 # --- Include New Routers ---
 app.include_router(community.router)
 app.include_router(websocket.router)
@@ -145,6 +136,12 @@ app.include_router(flashcards.router)
 app.include_router(tutor.router)
 app.include_router(notes.router)
 app.include_router(reviews.router)
+app.include_router(subjects.router)
+app.include_router(users.router) # Include users router
+app.include_router(system.router) # Include system router for KeepAlive
+
+# --- Mount Static Files ---
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # --- API Endpoints (Routes) ---
 
@@ -161,19 +158,27 @@ async def get_simple_message():
 @app.post("/api/v1/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, summary="Register a new user")
 async def register_user(user_data: UserCreate, session: Session = Depends(get_session)):
     """
-    Registers a new user with the provided email and password, storing in the database.
+    Registers a new user with the provided username, email and password, storing in the database.
     """
-    existing_user = session.exec(select(User).where(User.email == user_data.email)).first()
-    if existing_user:
+    existing_email = session.exec(select(User).where(User.email == user_data.email)).first()
+    if existing_email:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Email already registered"
+        )
+        
+    existing_username = session.exec(select(User).where(User.username == user_data.username)).first()
+    if existing_username:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username already taken"
         )
 
     hashed_password = get_password_hash(user_data.password)
 
     db_user = User(
         id=str(uuid4()), # Generate a unique ID for the user
+        username=user_data.username,
         email=user_data.email,
         hashed_password=hashed_password,
         is_active=True # Default is_active to True
@@ -183,19 +188,22 @@ async def register_user(user_data: UserCreate, session: Session = Depends(get_se
     session.commit()
     session.refresh(db_user)
 
-    return UserResponse(id=db_user.id, email=db_user.email, is_active=db_user.is_active)
+    return db_user
 
 @app.post("/api/v1/auth/login", response_model=Token, summary="Login user and get access token")
 async def login_for_access_token(user_data: UserLogin, session: Session = Depends(get_session)):
     """
-    Authenticates a user with email and password from the database, returning an access token upon success.
+    Authenticates a user with username and password, returning an access token upon success.
     """
-    user = session.exec(select(User).where(User.email == user_data.email)).first()
+    # Allow login with either username or email (flexible)
+    user = session.exec(select(User).where(
+        (User.username == user_data.username) | (User.email == user_data.username)
+    )).first()
 
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -206,8 +214,9 @@ async def login_for_access_token(user_data: UserLogin, session: Session = Depend
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # Store username in the subject
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 

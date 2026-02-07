@@ -25,29 +25,16 @@ const Login = () => {
     setSuccess('');
 
     try {
-      const mapRaw = localStorage.getItem('usernameEmailMap') || '{}';
-      let mappedEmail;
-      try {
-        const map = JSON.parse(mapRaw);
-        mappedEmail = map[username];
-      } catch {
-        mappedEmail = undefined;
-      }
-
-      const resolvedEmail = mappedEmail || (username.includes('@') ? username : null);
-      if (!resolvedEmail) {
-        setError('No account found for that username. Please register.');
-        return;
-      }
-
+      // Send username (or email, backend handles both) directly
       const response = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, {
-        email: resolvedEmail,
+        username: username, // field is named "username" in backend schema
         password,
       });
 
       if (response.data.access_token) {
-        localStorage.setItem('userEmail', resolvedEmail);
-        await login(response.data.access_token, username);
+        // We can store username/email if needed, but token is key
+        localStorage.setItem('userEmail', username);
+        await login(response.data.access_token);
       } else {
         setError('Login response missing access token.');
       }

@@ -7,6 +7,8 @@ import { AuthProvider } from './context/AuthContext';
 import { CommunityProvider } from './context/CommunityContext';
 import MinimizedPomodoro from './components/MinimizedPomodoro';
 import PrivateRoute from './components/PrivateRoute';
+import AdminRoute from './components/AdminRoute'; // Import AdminRoute
+import Navbar from './components/Navbar';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Pomodoro from './pages/Pomodoro';
@@ -23,16 +25,20 @@ import CommunityPage from './pages/CommunityPage';
 import PastPapers from './pages/PastPapers';
 import AITutor from './pages/AITutor';
 import Community from './pages/Community';
+import AdminDashboard from './pages/AdminDashboard'; // Import AdminDashboard
+import SubjectSummary from './pages/SubjectSummary';
 import Pricing from './pages/Pricing';
-import './App.css';
+import PaperViewer from './pages/PaperViewer';
+
+import ScrollToTop from './components/ScrollToTop';
 
 const AppContent = () => {
-  const location = useLocation();
   const { isRunning } = usePomodoro();
   const showMinimizedTimer = isRunning && location.pathname !== '/pomodoro';
 
   return (
     <div className="min-h-screen bg-background-secondary text-slate-900 font-sans selection:bg-primary-light selection:text-white">
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -104,6 +110,14 @@ const AppContent = () => {
           }
         />
         <Route
+          path="/papers/:paperId"
+          element={
+            <PrivateRoute>
+              <PaperViewer />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/ai-tutor"
           element={
             <PrivateRoute>
@@ -116,6 +130,28 @@ const AppContent = () => {
           element={
             <PrivateRoute>
               <Community />
+            </PrivateRoute>
+          }
+        />
+        import AdminRoute from './components/AdminRoute';
+        import AdminDashboard from './pages/AdminDashboard';
+
+        // ... (imports)
+
+        // ... inside Routes
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/subjects/:subjectId"
+          element={
+            <PrivateRoute>
+              <SubjectSummary />
             </PrivateRoute>
           }
         />

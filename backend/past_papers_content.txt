@@ -1,0 +1,388 @@
+Mathematics Past Paper 2024
+Year: 2024
+Paper Type: Paper 1 (Objective) / Paper 2 (Theory)
+Time Allowed: 3 hours
+Total Marks: 100
+Instructions: Answer all questions in Section A and Section B. Show all working clearly for theory questions. Use $\pi = 22/7$ where necessary.
+
+SECTION A - OBJECTIVE QUESTIONS (1–50)
+
+1. Multiply $3.4 \times 10^{-5}$ by $7.1 \times 10^{8}$ and leave the answer in standard form.
+A. $2.414 \times 10^{2}$
+B. $2.414 \times 10^{3}$
+C. $2.414 \times 10^{4}$
+D. $2.414 \times 10^{5}$
+
+2. Given $P = \{p : 1 < p < 20\}$ and $R = \{r : 0 \le r \le 25, r \text{ is a multiple of } 4\}$, find $P \cap R$.
+A. $\{4, 8, 10, 16\}$
+B. $\{4, 8, 12, 16\}$
+C. $\{4, 8, 12, 16, 20\}$
+D. $\{4, 8, 12, 16, 20, 24\}$
+
+3. The first term of an arithmetic progression is 2 and the last term is 29. If the common difference is 3, how many terms are in the progression?
+A. 8
+B. 9
+C. 10
+D. 11
+
+4. Express in index form: $\log_{a} x + \log_{a} y = 3$.
+A. $x + y = 3$
+B. $xy = 3$
+C. $xy = a^{3}$
+D. $x + y = a^{3}$
+
+5. Simplify: $(2p - q)^{2} - (p + q)^{2}$.
+A. $3p(p - 2q)$
+B. $2p(p - 3q)$
+C. $3p(2p - q)$
+D. $2p(3p - q)$
+
+6. If $(3 - 4\sqrt{2})(1 + 3\sqrt{2}) = a + b\sqrt{2}$, find $b$.
+A. -5
+B. 5
+C. -21
+D. 21
+
+7. $\$1,250$ yielded $\$2,031.25$ at $12.5\%$ simple interest. Find the number of years.
+A. 2
+B. 3
+C. 4
+D. 5
+
+8. If $\frac{\log_{2}(x - 1)}{3} = 5$, find $x$.
+A. 8
+B. 16
+C. 64
+D. 122
+
+9. The population of a town increases by $3\%$ every year. In the year 2000, the population was 3000. Find the population in 2003.
+A. 3278
+B. 3127
+C. 3556
+D. 3618
+
+10. A trader gave $₦540$ instead of $₦570$. Calculate the percentage error.
+A. $5\frac{5}{19}\%$
+B. $5\frac{5}{9}\%$
+C. $5\frac{7}{19}\%$
+D. $5\frac{7}{9}\%$
+
+11. The interior angle of a regular polygon is $168^{\circ}$. Find the number of sides.
+A. 24
+B. 30
+C. 15
+D. 12
+
+12. If $3x - 2y = -5$ and $x + y = 10$, find $x$ and $y$. [Options missing in original, answers are usually specific pairs]
+
+13. A variable $W$ varies partly as $M$ and partly inversely as $P$. Which relation is correct?
+A. $W = k_{1}M / k_{2}P$
+B. $W = (k_{1} + k_{2})M / P$
+C. $W = k_{1}M + k_{2}/P$
+D. $W = (k_{1} + k_{2})M + P$
+
+14. A cylindrical metallic barrel of height $2.5 \text{ m}$ and radius $0.245 \text{ m}$ is closed at one end. Find the Total Surface Area ($\pi = 22/7$).
+A. $2.1 \text{ m}^{2}$
+B. $3.5 \text{ m}^{2}$
+C. $4.0 \text{ m}^{2}$
+D. $9.4 \text{ m}^{2}$
+
+15. Make $R$ the subject: $V = \pi l(R^{2} - r^{2})$.
+A. $R = \sqrt{V/\pi l + r^{2}}$
+B. $R = \sqrt{V/\pi l - r^{2}}$
+C. $R = \sqrt{V - \pi lr^{2}}$
+D. $R = \sqrt{V + \pi lr^{2}}$
+
+16. $m =$ Edna is respectful, $n =$ Edna is brilliant. $m \Rightarrow n$.
+A. $\neg n \Rightarrow \neg m$
+B. $\neg m \Rightarrow \neg n$
+C. $n \Rightarrow \neg m$
+D. $m \Rightarrow n$
+
+17. A number is added to the numerator and denominator of $1/8$ to get $1/2$. Find the number.
+A. 3
+B. 4
+C. 5
+D. 6
+
+18. 60 oranges shared in the ratio 5:3:7. How many for Justina (the second person)?
+A. 16
+B. 12
+C. 20
+D. 28
+
+19. Quadratic roots are $2/3$ and -1. Find the equation.
+A. $3x^{2} - x - 2 = 0$
+B. $3x^{2} + x + 2 = 0$
+C. $3x^{2} + x - 2 = 0$
+D. $3x^{2} + x - 1 = 0$
+
+20. A rod of $44 \text{ m}$ is bent into a rectangle with ratio 7:4. Find the breadth.
+A. $8 \text{ m}$
+B. $14 \text{ m}$
+C. $16 \text{ m}$
+D. $24 \text{ m}$
+
+21. In the diagram, $ML$ and $KN$ intersect at $X$. $MN = 12 \text{ cm}$, $MX = 10 \text{ cm}$, $KN = 9 \text{ cm}$. If the area of $\triangle MXN = 16 \text{ cm}^{2}$, calculate the area of $\triangle LXK$.
+A. $9 \text{ cm}^{2}$
+B. $8 \text{ cm}^{2}$
+C. $10 \text{ cm}^{2}$
+D. $12 \text{ cm}^{2}$
+
+22. A ladder $15 \text{ m}$ long leans against a vertical pole, making an angle of $72^{\circ}$ with the horizontal. Find the distance between the foot of the ladder and the pole (to 1 decimal place).
+A. $15.8 \text{ m}$
+B. $14.3 \text{ m}$
+C. $4.9 \text{ m}$
+D. $4.6 \text{ m}$
+
+23. In the diagram, $O$ is the centre of the circle. If $OA = 25 \text{ cm}$ and $AB = 40 \text{ cm}$, find $OH$.
+A. $15 \text{ cm}$
+B. $20 \text{ cm}$
+C. $25 \text{ cm}$
+D. $30 \text{ cm}$
+
+24. A car valued at $\$600,000$ depreciates by $10\%$ each year. Find the value at the end of 2 years.
+A. $\$120,000$
+B. $\$480,000$
+C. $\$486,000$
+D. $\$540,000$
+
+25. Given that $P$ is $25 \text{ m}$ on a bearing of $330^{\circ}$ from $Q$, how far south of $P$ is $Q$?
+A. $25.2 \text{ m}$
+B. $21.7 \text{ m}$
+C. $19.8 \text{ m}$
+D. $18.5 \text{ m}$
+
+26. The length and breadth of a cuboid are $15 \text{ cm}$ and $8 \text{ cm}$ respectively. If the volume is $1560 \text{ cm}^{3}$, calculate the total surface area.
+A. $976 \text{ cm}^{2}$
+B. $838 \text{ cm}^{2}$
+C. $792 \text{ cm}^{2}$
+D. $746 \text{ cm}^{2}$
+
+27. The number $1621$ was subtracted from $6244$ in base $x$. If the result was $4323$, find $x$.
+A. 7
+B. 8
+C. 9
+D. 10
+
+28. Factorize completely: $27x^{2} - 48y^{2}$.
+A. $3(3x + 4y)(3x - 4y)$
+B. $3(3x + 4y)(3x + 4y)$
+C. $3(9x - 16y)(9x + 16y)$
+D. $3(9x - 16y)(9x - 16y)$
+
+29. For what values of $x$ is $\frac{x-3}{4} + \frac{x+1}{8} \ge 2$?
+A. $x \ge 5$
+B. $x \ge 6$
+C. $x \ge 7$
+D. $x \ge 8$
+
+30. In the diagram, $\angle SQR = 52^{\circ}$ and $\angle PRT = 16^{\circ}$. Find the value of angle $y$.
+A. $64^{\circ}$
+B. $68^{\circ}$
+C. $112^{\circ}$
+D. $128^{\circ}$
+
+31. In the diagram, $JKL$ is tangent at $K$, $\angle LKG = 38^{\circ}$, $\angle KIB = 87^{\circ}$. Find $\angle KLG$.
+A. $93^{\circ}$
+B. $55^{\circ}$
+C. $42^{\circ}$
+D. $23^{\circ}$
+
+32. A cone and cylinder have equal volume. The base radius of the cone is twice that of the cylinder. Find the ratio of cylinder height to cone height.
+A. 5:4
+B. 4:3
+C. 3:2
+D. 3:4
+
+33. Find, to the nearest whole number, the value of $h$ in the diagram.
+A. $15 \text{ m}$
+B. $22 \text{ m}$
+C. $23 \text{ m}$
+D. $18 \text{ m}$
+
+34. The gradient of the line joining $P(2, -8)$ and $Q(1, y)$ is -4. Find $y$.
+A. 2
+B. 4
+C. -4
+D. -3
+
+35. In the diagram, $\angle WYZ = 44^{\circ}$ and $\angle WXY = 50^{\circ}$. Find $\angle WTX$.
+A. $65^{\circ}$
+B. $68^{\circ}$
+C. $86^{\circ}$
+D. $90^{\circ}$
+
+36. The perimeter of a rectangular garden is $90 \text{ m}$. If the width is $7 \text{ m}$ less than the length, find the length.
+A. $19 \text{ m}$
+B. $23 \text{ m}$
+C. $24 \text{ m}$
+D. $26 \text{ m}$
+
+37. Four angles of a hexagon sum to $420^{\circ}$. If the remaining angles are equal, find each.
+A. $60^{\circ}$
+B. $100^{\circ}$
+C. $120^{\circ}$
+D. $150^{\circ}$
+
+38. Find the value of $x$ in the diagram.
+A. $120^{\circ}$
+B. $100^{\circ}$
+C. $60^{\circ}$
+D. $150^{\circ}$
+
+39. The masses of club members are 59, 44, 53, 49, 57, 40, 48, 50 kg. Find the mean.
+A. 44 kg
+B. 50 kg
+C. 40 kg
+D. 53 kg
+
+40. Using the same data, calculate the variance.
+A. 35
+B. 36
+C. 40
+D. 50
+
+41. Two opposite sides of a rectangle are $(5x + 3) \text{ m}$ and $(2x + 9) \text{ m}$. Adjacent side $= (6x - 7) \text{ m}$. Find the area.
+A. 45
+B. 65
+C. 125
+D. 165
+
+42. A die is tossed once. Find the probability of getting a prime number.
+A. $1/2$
+B. $1/6$
+C. $1/3$
+D. $2/3$
+
+43. The area of a sector of a circle with radius $7 \text{ cm}$ is $51.3 \text{ cm}^{2}$. Find the angle (nearest degree).
+A. $60^{\circ}$
+B. $120^{\circ}$
+C. $150^{\circ}$
+D. $150^{\circ}$
+
+44. A cliff is $87 \text{ m}$ high. A boat is $22 \text{ m}$ from the cliff. Find the angle of depression (nearest degree).
+A. $76^{\circ}$
+B. $64^{\circ}$
+C. $36^{\circ}$
+D. $24^{\circ}$
+
+45. In the diagram, $TU$ is tangent at $P$. $\angle PTS = 44^{\circ}, \angle SQP = 35^{\circ}$. Find $\angle PST$.
+A. $101^{\circ}$
+B. $125^{\circ}$
+C. $130^{\circ}$
+D. $135^{\circ}$
+
+46. Probability Amaka passes $= 3/7$. Probability Bala passes $= 4/9$. Probability both pass?
+A. $2/21$
+B. $4/21$
+C. $5/21$
+D. $9/21$
+
+47. Which point lies on the line $3x - 8y = 11$?
+A. (1, 1)
+B. (1, -1)
+C. (-1, 1)
+D. (-1, -1)
+
+48. Find the range of the set: 28, 29, 39, 38, 33, 37, 26, 20, 15, 25.
+A. 22
+B. 24
+C. 25
+D. 27
+
+49. The 4th and 8th terms of an AP are 16 and 40. Find the common difference.
+A. -6
+B. 6
+C. -2
+D. 2
+
+50. For which values of $y$ is $\frac{y+2}{8y^{2}-10y+3}$ not defined?
+A. $3/4, 1/2$
+B. $-3/4, -1/2$
+C. $3/4, 1/2$
+D. $3/4, -1$
+
+SECTION B - THEORY QUESTIONS (51–63)
+Answer all questions. Show all steps clearly.
+
+51. The time taken to buy fuel at a filling station varies directly as the number of vehicles $V$ in a queue and inversely as the number of pumps $P$ available at the station. In a station with 5 pumps, it took 10 minutes to fuel 20 vehicles.
+a) Determine the relationship between $t, P,$ and $V$. Represent the solution as $t = aV/P$, where $a$ is an integer. Find $a$.
+b) Calculate the time it takes to fuel 50 vehicles at a station with 2 pumps.
+c) Find the number of pumps required to fuel 40 vehicles in 20 minutes.
+
+52. A car traveled a distance of $(2x + 13) \text{ km}$ at $67.5 \text{ km/h}$ and $(5x - 20) \text{ km}$ at $72 \text{ km/h}$. If the total time for the journey was 90 minutes, find the value of $x$.
+
+53. A circular floor is to be tiled with ceramic tiles each of side $40 \text{ cm}$. If the perimeter of the floor is $66 \text{ m}$, calculate, to the nearest whole number, the number of tiles required to completely tile the floor. (Take $\pi = 22/7$)
+
+54. In the diagram, there is a circle with center $O$. Quadrilateral $OBCD$ is a rhombus such that $\angle ADO = \angle OBA = y$ and $\angle BAD = t$.
+a) Find the value of $t$.
+b) Find the value of $y$.
+c) Calculate $\angle ADC$.
+
+55. A basket contains 3 gold-plated marbles, 4 diamond marbles, and some silver marbles, all of the same size and shape. Two marbles are drawn one after the other without replacement. If the probability that both marbles are silver is $1/15$, find the number of silver marbles.
+
+56. Given that $(x + 2), (4x + 3), (7x + 24)$ are consecutive terms of a geometric progression (G.P.):
+a) Find the value of $x$. Represent the answer as $a, b, c, d$, where $a$ is negative and $b, c, d$ are positive integers.
+b) Determine the common ratio of the G.P.
+
+57. The ages of 20 children in a household are shown below:
+| Age | 5 | 6 | 7 | 8 | 9 | 10 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Frequency | 2 | $2x - 1$ | $y + 2$ | 4 | 2 | $y - 1$ |
+Given that $x : y = 1 : 2$.
+a) Find the values of $x$ and $y$.
+b) Calculate the mean age of the children. Give your answer as a decimal number.
+
+58. Two observers, Abu and Badu, $46 \text{ m}$ apart, observe a bird on a vertical pole from the same side. The angles of elevation of the bird from Abu's and Badu's eyes are $40^{\circ}$ and $48^{\circ}$, respectively. Assume Abu and Badu are on the same horizontal line.
+a) Illustrate the situation in a diagram.
+b) Calculate, correct to one decimal place, the height of the pole.
+
+59. The diameter of a circle with center $O$ is $26 \text{ cm}$. A chord $PQ$ is drawn such that it is $5 \text{ cm}$ from $O$.
+a) Calculate, to the nearest whole number, $\angle POQ$.
+b) Find the area of the minor segment formed by the chord $PQ$. (Take $\pi = 22/7$)
+
+60. (a) In a man's will, he gave $2/5$ of the farm to his wife and $1/3$ of what was left to the family. The rest of the farm was shared among three children in the ratio 3:5:2. The child with the least share received 8 acres.
+(i) Find the total number of acres the man left.
+(ii) Find the number of acres the wife received.
+(b) The price of a Television set is $\$1,600$. It can be purchased with a deposit of $\$400$, the remainder paid in 12 monthly installments at $25\%$ per annum simple interest. Find the total cost if purchased by installment.
+
+61. a) Find the equation of the line passing through the origin and the intersection of the lines $x + 2y = 7$ and $x - y = 4$. Represent as $x + ay = 0$, where $a$ is an integer.
+b) The ratio of an interior angle to an exterior angle of a regular polygon is 4:1. Find:
+(i) the exterior angle
+(ii) the number of sides
+(iii) the sum of the interior angles
+
+62. a) In the diagram, $PR$ is tangent to the circle at $Q$, $\angle POQ = 56^{\circ}$. $PO$ intersects $SOV$ at $V$ such that $\angle SVP = 109^{\circ}$. Calculate:
+(i) $\angle TQP$
+(ii) $\angle QTS$
+b) Simplify: $\frac{2n^{2} - 3n - 2}{2n^{2} + 3n + 1} \times \frac{n^{2} - 1}{n^{2} - 4}$. Represent the answer as $\frac{n + a}{n + b}$, where $a, b$ are integers.
+
+63. a) In the diagram, there is a circle with center $O$. $PQ$ is tangent at $T$, $ABC$ is a straight line, $TC$ bisects $\angle BTQ, \angle BAT = 44^{\circ}, \angle PTA = 60^{\circ}$. Find $\angle ACT$.
+b) A cylindrical tank has a base circumference of $11 \text{ m}$. The height is $3 \text{ m}$ more than 6 times the base radius. Calculate:
+(i) The radius (decimal number)
+(ii) The height (decimal number)
+(iii) The volume of the tank
+
+ANSWER BANK
+SECTION A – OBJECTIVE (1–50)
+1. C | 2. B | 3. C | 4. C | 5. A | 6. B | 7. D | 8. C | 9. A | 10. A
+11. B | 12. C | 13. C | 14. C | 15. A | 16. A | 17. D | 18. B | 19. C | 20. A
+21. B | 22. B | 23. B | 24. C | 25. C | 26. C | 27. C | 28. A | 29. B | 30. B
+31. A | 32. D | 33. C | 34. D | 35. B | 36. B | 37. B | 38. C | 39. B | 40. A
+41. C | 42. C | 43. B | 44. C | 45. C | 46. B | 47. A | 48. A | 49. B | 50. A
+
+SECTION B – THEORY (51–63)
+51. a) $t = 2V/P$; b) $t = 50 \text{ minutes}$; c) $P = 4 \text{ pumps}$
+52. $x = 20$
+53. Number of tiles $\approx 86$
+54. a) $t = 60^{\circ}$; b) $y = 30^{\circ}$; c) $\angle ADC = 120^{\circ}$
+55. Silver marbles = 5
+56. a) $x = -1, 1, 2, 3$; b) Common ratio $r = 4$
+57. a) $x = 2, y = 4$; b) Mean $= 7.2$
+58. Height of pole $\approx 36.9 \text{ m}$
+59. a) $\angle POQ \approx 22^{\circ}$; b) Area minor segment $\approx 37 \text{ cm}^{2}$
+60. a)(i) Total acres $= 40$; a)(ii) Wife $= 16 \text{ acres}$; b) Total cost $= \$1,900$
+61. a) $x + 3y = 0 \Rightarrow a = 3$; b)(i) $36^{\circ}$; b)(ii) 10; b)(iii) $1440^{\circ}$
+62. a)(i) $34^{\circ}$; a)(ii) $55^{\circ}$; b) $\frac{n - 2}{n + 1} \Rightarrow a = -2, b = 1$
+63. a) $32^{\circ}$; b)(i) $\approx 1.75 \text{ m}$; b)(ii) $\approx 13.5 \text{ m}$; b)(iii) $\approx 130.0 \text{ m}^{3}$

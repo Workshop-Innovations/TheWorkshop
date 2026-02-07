@@ -289,25 +289,7 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Banner */}
-                <motion.div
-                    className="mt-12 relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 p-8 sm:p-12 text-white shadow-xl shadow-indigo-200"
-                    whileHover={{ scale: 1.005 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-                        <div>
-                            <h3 className="text-3xl font-bold mb-2">Unlock Premium Features</h3>
-                            <p className="text-indigo-100 text-lg">See what's coming next to WorkShop.</p>
-                        </div>
-                        <Link to="/coming-soon" className="px-8 py-3 bg-white text-indigo-600 font-bold rounded-xl hover:bg-indigo-50 transition-colors shadow-lg">
-                            Learn More
-                        </Link>
-                    </div>
-                    {/* Decor Circles */}
-                    <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-                    <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-                </motion.div>
+
 
                 {/* Profile Customization Modal */}
                 <AnimatePresence>

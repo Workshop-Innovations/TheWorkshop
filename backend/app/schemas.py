@@ -9,9 +9,11 @@ from uuid import uuid4 # Import uuid4 for generating UUIDs
 # This is our database model for users
 class User(SQLModel, table=True):
     id: Optional[str] = Field(default=None, primary_key=True, nullable=False) # Use str for UUIDs
-    email: EmailStr = Field(unique=True, index=True) # Email must be unique and indexed for fast lookup
+    username: str = Field(unique=True, index=True) # Username must be unique
+    email: EmailStr = Field(unique=True, index=True) # Email must be unique
     hashed_password: str # Store the hashed password
     is_active: bool = Field(default=True) # Field is for SQLModel specific column options
+    role: str = Field(default="user") # "user" or "admin"
     
     # Gamification fields
     reputation_points: int = Field(default=0)  # Karma from upvotes received
@@ -28,19 +30,22 @@ class User(SQLModel, table=True):
 
 # Schema for user creation (what the frontend sends for registration)
 class UserCreate(BaseModel): # Inherit from BaseModel for input validation
+    username: str
     email: EmailStr
     password: str
 
 # Schema for user login (what the frontend sends for login)
 class UserLogin(BaseModel): # Inherit from BaseModel
-    email: EmailStr
+    username: str
     password: str
 
 # Schema for user response (what the backend sends back after creation/retrieval)
 class UserResponse(BaseModel): # Inherit from BaseModel for API response
     id: str
+    username: str
     email: EmailStr
     is_active: bool
+    role: str = "user"
 
     model_config = {"from_attributes": True}
 
@@ -654,4 +659,77 @@ class TutorChatRequest(BaseModel):
 class TutorChatResponse(BaseModel):
     response: str
 
+# --- Subject and Past Paper Models ---
 
+class Subject(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    name: str = Field(index=True, unique=True)
+    description: Optional[str] = None
+    
+    topics: List["Topic"] = Relationship(back_populates="subject")
+    papers: List["PastPaper"] = Relationship(back_populates="subject")
+
+class Topic(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    subject_id: str = Field(foreign_key="subject.id", index=True)
+    title: str
+    summary_content: str = Field(sa_column=Column(String)) # Markdown + LaTeX content
+    order: int = Field(default=0) # For sorting topics
+    
+    subject: Optional[Subject] = Relationship(back_populates="topics")
+
+class PastPaper(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    subject_id: str = Field(foreign_key="subject.id", index=True)
+    title: str # e.g. "Mathematics 2023"
+    year: str
+    exam_type: str # WAEC, JAMB, NECO
+    file_path: Optional[str] = None # e.g. "mathematics_2023.pdf" - relative to static/papers folder
+    content: Optional[str] = Field(default=None, sa_column=Column(String)) # Markdown content for text-based papers
+    
+    subject: Optional[Subject] = Relationship(back_populates="papers")
+
+# --- Subject/Paper Pydantic Schemas ---
+
+class TopicSummaryResponse(BaseModel):
+    id: str
+    title: str
+    order: int
+    
+    model_config = {"from_attributes": True}
+
+class TopicResponse(BaseModel):
+    id: str
+    title: str
+    summary_content: str
+    order: int
+    
+    model_config = {"from_attributes": True}
+
+class PastPaperResponse(BaseModel):
+    id: str
+    title: str
+    year: str
+    exam_type: str
+    file_path: Optional[str] = None
+    content: Optional[str] = None
+    
+    model_config = {"from_attributes": True}
+
+class SubjectResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    topics: List[TopicSummaryResponse] = []
+    papers: List[PastPaperResponse] = []
+    
+    model_config = {"from_attributes": True}
+
+
+
+# --- System Models ---
+
+class KeepAlive(SQLModel, table=True):
+    """Table to be pinged by cron jobs to keep Supabase active."""
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

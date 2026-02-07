@@ -8,7 +8,8 @@ from ..schemas import (
     PeerReviewSubmission, PeerReviewSubmissionCreate, PeerReviewSubmissionResponse,
     PeerReviewFeedback, PeerReviewFeedbackCreate, PeerReviewFeedbackResponse
 )
-from ..main import get_session, get_current_user
+from ..database import get_session
+from ..dependencies import get_current_user
 
 router = APIRouter(
     prefix="/api/v1/community",

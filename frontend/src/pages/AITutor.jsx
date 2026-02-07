@@ -13,6 +13,8 @@ const AITutor = () => {
     const [isLoadingDoc, setIsLoadingDoc] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
+    const [isDragging, setIsDragging] = useState(false);
+
     // Chat State
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
@@ -56,8 +58,7 @@ const AITutor = () => {
         }
     };
 
-    const handleFileUpload = async (e) => {
-        const file = e.target.files[0];
+    const uploadFile = async (file) => {
         if (!file || !token) return;
 
         setIsUploading(true);
@@ -83,6 +84,28 @@ const AITutor = () => {
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        uploadFile(file);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files[0];
+        uploadFile(file);
     };
 
     const handleSelectDocument = async (docId) => {
@@ -256,7 +279,21 @@ const AITutor = () => {
             <Navbar />
             <div className="flex-grow flex flex-col lg:flex-row gap-6 p-6 pt-24">
                 {/* Left Panel: Document Viewer */}
-                <div className="lg:w-1/2 flex flex-col bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                <div
+                    className={`relative lg:w-1/2 flex flex-col bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden transition-all ${isDragging ? 'border-primary border-2 bg-primary/5' : ''}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                >
+                    {isDragging && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20 backdrop-blur-sm">
+                            <div className="text-center p-8 border-4 border-dashed border-primary rounded-3xl animate-pulse">
+                                <FaUpload className="text-6xl text-primary mx-auto mb-4" />
+                                <h3 className="text-2xl font-bold text-slate-700">Drop file to upload</h3>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Document Header / Toolbar */}
                     <div className="bg-gradient-to-r from-primary to-secondary p-4 text-white flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -285,7 +322,7 @@ const AITutor = () => {
                             selectedDoc ? <pre className="whitespace-pre-wrap font-sans text-slate-700">{documentContent}</pre> :
                                 <div className="flex flex-col justify-center items-center h-full text-slate-400 text-center">
                                     <FaUpload className="text-5xl mb-4" />
-                                    <p>Upload a file to get started.</p>
+                                    <p>Drag and drop a file or upload to get started.</p>
                                 </div>
                         }
                     </div>

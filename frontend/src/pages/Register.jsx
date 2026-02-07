@@ -29,17 +29,12 @@ const Register = () => {
 
     try {
       const response = await axios.post(`${API_BASE_URL}/api/v1/auth/register`, {
+        username,
         email,
         password,
       });
 
       if (response.status === 201) {
-        try {
-          const mapRaw = localStorage.getItem('usernameEmailMap') || '{}';
-          const map = JSON.parse(mapRaw);
-          map[username] = email;
-          localStorage.setItem('usernameEmailMap', JSON.stringify(map));
-        } catch { }
         setSuccess('Registration successful! Redirecting to login...');
         setTimeout(() => {
           navigate('/login');

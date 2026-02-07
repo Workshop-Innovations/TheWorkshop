@@ -1,38 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUser, FaSignOutAlt } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaShieldAlt } from 'react-icons/fa'; // Added FaShieldAlt
+import { useAuth } from '../context/AuthContext'; // Import useAuth
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { user, logout, isAuthenticated } = useAuth(); // Use useAuth
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false); // Remove local state
 
   useEffect(() => {
-    // Scroll listener for floating effect
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-
-    // Auth status check
-    const checkLoginStatus = () => {
-      const token = localStorage.getItem('accessToken');
-      setIsLoggedIn(!!token);
-    };
-
     window.addEventListener('scroll', handleScroll);
-    checkLoginStatus();
-    window.addEventListener('storage', checkLoginStatus);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('storage', checkLoginStatus);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    setIsLoggedIn(false);
+    logout();
     navigate('/login');
   };
 
@@ -51,7 +38,7 @@ const Navbar = () => {
         <div className={`max-w-7xl mx-auto flex items-center justify-between ${!isScrolled && 'px-4'}`}>
 
           {/* LOGO */}
-          <Link to={isLoggedIn ? "/dashboard" : "/"} className="flex items-center gap-2 group">
+          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-105 transition-transform">
               W
             </div>
@@ -62,9 +49,15 @@ const Navbar = () => {
 
           {/* LINKS */}
           <div className="flex items-center gap-2 md:gap-6">
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <>
                 <NavLink to="/dashboard" label="Dashboard" />
+                {user?.role === 'admin' && (
+                  <Link to="/admin" className="hidden sm:flex items-center gap-1 text-sm font-bold text-purple-600 hover:text-purple-700 bg-purple-50 px-3 py-1 rounded-full transition-colors border border-purple-100">
+                    <FaShieldAlt className="text-xs" />
+                    Admin
+                  </Link>
+                )}
                 <NavLink to="/past-papers" label="Papers" className="hidden sm:block" />
                 <NavLink to="/ai-tutor" label="Study Suite" className="hidden sm:block" />
 
