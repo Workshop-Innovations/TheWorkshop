@@ -68,7 +68,7 @@ const StudyGroups = ({ onClose }) => {
     const updateMemberStatus = async (groupId, userId, status) => {
         try {
             const token = localStorage.getItem('token');
-            const API_BASE = 'http://localhost:8000/api/v1';
+            const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1`;
             const response = await fetch(`${API_BASE}/groups/${groupId}/members/${userId}`, {
                 method: 'PUT',
                 headers: {

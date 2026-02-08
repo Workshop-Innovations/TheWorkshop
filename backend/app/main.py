@@ -195,16 +195,19 @@ async def register_user(user_data: UserCreate, session: Session = Depends(get_se
     return db_user
 
 @app.post("/api/v1/auth/login", response_model=Token, summary="Login user and get access token")
-async def login_for_access_token(user_data: UserLogin, session: Session = Depends(get_session)):
-    """
-    Authenticates a user with username and password, returning an access token upon success.
-    """
+    print(f"Login attempt for: {user_data.username}")
     # Allow login with either username or email (flexible)
     user = session.exec(select(User).where(
         (User.username == user_data.username) | (User.email == user_data.username)
     )).first()
+    
+    if user:
+        print(f"User found: {user.username}, Active: {user.is_active}")
+    else:
+        print("User not found via username/email search")
 
     if not user or not verify_password(user_data.password, user.hashed_password):
+        print("Authentication failed: Invalid credentials")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -212,6 +215,7 @@ async def login_for_access_token(user_data: UserLogin, session: Session = Depend
         )
 
     if not user.is_active:
+        print("Authentication failed: User inactive")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"

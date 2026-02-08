@@ -6,6 +6,12 @@
 
 
 
+// Import frame images
+import bronzeFrame from '../assets/frames/bronze.png';
+import fireFrame from '../assets/frames/fire.png';
+import emeraldFrame from '../assets/frames/emarald.png';
+import iceFrame from '../assets/frames/ice.png';
+
 // Titles (Flairs) unlocked based on Pomodoro count
 export const PASSIVE_TITLES = [
   { id: 'title-novice', name: 'Novice Focus', type: 'title', requirement: 0, description: 'Completed your first session.' },
@@ -17,37 +23,37 @@ export const PASSIVE_TITLES = [
 
 // Profile Frames unlocked based on Pomodoro count
 export const PASSIVE_FRAMES = [
-  { 
-    id: 'frame-basic', 
-    name: 'Bronze Border', 
-    type: 'frame', 
-    requirement: 0, 
+  {
+    id: 'frame-basic',
+    name: 'Bronze Border',
+    type: 'frame',
+    requirement: 0,
     description: 'Completed your first session.',
-    framePath: './src/assets/frames/bronze.png' // Added framePath
+    framePath: bronzeFrame
   },
-  { 
-    id: 'frame-fire', 
-    name: 'Fire Edge', 
-    type: 'frame', 
-    requirement: 25, 
+  {
+    id: 'frame-fire',
+    name: 'Fire Edge',
+    type: 'frame',
+    requirement: 25,
     description: 'Completed 25 focus sessions.',
-    framePath: './src/assets/frames/fire.png' // Added framePath
+    framePath: fireFrame
   },
-  { 
-    id: 'frame-green', 
-    name: 'Emarald Energy', 
-    type: 'frame', 
-    requirement: 75, 
+  {
+    id: 'frame-green',
+    name: 'Emerald Energy',
+    type: 'frame',
+    requirement: 75,
     description: 'Completed 75 focus sessions.',
-    framePath: './src/assets/frames/emarald.png' // Added framePath
+    framePath: emeraldFrame
   },
-  { 
-    id: 'frame-ice', 
-    name: 'ice Glow', 
-    type: 'frame', 
-    requirement: 150, 
+  {
+    id: 'frame-ice',
+    name: 'Ice Glow',
+    type: 'frame',
+    requirement: 150,
     description: 'Completed 150 focus sessions.',
-    framePath: './src/assets/frames/ice.png' // Added framePath
+    framePath: iceFrame
   },
 ];
 
@@ -56,8 +62,8 @@ export const ALL_PASSIVE_REWARDS = [...PASSIVE_TITLES, ...PASSIVE_FRAMES];
 
 // Export all rewards combined (passive and store rewards if you have them)
 export const REWARDS = {
-    PASSIVE_TITLES,
-    PASSIVE_FRAMES,
-    ALL_PASSIVE_REWARDS,
-    // Add STORE_REWARDS here later
+  PASSIVE_TITLES,
+  PASSIVE_FRAMES,
+  ALL_PASSIVE_REWARDS,
+  // Add STORE_REWARDS here later
 }

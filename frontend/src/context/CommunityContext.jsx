@@ -5,7 +5,7 @@ const CommunityContext = createContext();
 
 export const useCommunity = () => useContext(CommunityContext);
 
-const API_BASE = 'http://127.0.0.1:8000/api/v1/community';
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/community`;
 
 export const CommunityProvider = ({ children }) => {
     const { accessToken, logout } = useAuth();
@@ -47,7 +47,7 @@ export const CommunityProvider = ({ children }) => {
     // ==================== FETCH USER ====================
     const fetchUser = async () => {
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/v1/users/me', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -346,7 +346,15 @@ export const CommunityProvider = ({ children }) => {
             ws.current.close();
         }
 
-        const wsUrl = `ws://127.0.0.1:8000/ws/community/${currentChannel.slug}?token=${token}`;
+        const getWebSocketUrl = (slug, token) => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            // Replace http with ws, and https with wss
+            const wsProtocol = apiUrl.startsWith('https') ? 'wss' : 'ws';
+            const wsBase = apiUrl.replace(/^http(s)?:\/\//, '');
+            return `${wsProtocol}://${wsBase}/ws/community/${slug}?token=${token}`;
+        };
+
+        const wsUrl = getWebSocketUrl(currentChannel.slug, token);
         ws.current = new WebSocket(wsUrl);
 
         ws.current.onopen = () => {
