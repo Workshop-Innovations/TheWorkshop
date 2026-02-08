@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlmodel import Session, select
 from typing import List
 import os
-import google.generativeai as genai
+from google import genai
 from uuid import uuid4
 from datetime import datetime, timezone
 
@@ -25,11 +25,9 @@ router = APIRouter(
 
 # Configure Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = None
 if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-
-
-
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
 
 @router.get("/collections", response_model=List[FlashcardCollectionResponse])
@@ -68,7 +66,7 @@ async def generate_flashcards_from_file(
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
-    if not GEMINI_API_KEY:
+    if not client:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail="Gemini API Key not configured."
@@ -93,11 +91,7 @@ async def generate_flashcards_from_file(
 
     try:
         # Upload to Gemini
-        # It's good practice to display name for debugging in AI Studio
-        uploaded_file = genai.upload_file(tmp_path, mime_type=file.content_type)
-        
-        # Configure model
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        uploaded_file = client.files.upload(path=tmp_path, config={'mime_type': file.content_type})
         
         prompt = (
             "Generate exactly 20 question-and-answer pairs based on the content of the attached file. "
@@ -106,15 +100,16 @@ async def generate_flashcards_from_file(
         )
         
         # Generate content with file and prompt
-        response = model.generate_content(
-            [uploaded_file, prompt],
-            generation_config={"response_mime_type": "application/json"}
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=[uploaded_file, prompt],
+            config={"response_mime_type": "application/json"}
         )
         
         generated_text = response.text
         
-        # Clean up Gemini file (optional, but good practice if not needed anymore)
-        uploaded_file.delete()
+        # Clean up Gemini file (optional)
+        # client.files.delete(name=uploaded_file.name) 
         
     except Exception as e:
         print(f"Gemini API Error: {e}")

@@ -39,9 +39,7 @@ const Navbar = () => {
 
           {/* LOGO */}
           <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-105 transition-transform">
-              W
-            </div>
+            <img src="/logo.png" alt="WorkShop Logo" className="h-10 w-auto group-hover:scale-105 transition-transform object-contain" />
             <span className={`text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 ${!isScrolled && 'text-slate-900'}`}>
               WorkShop
             </span>

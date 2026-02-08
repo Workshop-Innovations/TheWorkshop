@@ -49,12 +49,14 @@ const FeatureCard = ({ to, icon, title, description, delay }) => (
 // --- MAIN DASHBOARD COMPONENT ---
 const Dashboard = () => {
     // Hooks and Context
-    const { username } = useAuth();
+    // Hooks and Context
+    const { user } = useAuth();
     const { userStats } = usePomodoro();
     const navigate = useNavigate();
 
     // State
     const [userEmail, setUserEmail] = useState(null);
+    const [userName, setUserName] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -157,6 +159,7 @@ const Dashboard = () => {
                 }
                 const data = await response.json();
                 setUserEmail(data.email);
+                setUserName(data.username);
             } catch (err) {
                 if (err.name === 'AbortError') return;
                 setError(err.message || "Failed to load user data.");
@@ -190,7 +193,7 @@ const Dashboard = () => {
         </div>
     );
 
-    const currentUsername = username || userEmail || "User";
+    const currentUsername = userName || user?.username || userEmail || "User";
     const totalPomodoros = userStats?.totalCompletedPomodoros || 0;
     const totalTasks = totalUnlockedRewards;
     const totalFocusTime = totalPomodoros * 30 * 60;

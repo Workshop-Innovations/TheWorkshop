@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from typing import List
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from uuid import uuid4
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -19,8 +19,9 @@ router = APIRouter(
 
 # Configure Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = None
 if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
 # --- Request/Response Schemas for Generation ---
 class GenerateRequest(BaseModel):
@@ -117,40 +118,7 @@ async def chat_with_tutor(
     session: Session = Depends(get_session)
 ):
     """Chat with the AI Tutor about the document content."""
-    doc = session.exec(
-        select(TutorDocument).where(
-            TutorDocument.id == request.document_id,
-            TutorDocument.user_id == current_user.id
-        )
-    ).first()
-    if not doc:
-        raise HTTPException(status_code=404, detail="Document not found.")
-
-    model = genai.GenerativeModel('gemini-2.5-flash')
-    
-    context_prompt = (
-        f"You are a helpful AI Tutor. You are answering questions based on the following document context. "
-        f"If the answer is not in the document, try to answer generally but mention you are going outside the context.\n\n"
-        f"Document Content:\n{doc.content[:30000]}\n\n"
-    )
-    
-    try:
-        chat = model.start_chat(history=request.history)
-        response = chat.send_message(context_prompt + f"Question: {request.message}")
-        return TutorChatResponse(response=response.text)
-    except Exception as e:
-        response = model.generate_content(context_prompt + f"Question: {request.message}")
-        return TutorChatResponse(response=response.text)
-
-
-@router.post("/generate/quiz", response_model=QuizResponse)
-async def generate_quiz(
-    request: GenerateRequest,
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
-):
-    """Generate a multiple-choice quiz from the document content."""
-    if not GEMINI_API_KEY:
+    if not client:
         raise HTTPException(status_code=500, detail="Gemini API Key not configured.")
 
     doc = session.exec(
@@ -162,7 +130,43 @@ async def generate_quiz(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    context_prompt = (
+        f"You are a helpful AI Tutor. You are answering questions based on the following document context. "
+        f"If the answer is not in the document, try to answer generally but mention you are going outside the context.\n\n"
+        f"Document Content:\n{doc.content[:30000]}\n\n"
+    )
+    
+    try:
+        chat = client.chats.create(model='gemini-2.5-flash', history=request.history)
+        response = chat.send_message(context_prompt + f"Question: {request.message}")
+        return TutorChatResponse(response=response.text)
+    except Exception as e:
+        # Fallback to single generation if chat fails
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=context_prompt + f"Question: {request.message}"
+        )
+        return TutorChatResponse(response=response.text)
+
+
+@router.post("/generate/quiz", response_model=QuizResponse)
+async def generate_quiz(
+    request: GenerateRequest,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """Generate a multiple-choice quiz from the document content."""
+    if not client:
+        raise HTTPException(status_code=500, detail="Gemini API Key not configured.")
+
+    doc = session.exec(
+        select(TutorDocument).where(
+            TutorDocument.id == request.document_id,
+            TutorDocument.user_id == current_user.id
+        )
+    ).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
     
     prompt = (
         f"Based on the following document content, generate exactly 10 multiple-choice quiz questions. "
@@ -172,7 +176,11 @@ async def generate_quiz(
     )
 
     try:
-        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config={"response_mime_type": "application/json"}
+        )
         quiz_data = json.loads(response.text)
         
         if not isinstance(quiz_data, list):
@@ -194,7 +202,7 @@ async def generate_flashcards(
     session: Session = Depends(get_session)
 ):
     """Generate flashcards (term/definition pairs) from the document content."""
-    if not GEMINI_API_KEY:
+    if not client:
         raise HTTPException(status_code=500, detail="Gemini API Key not configured.")
 
     doc = session.exec(
@@ -206,8 +214,6 @@ async def generate_flashcards(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    model = genai.GenerativeModel('gemini-2.5-flash')
-    
     prompt = (
         f"Based on the following document content, generate exactly 15 flashcards for studying. "
         f"Each flashcard should have a 'term' (a key concept, word, or question) and a 'definition' (the explanation or answer). "
@@ -216,7 +222,11 @@ async def generate_flashcards(
     )
 
     try:
-        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config={"response_mime_type": "application/json"}
+        )
         flashcards_data = json.loads(response.text)
         
         if not isinstance(flashcards_data, list):
