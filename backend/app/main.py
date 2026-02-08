@@ -125,6 +125,22 @@ def on_startup():
     print("Application startup - Creating database tables...")
     create_db_and_tables()
     print("Database tables created/checked.")
+    
+    # Auto-promote a@gmail.com to admin
+    with Session(engine) as session:
+        admin_email = "a@gmail.com"
+        user = session.exec(select(User).where(User.email == admin_email)).first()
+        if user:
+            if user.role != "admin":
+                user.role = "admin"
+                session.add(user)
+                session.commit()
+                print(f"User {admin_email} has been promoted to ADMIN.")
+            else:
+                print(f"User {admin_email} is already ADMIN.")
+        else:
+            print(f"Admin candidate {admin_email} not found. Register with this email to become admin.")
+
     print("Flashcards router loaded.")
 
 from fastapi.staticfiles import StaticFiles

@@ -5,13 +5,13 @@ import { FaUser, FaEnvelope, FaCalendar, FaTrash, FaGoogle } from 'react-icons/f
 import { useAuth } from '../context/AuthContext';
 
 const Profile = () => {
-  const { username } = useAuth();
-  const email = useMemo(() => {
-    return localStorage.getItem('userEmail') || 'user@example.com';
-  }, []);
-  const user = {
-    username: username || 'User',
-    email,
+  const { user } = useAuth(); // fetch full user object from context
+
+  // Fallback for rendering if user data isn't fully loaded yet
+  const displayUser = {
+    username: user?.username || 'User',
+    email: user?.email || 'Loading...',
+    role: user?.role || 'User'
   };
 
   return (
@@ -29,12 +29,12 @@ const Profile = () => {
               <FaUser className="text-4xl text-blue-600" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-slate-900">{user.username}</h2>
-              <p className="text-slate-400 font-medium">{user.email}</p>
+              <h2 className="text-3xl font-bold text-slate-900">{displayUser.username}</h2>
+              <p className="text-slate-400 font-medium">{displayUser.email}</p>
             </div>
             <div className="flex gap-2 mt-2">
               <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Free Plan</span>
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Student</span>
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full capitalize">{displayUser.role}</span>
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@ const Profile = () => {
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Username</p>
-                <p className="text-lg font-semibold text-slate-700">{user.username}</p>
+                <p className="text-lg font-semibold text-slate-700">{displayUser.username}</p>
               </div>
             </div>
             <div className="flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
@@ -57,7 +57,7 @@ const Profile = () => {
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Email</p>
-                <p className="text-lg font-semibold text-slate-700">{user.email}</p>
+                <p className="text-lg font-semibold text-slate-700">{displayUser.email}</p>
               </div>
             </div>
           </div>
