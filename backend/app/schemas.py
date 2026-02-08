@@ -669,6 +669,16 @@ class Subject(SQLModel, table=True):
     topics: List["Topic"] = Relationship(back_populates="subject")
     papers: List["PastPaper"] = Relationship(back_populates="subject")
 
+# --- Subject Schemas ---
+
+class SubjectCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class SubjectUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
 class Topic(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     subject_id: str = Field(foreign_key="subject.id", index=True)
@@ -677,6 +687,20 @@ class Topic(SQLModel, table=True):
     order: int = Field(default=0) # For sorting topics
     
     subject: Optional[Subject] = Relationship(back_populates="topics")
+
+# --- Topic Schemas ---
+
+class TopicCreate(BaseModel):
+    subject_id: str
+    title: str
+    summary_content: str
+    order: Optional[int] = 0
+
+class TopicUpdate(BaseModel):
+    subject_id: Optional[str] = None
+    title: Optional[str] = None
+    summary_content: Optional[str] = None
+    order: Optional[int] = None
 
 class PastPaper(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
@@ -688,6 +712,24 @@ class PastPaper(SQLModel, table=True):
     content: Optional[str] = Field(default=None, sa_column=Column(String)) # Markdown content for text-based papers
     
     subject: Optional[Subject] = Relationship(back_populates="papers")
+
+# --- Past Paper Schemas ---
+
+class PastPaperCreate(BaseModel):
+    subject_id: str
+    title: str
+    year: str
+    exam_type: str
+    file_path: Optional[str] = None
+    content: Optional[str] = None
+
+class PastPaperUpdate(BaseModel):
+    subject_id: Optional[str] = None
+    title: Optional[str] = None
+    year: Optional[str] = None
+    exam_type: Optional[str] = None
+    file_path: Optional[str] = None
+    content: Optional[str] = None
 
 # --- Subject/Paper Pydantic Schemas ---
 

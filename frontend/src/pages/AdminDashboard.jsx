@@ -662,10 +662,11 @@ const AdminDashboard = () => {
             {showContentEditor && (
                 <div className="fixed inset-0 bg-white z-[60] flex flex-col animate-fade-in p-4">
                     <ContentEditor
-                        initialValue={formData.summary_content || ''} // Use summary_content for topics
-                        title={`Editing: ${formData.title || 'New Topic'}`}
+                        initialValue={editType === 'topics' ? (formData.summary_content || '') : (formData.content || '')}
+                        title={`Editing: ${formData.title || 'New Item'}`}
                         onSave={(content) => {
-                            setFormData({ ...formData, summary_content: content });
+                            const fieldName = editType === 'topics' ? 'summary_content' : 'content';
+                            setFormData({ ...formData, [fieldName]: content });
                             setShowContentEditor(false);
                         }}
                         onCancel={() => setShowContentEditor(false)}

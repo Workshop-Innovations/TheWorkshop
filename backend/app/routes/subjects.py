@@ -7,7 +7,8 @@ from sqlmodel import Session, select, desc
 from app.database import get_session
 from app.schemas import (
     Subject, SubjectResponse, Topic, TopicResponse, PastPaper, PastPaperResponse, 
-    TopicSummaryResponse, User
+    TopicSummaryResponse, User,
+    SubjectCreate, SubjectUpdate, TopicCreate, TopicUpdate, PastPaperCreate, PastPaperUpdate
 )
 from app.dependencies import get_current_user, get_current_admin_user # Import admin dependency
 
@@ -86,14 +87,35 @@ async def get_past_paper(paper_id: str, session: Session = Depends(get_session))
 # Subject CRUD
 @router.post("/subjects", response_model=SubjectResponse, status_code=status.HTTP_201_CREATED, summary="Create a new subject (Admin)")
 async def create_subject(
-    subject: Subject, 
+    subject: SubjectCreate, 
     current_user: User = Depends(get_current_admin_user), 
     session: Session = Depends(get_session)
 ):
-    session.add(subject)
+    db_subject = Subject.model_validate(subject)
+    session.add(db_subject)
     session.commit()
-    session.refresh(subject)
-    return subject
+    session.refresh(db_subject)
+    return db_subject
+
+@router.put("/subjects/{subject_id}", response_model=SubjectResponse, summary="Update a subject (Admin)")
+async def update_subject(
+    subject_id: str,
+    subject_update: SubjectUpdate,
+    current_user: User = Depends(get_current_admin_user),
+    session: Session = Depends(get_session)
+):
+    db_subject = session.get(Subject, subject_id)
+    if not db_subject:
+        raise HTTPException(status_code=404, detail="Subject not found")
+    
+    subject_data = subject_update.model_dump(exclude_unset=True)
+    for key, value in subject_data.items():
+        setattr(db_subject, key, value)
+            
+    session.add(db_subject)
+    session.commit()
+    session.refresh(db_subject)
+    return db_subject
 
 @router.delete("/subjects/{subject_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a subject (Admin)")
 async def delete_subject(
@@ -110,19 +132,20 @@ async def delete_subject(
 # Topic CRUD
 @router.post("/topics", response_model=TopicResponse, status_code=status.HTTP_201_CREATED, summary="Create a new topic (Admin)")
 async def create_topic(
-    topic: Topic, 
+    topic: TopicCreate, 
     current_user: User = Depends(get_current_admin_user), 
     session: Session = Depends(get_session)
 ):
-    session.add(topic)
+    db_topic = Topic.model_validate(topic)
+    session.add(db_topic)
     session.commit()
-    session.refresh(topic)
-    return topic
+    session.refresh(db_topic)
+    return db_topic
 
 @router.put("/topics/{topic_id}", response_model=TopicResponse, summary="Update a topic (Admin)")
 async def update_topic(
     topic_id: str,
-    topic_update: Topic, # Simplified
+    topic_update: TopicUpdate,
     current_user: User = Depends(get_current_admin_user),
     session: Session = Depends(get_session)
 ):
@@ -155,19 +178,20 @@ async def delete_topic(
 # Past Paper CRUD
 @router.post("/papers", response_model=PastPaperResponse, status_code=status.HTTP_201_CREATED, summary="Create a past paper (Admin)")
 async def create_paper(
-    paper: PastPaper, 
+    paper: PastPaperCreate, 
     current_user: User = Depends(get_current_admin_user), 
     session: Session = Depends(get_session)
 ):
-    session.add(paper)
+    db_paper = PastPaper.model_validate(paper)
+    session.add(db_paper)
     session.commit()
-    session.refresh(paper)
-    return paper
+    session.refresh(db_paper)
+    return db_paper
 
 @router.put("/papers/{paper_id}", response_model=PastPaperResponse, summary="Update a past paper (Admin)")
 async def update_paper(
     paper_id: str,
-    paper_update: PastPaper,
+    paper_update: PastPaperUpdate,
     current_user: User = Depends(get_current_admin_user),
     session: Session = Depends(get_session)
 ):
