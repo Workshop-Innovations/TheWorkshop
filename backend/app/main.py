@@ -211,6 +211,7 @@ async def register_user(user_data: UserCreate, session: Session = Depends(get_se
     return db_user
 
 @app.post("/api/v1/auth/login", response_model=Token, summary="Login user and get access token")
+async def login_for_access_token(user_data: UserLogin, session: Session = Depends(get_session)):
     print(f"Login attempt for: {user_data.username}")
     # Allow login with either username or email (flexible)
     user = session.exec(select(User).where(
