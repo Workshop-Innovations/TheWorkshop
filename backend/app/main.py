@@ -141,7 +141,11 @@ app.include_router(users.router) # Include users router
 app.include_router(system.router) # Include system router for KeepAlive
 
 # --- Mount Static Files ---
-app.mount("/static", StaticFiles(directory="static"), name="static")
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir)
+
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # --- API Endpoints (Routes) ---
 

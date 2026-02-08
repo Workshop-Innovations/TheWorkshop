@@ -6,7 +6,7 @@ let lastLoggedPomodoroCount = 0;
 // 1. .env.local (for local development)
 // 2. Render Environment Variables (for production deployment)
 // The fallback (||) ensures local development works even if the .env file is missing.
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Helper function to retrieve the authentication token
 const getAuthToken = () => {

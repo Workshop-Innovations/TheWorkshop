@@ -24,7 +24,7 @@ import Materials from './pages/Materials';
 import CommunityPage from './pages/CommunityPage';
 import PastPapers from './pages/PastPapers';
 import AITutor from './pages/AITutor';
-import Community from './pages/Community';
+// import Community from './pages/Community'; // Removed: Redundant
 import AdminDashboard from './pages/AdminDashboard'; // Import AdminDashboard
 import SubjectSummary from './pages/SubjectSummary';
 import Pricing from './pages/Pricing';
@@ -129,7 +129,7 @@ const AppContent = () => {
           path="/community"
           element={
             <PrivateRoute>
-              <Community />
+              <CommunityPage />
             </PrivateRoute>
           }
         />
