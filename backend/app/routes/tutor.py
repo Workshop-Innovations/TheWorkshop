@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlmodel import Session, select
-from typing import List
+from typing import List, Optional
 import os
 import json
+import io
+import pypdf
 from google import genai
 from uuid import uuid4
 from datetime import datetime, timezone
@@ -58,9 +60,27 @@ async def upload_document(
 ):
     """Upload a text or PDF file for the AI Tutor."""
     content = ""
+    filename = file.filename.lower() if file.filename else ""
+
     try:
         content_bytes = await file.read()
-        content = content_bytes.decode("utf-8", errors="ignore")
+        
+        if filename.endswith(".pdf"):
+            try:
+                pdf_reader = pypdf.PdfReader(io.BytesIO(content_bytes))
+                for page in pdf_reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        content += text + "\n"
+            except Exception as e:
+                print(f"PDF Extraction Error: {e}")
+                raise HTTPException(status_code=400, detail="Could not extract text from PDF.")
+        else:
+            # Assume text/markdown
+            content = content_bytes.decode("utf-8", errors="ignore")
+
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=400, detail="Could not read file.")
 
@@ -137,13 +157,17 @@ async def chat_with_tutor(
     )
     
     try:
-        chat = client.chats.create(model='gemini-2.5-flash', history=request.history)
+        if request.history:
+             # Convert history to compatible format if needed, or rely on SDK
+             pass
+
+        chat = client.chats.create(model='gemini-2.0-flash', history=request.history)
         response = chat.send_message(context_prompt + f"Question: {request.message}")
         return TutorChatResponse(response=response.text)
     except Exception as e:
         # Fallback to single generation if chat fails
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.0-flash',
             contents=context_prompt + f"Question: {request.message}"
         )
         return TutorChatResponse(response=response.text)
@@ -177,7 +201,7 @@ async def generate_quiz(
 
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.0-flash',
             contents=prompt,
             config={"response_mime_type": "application/json"}
         )
@@ -223,7 +247,7 @@ async def generate_flashcards(
 
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.0-flash',
             contents=prompt,
             config={"response_mime_type": "application/json"}
         )

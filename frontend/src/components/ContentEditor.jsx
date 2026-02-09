@@ -7,11 +7,22 @@ import { FaSave, FaTimes, FaMarkdown } from 'react-icons/fa';
 
 const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }) => {
     const [content, setContent] = useState(initialValue);
+    const [debouncedContent, setDebouncedContent] = useState(initialValue);
     const [isPreview, setIsPreview] = useState(false);
 
     useEffect(() => {
         setContent(initialValue);
+        setDebouncedContent(initialValue);
     }, [initialValue]);
+
+    // Debounce the content for preview to avoid lag
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedContent(content);
+        }, 300); // 300ms delay
+
+        return () => clearTimeout(timer);
+    }, [content]);
 
     const handleSave = () => {
         onSave(content);
@@ -28,8 +39,8 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
                     <button
                         onClick={() => setIsPreview(!isPreview)}
                         className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${isPreview
-                                ? 'bg-slate-200 text-slate-700'
-                                : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'
+                            ? 'bg-slate-200 text-slate-700'
+                            : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'
                             }`}
                     >
                         {isPreview ? 'Switch to Edit' : 'Switch to Preview'}
@@ -70,7 +81,7 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
 
                 {/* Preview Output */}
                 <div className={`flex-1 bg-slate-50 overflow-y-auto p-6 prose prose-slate max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-a:text-primary ${!isPreview ? 'hidden md:block' : 'block'}`}>
-                    {content ? (
+                    {debouncedContent ? (
                         <ReactMarkdown
                             remarkPlugins={[remarkMath]}
                             rehypePlugins={[rehypeKatex]}
@@ -84,7 +95,7 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
                                 }
                             }}
                         >
-                            {content}
+                            {debouncedContent}
                         </ReactMarkdown>
                     ) : (
                         <div className="h-full flex items-center justify-center text-slate-400 italic">

@@ -14,6 +14,7 @@ class User(SQLModel, table=True):
     hashed_password: str # Store the hashed password
     is_active: bool = Field(default=True) # Field is for SQLModel specific column options
     role: str = Field(default="user") # "user" or "admin"
+    profile_pic: Optional[str] = Field(default=None) # URL or Base64 string of profile picture
     
     # Gamification fields
     reputation_points: int = Field(default=0)  # Karma from upvotes received
@@ -39,6 +40,12 @@ class UserLogin(BaseModel): # Inherit from BaseModel
     username: str
     password: str
 
+# Schema for user updates (what the frontend sends for updating profile)
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    profile_pic: Optional[str] = None
+
 # Schema for user response (what the backend sends back after creation/retrieval)
 class UserResponse(BaseModel): # Inherit from BaseModel for API response
     id: str
@@ -46,6 +53,7 @@ class UserResponse(BaseModel): # Inherit from BaseModel for API response
     email: EmailStr
     is_active: bool
     role: str = "user"
+    profile_pic: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

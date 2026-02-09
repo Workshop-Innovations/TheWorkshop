@@ -67,3 +67,6 @@ env/
 Thumbs.db
 
 database.db
+
+# Local run scripts
+run_local.bat

@@ -9,16 +9,17 @@ import { useAuth } from '../context/AuthContext';
 import { usePomodoro } from '../context/PomodoroContext';
 import { REWARDS } from '../constants/rewardConstants';
 import { API_BASE_URL } from '../services/progressService';
+import ImageUploaderModal from '../components/ImageUploaderModal';
 
-const StatCard = ({ icon, title, value, color }) => (
+const StatCard = ({ icon: Icon, title, value, colorClass, iconClass }) => (
     <motion.div
         className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
         whileHover={{ y: -5 }}
         transition={{ duration: 0.2 }}
     >
         <div className="flex items-center gap-5">
-            <div className={`p-4 rounded-xl ${color} bg-opacity-10 text-2xl`}>
-                {React.cloneElement(icon, { className: color.replace('bg-', 'text-').replace('opacity-10', '') })}
+            <div className={`p-4 rounded-xl ${colorClass} bg-opacity-10 flex items-center justify-center`}>
+                <Icon className={`${iconClass} text-2xl`} />
             </div>
             <div>
                 <h3 className="text-slate-500 text-sm font-medium mb-1 uppercase tracking-wide">{title}</h3>
@@ -50,7 +51,7 @@ const FeatureCard = ({ to, icon, title, description, delay }) => (
 const Dashboard = () => {
     // Hooks and Context
     // Hooks and Context
-    const { user } = useAuth();
+    const { user, profilePic: contextProfilePic, updateProfilePic } = useAuth(); // renamed to avoid clash if needed, or just usage
     const { userStats } = usePomodoro();
     const navigate = useNavigate();
 
@@ -60,13 +61,10 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [imageUploadError, setImageUploadError] = useState(null);
 
     // Profile Customization States
-    const [selectedProfilePic, setSelectedProfilePic] = useState(() => {
-        const savedPic = localStorage.getItem('userProfilePic');
-        return savedPic || null;
-    });
+    // Use contextProfilePic directly instead of local state for consistency
+    const selectedProfilePic = contextProfilePic;
 
     const [selectedTitle, setSelectedTitle] = useState(() => {
         const savedTitle = JSON.parse(localStorage.getItem('userTitle'));
@@ -92,32 +90,16 @@ const Dashboard = () => {
     const currentFrame = selectedFrame || { framePath: '', name: 'Basic' };
 
     // --- IMAGE HANDLERS ---
-    const handleImageUpload = (event) => {
-        const file = event.target.files[0];
-        setImageUploadError(null);
+    const [isUploaderOpen, setIsUploaderOpen] = useState(false);
 
-        if (!file) return;
-
-        const MAX_SIZE = 500000;
-        if (file.size > MAX_SIZE) {
-            setImageUploadError("Image size must be less than 500KB.");
-            event.target.value = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64String = reader.result;
-            setSelectedProfilePic(base64String);
-            localStorage.setItem('userProfilePic', base64String);
-        };
-        reader.readAsDataURL(file);
+    const handleProfilePicSave = (compressedImage) => {
+        updateProfilePic(compressedImage);
+        // selectedProfilePic is now derived from context in the render, or we can sync it here if needed, 
+        // but cleaner to use context directly. See render changes.
     };
 
     const handleRemoveProfilePic = () => {
-        setSelectedProfilePic(null);
-        localStorage.removeItem('userProfilePic');
-        setImageUploadError(null);
+        updateProfilePic(null);
     };
 
     const handleTitleChange = (title) => {
@@ -259,22 +241,25 @@ const Dashboard = () => {
                 {/* Statistics Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     <StatCard
-                        icon={<FaCrown />}
+                        icon={FaCrown}
                         title="Achievements"
                         value={totalTasks}
-                        color="bg-amber-500"
+                        colorClass="bg-amber-500"
+                        iconClass="text-amber-500"
                     />
                     <StatCard
-                        icon={<FaBrain />}
+                        icon={FaBrain}
                         title="Study Sessions"
                         value={totalPomodoros}
-                        color="bg-primary"
+                        colorClass="bg-primary"
+                        iconClass="text-primary"
                     />
                     <StatCard
-                        icon={<FaClock />}
+                        icon={FaClock}
                         title="Focus Time"
                         value={`${Math.floor(totalFocusTime / 3600)}h ${Math.floor((totalFocusTime % 3600) / 60)}m`}
-                        color="bg-secondary"
+                        colorClass="bg-secondary"
+                        iconClass="text-secondary"
                     />
                 </div>
 
@@ -286,7 +271,7 @@ const Dashboard = () => {
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <FeatureCard to="/past-papers" icon={<FaBookOpen />} title="Past Papers" description="Access exam papers & memos." delay={0.1} />
-                        <FeatureCard to="/ai-tutor" icon={<FaRobot />} title="All-in-one Study Suite" description="Get help 24/7." delay={0.2} />
+                        <FeatureCard to="/study-suite" icon={<FaRobot />} title="Study Suite" description="All-in-one AI tutor." delay={0.2} />
                         <FeatureCard to="/community" icon={<FaUsers />} title="Community" description="Study with peers." delay={0.3} />
                         <FeatureCard to="/pomodoro" icon={<FaClock />} title="Focus Mode" description="Distraction-free timer." delay={0.4} />
                     </div>
@@ -331,9 +316,8 @@ const Dashboard = () => {
                                                 </div>
                                             </div>
                                             <div className="flex-grow space-y-3">
-                                                <input type="file" id="profilePicUpload" accept="image/*" onChange={handleImageUpload} className="hidden" />
                                                 <button
-                                                    onClick={() => document.getElementById('profilePicUpload').click()}
+                                                    onClick={() => setIsUploaderOpen(true)}
                                                     className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors shadow-sm shadow-primary/30"
                                                 >
                                                     Upload New Picture
@@ -345,8 +329,13 @@ const Dashboard = () => {
                                                 >
                                                     Remove
                                                 </button>
-                                                {imageUploadError && <p className="text-red-500 text-sm">{imageUploadError}</p>}
-                                                <p className="text-xs text-slate-400">Recommended: Square JPG/PNG, max 500KB.</p>
+                                                {/* Image Uploader Modal */}
+                                                <ImageUploaderModal
+                                                    isOpen={isUploaderOpen}
+                                                    onClose={() => setIsUploaderOpen(false)}
+                                                    onSave={handleProfilePicSave}
+                                                />
+                                                <p className="text-xs text-slate-400">Recommended: Square JPG/PNG. Images will be auto-optimized.</p>
                                             </div>
                                         </div>
                                     </section>

@@ -107,7 +107,7 @@ export const PomodoroProvider = ({ children }) => {
         }
     }, [mode, pomodoroCount, settings, userStats]);
 
-    // 1. Initial Load of Timer and User Stats State
+    // 1. Initial Load of Timer State
     useEffect(() => {
         // Load Timer State
         const savedState = getTimerState();
@@ -132,14 +132,14 @@ export const PomodoroProvider = ({ children }) => {
             }
         }
 
-        // FIX for Maximum update depth exceeded: Run completion logic after state checks.
+        // Run completion logic after state checks.
         if (shouldComplete) {
             handleCompletion();
-            // Return early to ensure the stats loading doesn't interfere with the completion state update.
-            return;
         }
+    }, [handleCompletion]);
 
-        // Load User Stats (Runs only if shouldComplete is false)
+    // 2. Initial Load of User Stats (Runs once on mount)
+    useEffect(() => {
         try {
             const data = getProgressData();
             if (data && data.userStats) {
@@ -174,7 +174,7 @@ export const PomodoroProvider = ({ children }) => {
         } catch (e) {
             console.error("Error loading progress data:", e);
         }
-    }, [handleCompletion]);
+    }, []); // Empty dependency array to run only once
 
     // 2. Timer Interval
     useEffect(() => {

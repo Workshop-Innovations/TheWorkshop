@@ -11,8 +11,25 @@ const AdminDashboard = () => {
     const { user, accessToken } = useAuth();
     const [activeTab, setActiveTab] = useState('subjects'); // subjects, topics, papers, admins
     const [data, setData] = useState([]);
+    const [subjects, setSubjects] = useState([]); // Store subjects for dropdowns and lookups
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Fetch subjects on mount so they are available for dropdowns
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            try {
+                const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                const response = await axios.get(`${baseUrl}/api/v1/subjects`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                setSubjects(response.data);
+            } catch (err) {
+                console.error("Failed to load subjects:", err);
+            }
+        };
+        fetchSubjects();
+    }, [accessToken]);
 
     const [editingItem, setEditingItem] = useState(null);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -83,7 +100,25 @@ const AdminDashboard = () => {
         setEditingItem(null);
         setEditType(type);
         setEditorMode('create');
-        setFormData({}); // Reset form
+
+        // Initialize with valid defaults to prevent validation errors
+        if (type === 'papers') {
+            setFormData({
+                exam_type: 'WAEC',
+                year: new Date().getFullYear().toString(),
+                subject_id: subjects.length > 0 ? subjects[0].id : '' // Select first subject by default if available
+            });
+        } else if (type === 'topics') {
+            setFormData({
+                order: 1,
+                subject_id: subjects.length > 0 ? subjects[0].id : ''
+            });
+        } else if (type === 'users') {
+            setFormData({ role: 'admin' });
+        } else {
+            setFormData({});
+        }
+
         setIsEditorOpen(true);
     };
 
@@ -193,15 +228,18 @@ const AdminDashboard = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Subject ID</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-slate-50"
+                                        <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
+                                        <select
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
                                             value={formData.subject_id || ''}
                                             onChange={(e) => setFormData({ ...formData, subject_id: e.target.value })}
-                                            placeholder="Topic's Subject ID"
                                             required
-                                        />
+                                        >
+                                            <option value="">Select a Subject</option>
+                                            {subjects.map(s => (
+                                                <option key={s.id} value={s.id}>{s.name}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Order</label>
@@ -318,16 +356,18 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Subject ID</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-slate-50"
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
+                                    <select
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
                                         value={formData.subject_id || ''}
                                         onChange={(e) => setFormData({ ...formData, subject_id: e.target.value })}
-                                        placeholder="UUID of Subject"
                                         required
-                                    />
-                                    <p className="text-xs text-slate-500 mt-1">Copy ID from Subjects tab</p>
+                                    >
+                                        <option value="">Select a Subject</option>
+                                        {subjects.map(s => (
+                                            <option key={s.id} value={s.id}>{s.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Content</label>
@@ -442,7 +482,7 @@ const AdminDashboard = () => {
                                 <thead className="bg-slate-50 border-b border-slate-100">
                                     <tr>
                                         <th className="px-6 py-4 font-semibold">Title</th>
-                                        <th className="px-6 py-4 font-semibold">Subject ID</th>
+                                        <th className="px-6 py-4 font-semibold">Subject</th>
                                         <th className="px-6 py-4 font-semibold">Order</th>
                                         <th className="px-6 py-4 font-semibold text-right">Actions</th>
                                     </tr>
@@ -451,7 +491,9 @@ const AdminDashboard = () => {
                                     {data.map((topic) => (
                                         <tr key={topic.id} className="hover:bg-slate-50/50">
                                             <td className="px-6 py-4 font-medium text-slate-900">{topic.title}</td>
-                                            <td className="px-6 py-4 font-mono text-xs text-slate-400">{topic.subject_id}</td>
+                                            <td className="px-6 py-4 font-mono text-xs text-slate-500">
+                                                {subjects.find(s => s.id === topic.subject_id)?.name || topic.subject_id}
+                                            </td>
                                             <td className="px-6 py-4">{topic.order}</td>
                                             <td className="px-6 py-4 text-right space-x-2">
                                                 <button

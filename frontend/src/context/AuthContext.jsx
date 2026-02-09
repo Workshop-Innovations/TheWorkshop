@@ -33,6 +33,11 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
+        // Sync profile pic from backend
+        if (userData.profile_pic) {
+          setProfilePic(userData.profile_pic);
+          localStorage.setItem('userProfilePic', userData.profile_pic);
+        }
       } else {
         // If token is invalid, logout (but maybe don't redirect strictly yet)
         console.error("Failed to fetch user profile");
@@ -78,6 +83,44 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, [fetchUserProfile]);
+  // 3. PROFILE PICTURE MANAGEMENT
+  // Initialize from localStorage or default
+  const [profilePic, setProfilePic] = useState(() => localStorage.getItem('userProfilePic') || null);
+
+  const updateProfilePic = useCallback(async (newPicBase64) => {
+    // 1. Optimistic Update (Local)
+    if (newPicBase64) {
+      setProfilePic(newPicBase64);
+      localStorage.setItem('userProfilePic', newPicBase64);
+    } else {
+      setProfilePic(null);
+      localStorage.removeItem('userProfilePic');
+    }
+
+    // 2. Sync with Backend
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/me`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ profile_pic: newPicBase64 })
+        });
+
+        if (!response.ok) {
+          console.error("Failed to save profile picture to server:", await response.text());
+          toast.error("Failed to save profile picture to server.");
+          // Optional: Revert local state if critically needed, but keep it simple for now
+        }
+      } catch (error) {
+        console.error("Error saving profile picture:", error);
+        toast.error("Network error while saving profile picture.");
+      }
+    }
+  }, []);
 
   const authContextValue = {
     accessToken,
@@ -86,6 +129,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated: !!accessToken,
+    profilePic,      // Expose profilePic
+    updateProfilePic // Expose updater function
   };
 
   return (

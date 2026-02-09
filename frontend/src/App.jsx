@@ -23,7 +23,7 @@ import Profile from './pages/Profile';
 import Materials from './pages/Materials';
 import CommunityPage from './pages/CommunityPage';
 import PastPapers from './pages/PastPapers';
-import AITutor from './pages/AITutor';
+import StudySuite from './pages/StudySuite';
 // import Community from './pages/Community'; // Removed: Redundant
 import AdminDashboard from './pages/AdminDashboard'; // Import AdminDashboard
 import SubjectSummary from './pages/SubjectSummary';
@@ -118,10 +118,10 @@ const AppContent = () => {
           }
         />
         <Route
-          path="/ai-tutor"
+          path="/study-suite"
           element={
             <PrivateRoute>
-              <AITutor />
+              <StudySuite />
             </PrivateRoute>
           }
         />

@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'; // Import useAuth
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { user, logout, isAuthenticated } = useAuth(); // Use useAuth
+  const { user, logout, isAuthenticated, profilePic } = useAuth(); // Use useAuth
   const [isScrolled, setIsScrolled] = useState(false);
   // const [isLoggedIn, setIsLoggedIn] = useState(false); // Remove local state
 
@@ -64,9 +64,13 @@ const Navbar = () => {
                 <button onClick={handleLogout} className="text-sm font-medium text-slate-500 hover:text-red-500 transition-colors">
                   Sign Out
                 </button>
-                <Link to="/profile" className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary p-[2px]">
-                  <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-primary text-xs font-bold">
-                    ME
+                <Link to="/profile" className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary p-[2px] overflow-hidden group">
+                  <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-primary text-xs font-bold overflow-hidden">
+                    {profilePic ? (
+                      <img src={profilePic} alt="Me" className="w-full h-full object-cover" />
+                    ) : (
+                      "ME"
+                    )}
                   </div>
                 </Link>
               </>

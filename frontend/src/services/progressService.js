@@ -10,8 +10,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:80
 
 // Helper function to retrieve the authentication token
 const getAuthToken = () => {
-    // Use the globally provided token for authentication
-    return typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    return localStorage.getItem('accessToken');
 };
 const getToday = () => {
     return new Date().toISOString().split('T')[0];

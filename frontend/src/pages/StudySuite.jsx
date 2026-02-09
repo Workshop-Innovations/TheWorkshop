@@ -6,7 +6,7 @@ import { API_BASE_URL } from '../services/progressService';
 
 const API_BASE = API_BASE_URL;
 
-const AITutor = () => {
+const StudySuite = () => {
     const [documents, setDocuments] = useState([]);
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [documentContent, setDocumentContent] = useState('');
@@ -34,7 +34,7 @@ const AITutor = () => {
     const [flashcardIndex, setFlashcardIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
 
     useEffect(() => {
         fetchDocuments();
@@ -59,7 +59,11 @@ const AITutor = () => {
     };
 
     const uploadFile = async (file) => {
-        if (!file || !token) return;
+        if (!token) {
+            alert("Authentication token missing. Please log in again.");
+            return;
+        }
+        if (!file) return;
 
         setIsUploading(true);
         const formData = new FormData();
@@ -76,7 +80,8 @@ const AITutor = () => {
                 fetchDocuments();
                 handleSelectDocument(newDoc.id);
             } else {
-                alert('Upload failed.');
+                const errData = await res.json();
+                alert(`Upload failed: ${errData.detail || 'Unknown error'}`);
             }
         } catch (e) {
             console.error("Upload error", e);
@@ -351,7 +356,7 @@ const AITutor = () => {
                             <div className="bg-primary p-4 text-white flex items-center gap-3">
                                 <div className="p-2 bg-white/20 rounded-full"><FaRobot className="text-xl" /></div>
                                 <div>
-                                    <h1 className="font-bold text-lg">AI Study Tutor</h1>
+                                    <h1 className="font-bold text-lg">Study Suite</h1>
                                     <p className="text-white/80 text-xs">Ask questions about your uploaded material.</p>
                                 </div>
                             </div>
@@ -398,4 +403,4 @@ const AITutor = () => {
     );
 };
 
-export default AITutor;
+export default StudySuite;

@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
 from ..database import get_session
-from ..schemas import User, UserResponse
-from ..dependencies import get_current_admin_user
+from ..schemas import User, UserResponse, UserUpdate
+from ..dependencies import get_current_admin_user, get_current_user
 from ..utils import get_password_hash
 from pydantic import BaseModel, EmailStr
 
@@ -22,6 +22,24 @@ async def list_users(
     """
     users = session.exec(select(User)).all()
     return users
+
+@router.patch("/me", response_model=UserResponse, summary="Update current user profile")
+async def update_current_user(
+    user_update: UserUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update the current user's profile information.
+    """
+    user_data = user_update.model_dump(exclude_unset=True)
+    for key, value in user_data.items():
+        setattr(current_user, key, value)
+    
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return current_user
 
 @router.put("/{user_id}/role", response_model=UserResponse, summary="Update user role (Admin)")
 async def update_user_role(

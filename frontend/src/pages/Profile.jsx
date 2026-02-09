@@ -5,7 +5,7 @@ import { FaUser, FaEnvelope, FaCalendar, FaTrash, FaGoogle } from 'react-icons/f
 import { useAuth } from '../context/AuthContext';
 
 const Profile = () => {
-  const { user } = useAuth(); // fetch full user object from context
+  const { user, profilePic } = useAuth(); // fetch full user object and profile pic from context
 
   // Fallback for rendering if user data isn't fully loaded yet
   const displayUser = {
@@ -25,8 +25,16 @@ const Profile = () => {
 
         <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 mb-8 text-center border border-slate-100">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center border-4 border-blue-100">
-              <FaUser className="text-4xl text-blue-600" />
+            <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center border-4 border-blue-100 overflow-hidden relative">
+              {profilePic ? (
+                <img
+                  src={profilePic}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <FaUser className="text-4xl text-blue-600" />
+              )}
             </div>
             <div>
               <h2 className="text-3xl font-bold text-slate-900">{displayUser.username}</h2>
