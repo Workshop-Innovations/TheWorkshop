@@ -657,6 +657,8 @@ class TutorDocument(SQLModel, table=True):
     user_id: str = Field(foreign_key="user.id", index=True)
     filename: str
     content: str = Field(sa_column=Column(String)) # Use generic String, or Text for large content if supported by dialect
+    file_path: Optional[str] = Field(default=None) # Path to original file for PDFs
+    file_type: str = Field(default="text") # "pdf" or "text"
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class TutorChatRequest(BaseModel):

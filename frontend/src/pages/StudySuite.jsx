@@ -126,10 +126,14 @@ const StudySuite = () => {
             });
             if (res.ok) {
                 const data = await res.json();
-                setDocumentContent(data.content);
+                setDocumentContent(data);  // Store the entire document object
+            } else {
+                const errorData = await res.json();
+                alert(`Failed to load document: ${errorData.detail || 'Unknown error'}`);
             }
         } catch (e) {
             console.error("Failed to load document", e);
+            alert('Network error loading document.');
         } finally {
             setIsLoadingDoc(false);
         }
@@ -158,10 +162,12 @@ const StudySuite = () => {
                 const data = await res.json();
                 setMessages(prev => [...prev, { role: 'model', content: data.response }]);
             } else {
-                setMessages(prev => [...prev, { role: 'model', content: 'Sorry, I encountered an error. Please try again.' }]);
+                const errorData = await res.json();
+                setMessages(prev => [...prev, { role: 'model', content: `Error: ${errorData.detail || 'Sorry, I encountered an error. Please try again.'}` }]);
             }
         } catch (e) {
-            setMessages(prev => [...prev, { role: 'model', content: 'Connection error. Please try again.' }]);
+            console.error('Chat error:', e);
+            setMessages(prev => [...prev, { role: 'model', content: `Connection error: ${e.message || 'Please try again.'}` }]);
         } finally {
             setIsSending(false);
         }
@@ -322,13 +328,26 @@ const StudySuite = () => {
                         </div>
                     )}
                     {/* Content */}
-                    <div className="flex-grow p-6 overflow-y-auto bg-slate-50/50 prose prose-sm max-w-none">
+                    <div className="flex-grow overflow-hidden bg-slate-50/50">
                         {isLoadingDoc ? <div className="flex justify-center items-center h-full"><FaSpinner className="animate-spin text-4xl text-primary" /></div> :
-                            selectedDoc ? <pre className="whitespace-pre-wrap font-sans text-slate-700">{documentContent}</pre> :
+                            selectedDoc && documentContent ? (
+                                documentContent.file_type === 'pdf' ? (
+                                    <iframe
+                                        src={`${API_BASE}/api/v1/tutor/files/${selectedDoc}`}
+                                        className="w-full h-full border-0"
+                                        title={documentContent.filename}
+                                    />
+                                ) : (
+                                    <div className="p-6 overflow-y-auto h-full prose prose-sm max-w-none">
+                                        <pre className="whitespace-pre-wrap font-sans text-slate-700">{documentContent.content}</pre>
+                                    </div>
+                                )
+                            ) : (
                                 <div className="flex flex-col justify-center items-center h-full text-slate-400 text-center">
                                     <FaUpload className="text-5xl mb-4" />
                                     <p>Drag and drop a file or upload to get started.</p>
                                 </div>
+                            )
                         }
                     </div>
                     {/* Generate Buttons */}

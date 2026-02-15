@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlmodel import Session, select
 from typing import List, Optional
 import os
@@ -9,6 +10,8 @@ from google import genai
 from uuid import uuid4
 from datetime import datetime, timezone
 from pydantic import BaseModel
+import shutil
+from pathlib import Path
 
 from ..database import get_session
 from ..dependencies import get_current_user
@@ -24,6 +27,12 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = None
 if GEMINI_API_KEY:
     client = genai.Client(api_key=GEMINI_API_KEY)
+else:
+    print("WARNING: GEMINI_API_KEY not set. AI Tutor features will not work.")
+
+# Create uploads directory
+UPLOAD_DIR = Path("uploads/tutor_documents")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # --- Request/Response Schemas for Generation ---
 class GenerateRequest(BaseModel):
@@ -48,6 +57,8 @@ class DocumentContentResponse(BaseModel):
     id: str
     filename: str
     content: str
+    file_path: Optional[str]
+    file_type: str
     created_at: datetime
 
 # --- Endpoints ---
@@ -61,11 +72,22 @@ async def upload_document(
     """Upload a text or PDF file for the AI Tutor."""
     content = ""
     filename = file.filename.lower() if file.filename else ""
+    file_path = None
+    file_type = "text"
 
     try:
         content_bytes = await file.read()
         
         if filename.endswith(".pdf"):
+            file_type = "pdf"
+            # Save the PDF file
+            doc_id = str(uuid4())
+            file_path = f"uploads/tutor_documents/{doc_id}_{file.filename}"
+            
+            with open(file_path, "wb") as f:
+                f.write(content_bytes)
+            
+            # Extract text for AI processing
             try:
                 pdf_reader = pypdf.PdfReader(io.BytesIO(content_bytes))
                 for page in pdf_reader.pages:
@@ -74,6 +96,9 @@ async def upload_document(
                         content += text + "\n"
             except Exception as e:
                 print(f"PDF Extraction Error: {e}")
+                # Delete the saved file if extraction fails
+                if os.path.exists(file_path):
+                    os.remove(file_path)
                 raise HTTPException(status_code=400, detail="Could not extract text from PDF.")
         else:
             # Assume text/markdown
@@ -88,17 +113,19 @@ async def upload_document(
         raise HTTPException(status_code=400, detail="File is empty or could not be parsed.")
 
     doc = TutorDocument(
-        id=str(uuid4()),
+        id=doc_id if file_type == "pdf" else str(uuid4()),
         user_id=current_user.id,
         filename=file.filename,
         content=content,
+        file_path=file_path,
+        file_type=file_type,
         created_at=datetime.now(timezone.utc)
     )
     session.add(doc)
     session.commit()
     session.refresh(doc)
 
-    return {"id": doc.id, "filename": doc.filename}
+    return {"id": doc.id, "filename": doc.filename, "file_type": doc.file_type}
 
 @router.get("/documents", response_model=List[dict])
 async def get_documents(
@@ -107,7 +134,12 @@ async def get_documents(
 ):
     """Get a list of all uploaded documents for the current user."""
     docs = session.exec(select(TutorDocument).where(TutorDocument.user_id == current_user.id)).all()
-    return [{"id": d.id, "filename": d.filename, "created_at": d.created_at} for d in docs]
+    return [{
+        "id": d.id, 
+        "filename": d.filename, 
+        "file_type": d.file_type,
+        "created_at": d.created_at
+    } for d in docs]
 
 @router.get("/documents/{document_id}", response_model=DocumentContentResponse)
 async def get_document_content(
@@ -128,7 +160,34 @@ async def get_document_content(
         id=doc.id,
         filename=doc.filename,
         content=doc.content,
+        file_path=doc.file_path,
+        file_type=doc.file_type,
         created_at=doc.created_at
+    )
+
+@router.get("/files/{document_id}")
+async def serve_document_file(
+    document_id: str,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """Serve the original PDF file for embedding."""
+    doc = session.exec(
+        select(TutorDocument).where(
+            TutorDocument.id == document_id,
+            TutorDocument.user_id == current_user.id
+        )
+    ).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    
+    if not doc.file_path or not os.path.exists(doc.file_path):
+        raise HTTPException(status_code=404, detail="File not found on server.")
+    
+    return FileResponse(
+        path=doc.file_path,
+        media_type="application/pdf",
+        filename=doc.filename
     )
 
 @router.post("/chat", response_model=TutorChatResponse)
@@ -139,7 +198,10 @@ async def chat_with_tutor(
 ):
     """Chat with the AI Tutor about the document content."""
     if not client:
-        raise HTTPException(status_code=500, detail="Gemini API Key not configured.")
+        raise HTTPException(
+            status_code=500, 
+            detail="AI Tutor is not configured. Please contact the administrator."
+        )
 
     doc = session.exec(
         select(TutorDocument).where(
@@ -156,9 +218,7 @@ async def chat_with_tutor(
         f"Document Content:\n{doc.content[:30000]}\n\n"
     )
 
-    # Convert frontend history dicts to proper google.genai SDK Content format
-    # Frontend sends: {role: "user"|"model", parts: ["text"]}
-    # SDK expects:    {role: "user"|"model", parts: [{text: "text"}]}
+    # Convert frontend history to proper format
     formatted_history = []
     for entry in request.history:
         role = entry.get("role", "user")
@@ -173,13 +233,13 @@ async def chat_with_tutor(
         response = chat.send_message(context_prompt + f"Question: {request.message}")
         return TutorChatResponse(response=response.text)
     except Exception as e:
-        print(f"Chat error (falling back to single-shot): {e}")
-        # Fallback to single generation if chat fails
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=context_prompt + f"Question: {request.message}"
+        print(f"Chat error: {e}")
+        print(f"Error type: {type(e).__name__}")
+        print(f"Error details: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI chat failed: {str(e)}"
         )
-        return TutorChatResponse(response=response.text)
 
 
 @router.post("/generate/quiz", response_model=QuizResponse)
@@ -190,7 +250,10 @@ async def generate_quiz(
 ):
     """Generate a multiple-choice quiz from the document content."""
     if not client:
-        raise HTTPException(status_code=500, detail="Gemini API Key not configured.")
+        raise HTTPException(
+            status_code=500, 
+            detail="AI Quiz generator is not configured. Please contact the administrator."
+        )
 
     doc = session.exec(
         select(TutorDocument).where(
@@ -236,12 +299,15 @@ async def generate_flashcards(
 ):
     """Generate flashcards (term/definition pairs) from the document content."""
     if not client:
-        raise HTTPException(status_code=500, detail="Gemini API Key not configured.")
+        raise HTTPException(
+            status_code=500, 
+            detail="AI Flashcard generator is not configured. Please contact the administrator."
+        )
 
     doc = session.exec(
         select(TutorDocument).where(
             TutorDocument.id == request.document_id,
-            TutorDocument.user_id == current_user.id
+            TutorDocument.user_id == request.user_id
         )
     ).first()
     if not doc:
