@@ -69,21 +69,21 @@ const Profile = () => {
               </div>
             </div>
           </div>
-          <button className="mt-8 w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20">
-            Edit Profile
+          <button disabled className="mt-8 w-full py-4 bg-slate-200 text-slate-400 rounded-xl font-bold cursor-not-allowed">
+            Edit Profile (Coming Soon)
           </button>
         </div>
 
         <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 mt-8 border border-slate-100">
           <h2 className="text-2xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">Account Actions</h2>
           <div className="space-y-4">
-            <button className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-200 transition-all">
-              <FaGoogle className="text-blue-500" />
-              <span>Sync with Google</span>
+            <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 text-slate-400 rounded-xl font-bold cursor-not-allowed">
+              <FaGoogle className="text-slate-400" />
+              <span>Sync with Google (Coming Soon)</span>
             </button>
-            <button className="w-full flex items-center justify-center gap-3 py-4 bg-red-50 text-red-500 rounded-xl font-bold hover:bg-red-100 transition-colors mt-4">
+            <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-red-50/50 text-red-300 rounded-xl font-bold cursor-not-allowed mt-4">
               <FaTrash />
-              <span>Delete Account</span>
+              <span>Delete Account (Coming Soon)</span>
             </button>
           </div>
         </div>

@@ -76,8 +76,10 @@ async def generate_flashcards_from_file(
     # For now, Gemini supports PDF, text, images, etc. We'll focus on PDF and text.
     supported_types = ["application/pdf", "text/plain", "text/csv", "application/json"]
     if file.content_type not in supported_types and not file.content_type.startswith("image/"):
-         # Optionally allow images if you want visual flashcards later
-         pass
+         raise HTTPException(
+             status_code=status.HTTP_400_BAD_REQUEST,
+             detail=f"Unsupported file type: {file.content_type}. Supported types: PDF, text, CSV, JSON, and images."
+         )
 
     # Save uploaded file to a temporary file because genai.upload_file requires a path
     suffix = f".{file.filename.split('.')[-1]}" if '.' in file.filename else ".tmp"

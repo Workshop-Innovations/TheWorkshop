@@ -18,7 +18,6 @@ const Login = () => {
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
-    console.log('handleSubmit called!');
     e.preventDefault();
 
     setError('');

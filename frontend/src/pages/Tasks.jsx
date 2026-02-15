@@ -23,10 +23,10 @@ const Tasks = () => {
     title: '',
     description: '',
     priority: 'medium',
-    dueDate: '', 
+    dueDate: '',
   });
-  const [loading, setLoading] = useState(true); 
-  const [error, setError] = useState(null);     
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
 
   const fetchTasks = async () => {
@@ -164,24 +164,26 @@ const Tasks = () => {
   const completedTasks = tasks.filter(task => task.completed);
 
   return (
-    <div className="min-h-screen bg-[#121212]">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
-      <ToastContainer theme="dark" />
+      <ToastContainer theme="light" />
 
       <div className="container mx-auto px-4 py-32">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold">My Tasks</h1>
-            <button
+            <h1 className="text-4xl font-bold text-slate-900">My Tasks</h1>
+            <motion.button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-md font-bold border border-transparent hover:bg-gray-200 transition-all duration-300"
+              className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <FaPlus />
               <span>Add Task</span>
-            </button>
+            </motion.button>
           </div>
-                    {loading && (
-            <div className="text-center text-gray-400 text-lg flex items-center justify-center gap-2">
+          {loading && (
+            <div className="text-center text-slate-400 text-lg flex items-center justify-center gap-2">
               <FaSpinner className="animate-spin" /> Loading tasks...
             </div>
           )}
@@ -190,10 +192,10 @@ const Tasks = () => {
               Error: {error}.
             </div>
           )}
-                    {!loading && !error && (
+          {!loading && !error && (
             <div className="space-y-8">
               <div>
-                <h2 className="text-xl font-semibold mb-4">Pending Tasks</h2>
+                <h2 className="text-xl font-semibold mb-4 text-slate-700">Pending Tasks</h2>
                 <div className="space-y-4">
                   {pendingTasks.length > 0 ? pendingTasks.map(task => (
                     <TaskCard
@@ -202,12 +204,12 @@ const Tasks = () => {
                       onComplete={handleTaskComplete}
                       onDelete={handleDeleteTask}
                     />
-                  )) : <p className="text-gray-400">No pending tasks. Great job!</p>}
+                  )) : <p className="text-slate-400">No pending tasks. Great job!</p>}
                 </div>
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold mb-4">Completed Tasks</h2>
+                <h2 className="text-xl font-semibold mb-4 text-slate-700">Completed Tasks</h2>
                 <div className="space-y-4">
                   {completedTasks.length > 0 ? completedTasks.map(task => (
                     <TaskCard
@@ -216,7 +218,7 @@ const Tasks = () => {
                       onComplete={handleTaskComplete}
                       onDelete={handleDeleteTask}
                     />
-                  )) : <p className="text-gray-400">No completed tasks yet.</p>}
+                  )) : <p className="text-slate-400">No completed tasks yet.</p>}
                 </div>
               </div>
             </div>
@@ -225,49 +227,49 @@ const Tasks = () => {
       </div>
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
             <motion.div
-              className="bg-[#1A1A1A] p-6 rounded-lg w-full max-w-md"
+              className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl border border-slate-100"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Create New Task</h2>
-                <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">
+                <h2 className="text-2xl font-bold text-slate-800">Create New Task</h2>
+                <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                   <FaTimes />
                 </button>
               </div>
 
               <form onSubmit={handleCreateTask} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Title *</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-700">Title *</label>
                   <input
                     type="text"
                     required
                     value={newTask.title}
                     onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    className="w-full p-3 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                     placeholder="Enter task title"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Description</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-700">Description</label>
                   <textarea
                     value={newTask.description}
                     onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                    className="w-full p-3 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20 min-h-[100px]"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[100px] text-slate-800"
                     placeholder="Enter task description"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Priority</label>
+                    <label className="block text-sm font-medium mb-2 text-slate-700">Priority</label>
                     <div className="relative">
                       <select
                         value={newTask.priority}
                         onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                        className="w-full p-3 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20 appearance-none"
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary appearance-none text-slate-800"
                       >
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
@@ -277,17 +279,17 @@ const Tasks = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Due Date</label>
+                    <label className="block text-sm font-medium mb-2 text-slate-700">Due Date</label>
                     <div className="relative custom-datepicker">
                       <DatePicker
                         selected={newTask.dueDate ? new Date(newTask.dueDate) : null}
                         onChange={(date) => setNewTask({ ...newTask, dueDate: date ? date.toISOString().split('T')[0] : '' })}
-                        className="w-full p-3 bg-[#242424] rounded-md focus:outline-none focus:ring-2 focus:ring-white/20"
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                         dateFormat="MMMM d"
                         placeholderText="Select a due date"
                         isClearable
                       />
-                      <FaCalendarAlt className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <FaCalendarAlt className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
                   </div>
                 </div>
@@ -295,13 +297,13 @@ const Tasks = () => {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-md font-bold border border-white/20 hover:bg-white/10 transition-all duration-300"
+                    className="px-4 py-2 rounded-xl font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all duration-300"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-white text-black rounded-md font-bold border border-transparent hover:bg-gray-200 transition-all duration-300"
+                    className="px-4 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/20"
                   >
                     Create
                   </button>
@@ -321,40 +323,39 @@ const Tasks = () => {
 const TaskCard = ({ task, onComplete, onDelete }) => {
   return (
     <motion.div
-      className={`bg-[#1A1A1A] p-4 rounded-lg hover:bg-[#242424] transition-colors duration-300 ${task.completed ? 'opacity-75' : ''}`}
+      className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300 ${task.completed ? 'opacity-75' : ''}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ y: -2 }}
       transition={{ duration: 0.2 }}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4 flex-grow">
           <button
             onClick={() => onComplete(task.id, task.completed)}
-            className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-              task.completed ? 'bg-white border-white' : 'border-gray-400 hover:border-white'
-            }`}
+            className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${task.completed ? 'bg-primary border-primary' : 'border-slate-300 hover:border-primary'
+              }`}
           >
-            {task.completed && <FaCheck className="text-black text-xs" />}
+            {task.completed && <FaCheck className="text-white text-xs" />}
           </button>
 
           <div className="flex-1">
             <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-2">
-              <h3 className={`font-semibold ${task.completed ? 'line-through text-gray-400' : ''}`}>
+              <h3 className={`font-semibold ${task.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>
                 {task.title}
               </h3>
               <div className="flex items-center gap-2">
                 <FaFlag className={`${priorityConfig[task.priority]?.color}`} />
-                <span className="text-sm text-gray-400">{priorityConfig[task.priority]?.label}</span>
+                <span className="text-sm text-slate-500">{priorityConfig[task.priority]?.label}</span>
               </div>
             </div>
-            
+
             {task.description && (
-              <p className="text-sm text-gray-400 mb-2">{task.description}</p>
+              <p className="text-sm text-slate-500 mb-2">{task.description}</p>
             )}
-            
+
             {task.due_date && (
-              <div className="flex items-center gap-2 text-sm text-gray-400 mt-2">
+              <div className="flex items-center gap-2 text-sm text-slate-400 mt-2">
                 <FaCalendarAlt />
                 <span>{new Date(task.due_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
               </div>
@@ -364,7 +365,7 @@ const TaskCard = ({ task, onComplete, onDelete }) => {
 
         <button
           onClick={() => onDelete(task.id)}
-          className="flex-shrink-0 text-gray-500 hover:text-red-500 transition-colors"
+          className="flex-shrink-0 text-slate-400 hover:text-red-500 transition-colors"
           title="Delete Task"
         >
           <FaTrashAlt />

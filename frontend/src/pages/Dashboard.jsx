@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaClock, FaListAlt, FaChartBar, FaStore, FaCoins, FaTasks, FaBrain, FaUserCircle, FaCamera, FaTimes, FaCrown, FaBookOpen, FaRobot, FaUsers } from 'react-icons/fa';
+import { FaClock, FaBrain, FaUserCircle, FaCamera, FaTimes, FaCrown, FaBookOpen, FaRobot, FaUsers } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -18,7 +18,7 @@ const StatCard = ({ icon: Icon, title, value, colorClass, iconClass }) => (
         transition={{ duration: 0.2 }}
     >
         <div className="flex items-center gap-5">
-            <div className={`p-4 rounded-xl ${colorClass} bg-opacity-10 flex items-center justify-center`}>
+            <div className={`p-4 rounded-xl ${colorClass} flex items-center justify-center`}>
                 <Icon className={`${iconClass} text-2xl`} />
             </div>
             <div>
@@ -49,7 +49,6 @@ const FeatureCard = ({ to, icon, title, description, delay }) => (
 
 // --- MAIN DASHBOARD COMPONENT ---
 const Dashboard = () => {
-    // Hooks and Context
     // Hooks and Context
     const { user, profilePic: contextProfilePic, updateProfilePic } = useAuth(); // renamed to avoid clash if needed, or just usage
     const { userStats } = usePomodoro();
@@ -244,21 +243,21 @@ const Dashboard = () => {
                         icon={FaCrown}
                         title="Achievements"
                         value={totalTasks}
-                        colorClass="bg-amber-500"
+                        colorClass="bg-amber-50"
                         iconClass="text-amber-500"
                     />
                     <StatCard
                         icon={FaBrain}
                         title="Study Sessions"
                         value={totalPomodoros}
-                        colorClass="bg-primary"
+                        colorClass="bg-teal-50"
                         iconClass="text-primary"
                     />
                     <StatCard
                         icon={FaClock}
                         title="Focus Time"
                         value={`${Math.floor(totalFocusTime / 3600)}h ${Math.floor((totalFocusTime % 3600) / 60)}m`}
-                        colorClass="bg-secondary"
+                        colorClass="bg-sky-50"
                         iconClass="text-secondary"
                     />
                 </div>

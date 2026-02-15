@@ -17,6 +17,8 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
   const [user, setUser] = useState(null); // Store full user object including role
   const [loading, setLoading] = useState(true); // Loading state for user fetch
+  // Profile Picture Management — must be declared before fetchUserProfile which uses setProfilePic
+  const [profilePic, setProfilePic] = useState(() => localStorage.getItem('userProfilePic') || null);
 
   const navigate = useNavigate();
 
@@ -83,9 +85,6 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, [fetchUserProfile]);
-  // 3. PROFILE PICTURE MANAGEMENT
-  // Initialize from localStorage or default
-  const [profilePic, setProfilePic] = useState(() => localStorage.getItem('userProfilePic') || null);
 
   const updateProfilePic = useCallback(async (newPicBase64) => {
     // 1. Optimistic Update (Local)

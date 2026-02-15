@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { FaSearch, FaFilter, FaDownload, FaBookOpen } from 'react-icons/fa';
+import { FaSearch, FaDownload, FaBookOpen } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 const PastPapers = () => {

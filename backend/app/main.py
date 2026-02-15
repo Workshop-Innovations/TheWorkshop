@@ -34,15 +34,11 @@ from .schemas import (
     DMConversationResponse, DMMessageCreate, DMMessageResponse,
 )
 
-# Import new routers
 from .routes import community, websocket, flashcards, tutor, notes, reviews, subjects, users, system
-
-# Load environment variables from .env file
-load_dotenv()
-
+from .dependencies import get_current_user
 # --- Configuration Settings ---
 class Settings(BaseModel):
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-super-secret-key-change-this-for-production")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-only-secret-change-in-production")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     # Prioritize DATABASE_URL from environment for production, fallback to SQLite for local dev
@@ -76,29 +72,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 # --- Database Engine and Session Setup ---
 # Imported from database.py to avoid circular imports
 
-# --- Dependency to get the current user from the token ---
-async def get_current_user(
-    session: Session = Depends(get_session),
-    token: str = Depends(oauth2_scheme)
-):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    
-    user = session.exec(select(User).where(User.username == username)).first()
-    if user is None:
-        raise credentials_exception
-    return user
-
 
 # --- FastAPI App Initialization ---
 app = FastAPI(
@@ -128,7 +101,7 @@ def on_startup():
     
     # Auto-promote a@gmail.com to admin
     with Session(engine) as session:
-        admin_email = "a@gmail.com"
+        admin_email = os.getenv("ADMIN_EMAIL", "a@gmail.com")
         user = session.exec(select(User).where(User.email == admin_email)).first()
         if user:
             if user.role != "admin":

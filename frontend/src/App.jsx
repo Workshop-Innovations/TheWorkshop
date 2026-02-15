@@ -7,8 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CommunityProvider } from './context/CommunityContext';
 import MinimizedPomodoro from './components/MinimizedPomodoro';
 import PrivateRoute from './components/PrivateRoute';
-import AdminRoute from './components/AdminRoute'; // Import AdminRoute
-import Navbar from './components/Navbar';
+import AdminRoute from './components/AdminRoute';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Pomodoro from './pages/Pomodoro';
@@ -34,6 +33,7 @@ import ScrollToTop from './components/ScrollToTop';
 
 const AppContent = () => {
   const { isRunning } = usePomodoro();
+  const location = useLocation();
   const showMinimizedTimer = isRunning && location.pathname !== '/pomodoro';
 
   return (

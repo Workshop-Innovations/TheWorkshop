@@ -3,7 +3,6 @@ import React, { createContext, useState, useEffect, useCallback, useContext } fr
 // FIX: Added .js extension to resolve bundler path error
 import { getProgressData, saveProgressData, logPomodoro, logBreak, getTimerState, saveTimerState, clearTimerState, fetchCompletedSessions } from '../services/progressService.js';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
 
 const POMODORO_MINUTES = 30; // Base time for calculations (matches default setting)
 

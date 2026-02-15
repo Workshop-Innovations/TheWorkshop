@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUser, FaSignOutAlt, FaShieldAlt } from 'react-icons/fa'; // Added FaShieldAlt
-import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { FaShieldAlt } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
-  const navigate = useNavigate();
-  const { user, logout, isAuthenticated, profilePic } = useAuth(); // Use useAuth
+  const { user, logout, isAuthenticated, profilePic } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
-  // const [isLoggedIn, setIsLoggedIn] = useState(false); // Remove local state
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,8 +17,7 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
+    logout(); // AuthContext.logout() already navigates to /login
   };
 
   return (

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { usePomodoro } from '../context/PomodoroContext';
-import { FaPlay, FaPause, FaForward, FaRedo, FaCog, FaCoins, FaCheckCircle, FaFire } from 'react-icons/fa';
+import { FaPlay, FaPause, FaForward, FaRedo, FaCog, FaFire } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { ALL_PASSIVE_REWARDS } from '../constants/rewardConstants';
-import { Link, useNavigate } from 'react-router-dom';
+
 
 // --- ProgressView Component Definition (Updated) ---
 const ProgressView = ({ totalCompletedPomodoros }) => {
