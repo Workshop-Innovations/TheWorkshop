@@ -155,16 +155,25 @@ async def chat_with_tutor(
         f"If the answer is not in the document, try to answer generally but mention you are going outside the context.\n\n"
         f"Document Content:\n{doc.content[:30000]}\n\n"
     )
-    
-    try:
-        if request.history:
-             # Convert history to compatible format if needed, or rely on SDK
-             pass
 
-        chat = client.chats.create(model='gemini-2.0-flash', history=request.history)
+    # Convert frontend history dicts to proper google.genai SDK Content format
+    # Frontend sends: {role: "user"|"model", parts: ["text"]}
+    # SDK expects:    {role: "user"|"model", parts: [{text: "text"}]}
+    formatted_history = []
+    for entry in request.history:
+        role = entry.get("role", "user")
+        parts = entry.get("parts", [])
+        text_parts = [
+            {"text": p} if isinstance(p, str) else p for p in parts
+        ]
+        formatted_history.append({"role": role, "parts": text_parts})
+
+    try:
+        chat = client.chats.create(model='gemini-2.0-flash', history=formatted_history)
         response = chat.send_message(context_prompt + f"Question: {request.message}")
         return TutorChatResponse(response=response.text)
     except Exception as e:
+        print(f"Chat error (falling back to single-shot): {e}")
         # Fallback to single generation if chat fails
         response = client.models.generate_content(
             model='gemini-2.0-flash',

@@ -38,6 +38,9 @@ export const CommunityProvider = ({ children }) => {
 
     // Connection state
     const [onlineUsers, setOnlineUsers] = useState([]);
+
+    // WebSocket ref
+    const wsRef = useRef(null);
     const [isConnected, setIsConnected] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -132,8 +135,10 @@ export const CommunityProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 setChannels(data);
-                if (data.length > 0 && !currentChannel) {
+                if (data.length > 0) {
                     setCurrentChannel(data[0]);
+                } else {
+                    setCurrentChannel(null);
                 }
             }
         } catch (error) {
@@ -416,7 +421,6 @@ export const CommunityProvider = ({ children }) => {
         if (currentCommunity && token) {
             fetchChannels(currentCommunity.id);
             fetchMembers(currentCommunity.id);
-            setCurrentChannel(null);
         }
     }, [currentCommunity, token]);
 
@@ -426,6 +430,73 @@ export const CommunityProvider = ({ children }) => {
             fetchMessages(currentChannel.id);
         }
     }, [currentChannel, token]);
+
+    // WebSocket connection for real-time messaging
+    useEffect(() => {
+        // Only connect if we have a channel with a slug and a token
+        if (!currentChannel?.slug || !token) return;
+
+        // Derive WebSocket URL from API URL (http -> ws, https -> wss)
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const wsBase = apiBase.replace(/^http/, 'ws');
+        const wsUrl = `${wsBase}/ws/community/${currentChannel.slug}?token=${token}`;
+
+        // Close any existing connection before creating a new one
+        if (wsRef.current) {
+            wsRef.current.close();
+            wsRef.current = null;
+        }
+
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            console.log(`[WS] Connected to channel: ${currentChannel.slug}`);
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'message' || data.type === 'reply') {
+                    // Deduplicate: the sender already added the message via HTTP response
+                    setMessages(prev => {
+                        if (prev.some(m => m.id === data.id)) return prev;
+                        return [...prev, {
+                            id: data.id,
+                            content: data.content,
+                            user_id: data.user_id,
+                            channel_id: data.channel_id,
+                            timestamp: data.timestamp,
+                            user_email: data.user_email,
+                            parent_id: data.parent_id || null,
+                            score: 0,
+                            user_vote: 0,
+                            reply_count: 0
+                        }];
+                    });
+                }
+            } catch (err) {
+                console.error('[WS] Failed to parse message:', err);
+            }
+        };
+
+        ws.onerror = (err) => {
+            console.error('[WS] WebSocket error:', err);
+        };
+
+        ws.onclose = (event) => {
+            console.log(`[WS] Disconnected from channel: ${currentChannel.slug}`, event.code);
+        };
+
+        // Cleanup: close the WebSocket when channel changes or component unmounts
+        return () => {
+            if (wsRef.current) {
+                wsRef.current.close();
+                wsRef.current = null;
+            }
+        };
+    }, [currentChannel?.slug, token]);
 
     // When DM changes, fetch DM messages
     useEffect(() => {

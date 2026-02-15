@@ -57,7 +57,7 @@ const Navbar = () => {
                   </Link>
                 )}
                 <NavLink to="/past-papers" label="Papers" className="hidden sm:block" />
-                <NavLink to="/ai-tutor" label="Study Suite" className="hidden sm:block" />
+                <NavLink to="/study-suite" label="Study Suite" className="hidden sm:block" />
 
                 <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
 

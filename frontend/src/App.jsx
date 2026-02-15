@@ -133,12 +133,6 @@ const AppContent = () => {
             </PrivateRoute>
           }
         />
-        import AdminRoute from './components/AdminRoute';
-        import AdminDashboard from './pages/AdminDashboard';
-
-        // ... (imports)
-
-        // ... inside Routes
         <Route
           path="/admin"
           element={

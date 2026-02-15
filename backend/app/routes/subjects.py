@@ -54,8 +54,6 @@ async def get_papers(
     papers = session.exec(query).all()
     return papers
 
-    return papers
-
 @router.get("/topics", response_model=List[TopicResponse], summary="Get all topics")
 async def get_topics(session: Session = Depends(get_session)):
     """
