@@ -3,10 +3,13 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { FaRobot, FaPaperPlane, FaUpload, FaLightbulb, FaListAlt, FaFileAlt, FaSpinner, FaTimes, FaCheck, FaUndo, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { API_BASE_URL } from '../services/progressService';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE = API_BASE_URL;
 
 const StudySuite = () => {
+    const { accessToken: token } = useAuth(); // Use auth context instead of direct localStorage
+
     const [documents, setDocuments] = useState([]);
     const [selectedDoc, setSelectedDoc] = useState(null);
     const [documentContent, setDocumentContent] = useState('');
@@ -33,8 +36,6 @@ const StudySuite = () => {
     // Flashcard State
     const [flashcardIndex, setFlashcardIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
-
-    const token = localStorage.getItem('accessToken');
 
     useEffect(() => {
         fetchDocuments();
