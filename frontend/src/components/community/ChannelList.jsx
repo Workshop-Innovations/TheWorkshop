@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import StudyGroups from './StudyGroups';
-import './ChannelList.css';
+
 
 // Default channels that always appear (frontend-only display, merged with backend channels)
 const DEFAULT_CHANNEL_CATEGORIES = [
