@@ -71,7 +71,7 @@ const ServerList = () => {
         <div className="w-[72px] bg-slate-900 flex flex-col items-center py-4 gap-3 h-full shrink-0 z-20 shadow-xl overflow-y-auto no-scrollbar overflow-x-hidden">
             {/* Home Button (DMs) */}
             <div
-                className={`w-12 h-12 rounded-[24px] hover:rounded-[16px] transition-all duration-300 flex items-center justify-center cursor-pointer group relative ${viewMode === 'dms' ? 'bg-primary text-white rounded-[16px]' : 'bg-slate-700 text-slate-100 hover:bg-primary hover:text-white'}`}
+                className={`w-12 h-12 rounded-[24px] hover:rounded-[16px] transition-all duration-300 flex items-center justify-center cursor-pointer group relative shrink-0 ${viewMode === 'dms' ? 'bg-primary text-white rounded-[16px]' : 'bg-slate-700 text-slate-100 hover:bg-primary hover:text-white'}`}
                 onClick={handleHomeClick}
             >
                 {viewMode === 'dms' && (
@@ -87,44 +87,46 @@ const ServerList = () => {
                 </div>
             </div>
 
-            <div className="w-8 h-[2px] bg-slate-700/50 rounded-full my-1"></div>
+            <div className="w-8 h-[2px] bg-slate-700/50 rounded-full my-1 shrink-0"></div>
 
             {/* Server Icons */}
-            {communities.map((community) => (
-                <div
-                    key={community.id}
-                    className="relative group w-full flex justify-center"
-                >
-                    {currentCommunity?.id === community.id && viewMode === 'community' && (
-                        <div className="absolute -left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-lg" />
-                    )}
-
+            <div className="flex-1 flex flex-col gap-3 w-full items-center overflow-y-auto no-scrollbar overflow-x-hidden pb-4">
+                {communities.map((community) => (
                     <div
-                        className={`w-12 h-12 rounded-[24px] hover:rounded-[16px] transition-all duration-300 flex items-center justify-center cursor-pointer overflow-hidden relative ${currentCommunity?.id === community.id && viewMode === 'community' ? 'rounded-[16px] ring-2 ring-primary ring-offset-2 ring-offset-slate-900' : 'bg-slate-700 hover:bg-primary text-slate-100'}`}
-                        onClick={() => handleServerClick(community)}
+                        key={community.id}
+                        className="relative group w-full flex justify-center shrink-0"
                     >
-                        {community.icon ? (
-                            <img src={community.icon} alt={community.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="font-bold text-lg">{community.name.charAt(0).toUpperCase()}</span>
+                        {currentCommunity?.id === community.id && viewMode === 'community' && (
+                            <div className="absolute -left-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white rounded-r-lg" />
                         )}
-                    </div>
 
-                    {/* Tooltip */}
-                    <div className="absolute left-[70px] top-1/2 -translate-y-1/2 bg-black text-white text-xs font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
-                        {community.name}
-                    </div>
-                </div>
-            ))}
+                        <div
+                            className={`w-12 h-12 rounded-[24px] hover:rounded-[16px] transition-all duration-300 flex items-center justify-center cursor-pointer overflow-hidden relative ${currentCommunity?.id === community.id && viewMode === 'community' ? 'rounded-[16px] ring-2 ring-primary ring-offset-2 ring-offset-slate-900 icon-active' : 'bg-slate-700 hover:bg-primary text-slate-100'}`}
+                            onClick={() => handleServerClick(community)}
+                        >
+                            {community.icon ? (
+                                <img src={community.icon} alt={community.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="font-bold text-lg">{community.name.charAt(0).toUpperCase()}</span>
+                            )}
+                        </div>
 
-            {/* Add Server Button */}
-            <div
-                className="w-12 h-12 rounded-[24px] bg-slate-700 text-emerald-500 hover:bg-emerald-500 hover:text-white hover:rounded-[16px] transition-all duration-300 flex items-center justify-center cursor-pointer group relative mt-2"
-                onClick={openCreateModal}
-            >
-                <span className="text-3xl font-light pb-1">+</span>
-                <div className="absolute left-[70px] bg-black text-white text-xs font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                    Add Server
+                        {/* Tooltip */}
+                        <div className="absolute left-[70px] top-1/2 -translate-y-1/2 bg-black text-white text-xs font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-xl">
+                            {community.name}
+                        </div>
+                    </div>
+                ))}
+
+                {/* Add Server Button */}
+                <div
+                    className="w-12 h-12 rounded-[24px] bg-slate-700 text-emerald-500 hover:bg-emerald-500 hover:text-white hover:rounded-[16px] transition-all duration-300 flex items-center justify-center cursor-pointer group relative mt-2 shrink-0"
+                    onClick={openCreateModal}
+                >
+                    <span className="text-3xl font-light pb-1">+</span>
+                    <div className="absolute left-[70px] bg-black text-white text-xs font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                        Add Server
+                    </div>
                 </div>
             </div>
 
