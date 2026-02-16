@@ -1,48 +1,57 @@
 import React, { useState } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import StudyGroups from './StudyGroups';
+import {
+    FaHashtag,
+    FaVolumeUp,
+    FaChevronDown,
+    FaChevronRight,
+    FaPlus,
+    FaUserFriends,
+    FaCompass
+} from 'react-icons/fa';
+import { HiUserGroup } from "react-icons/hi";
 
-
-// Default channels that always appear (frontend-only display, merged with backend channels)
+// Default channels with React Icons
 const DEFAULT_CHANNEL_CATEGORIES = [
     {
-        name: "📢 INFORMATION",
+        name: "INFORMATION",
         collapsed: false,
         channels: [
-            { id: 'default-welcome', name: 'welcome', icon: '👋', isDefault: true },
-            { id: 'default-rules', name: 'rules-and-guidelines', icon: '📜', isDefault: true },
-            { id: 'default-announcements', name: 'announcements', icon: '📣', isDefault: true },
+            { id: 'default-welcome', name: 'welcome', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-rules', name: 'rules-and-guidelines', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-announcements', name: 'announcements', icon: <FaVolumeUp />, isDefault: true }, // Using generic icon for announcements
         ]
     },
     {
-        name: "💬 GENERAL",
+        name: "GENERAL",
         collapsed: false,
         channels: [
-            { id: 'default-general', name: 'general', icon: '#', isDefault: true },
-            { id: 'default-introductions', name: 'introductions', icon: '🙋', isDefault: true },
-            { id: 'default-offtopic', name: 'off-topic', icon: '🎲', isDefault: true },
-            { id: 'default-wins', name: 'wins-and-celebrations', icon: '🎉', isDefault: true },
+            { id: 'default-general', name: 'general', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-introductions', name: 'introductions', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-offtopic', name: 'off-topic', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-wins', name: 'wins-and-celebrations', icon: <FaHashtag />, isDefault: true },
         ]
     },
     {
-        name: "📚 SUBJECT STUDY",
+        name: "SUBJECT STUDY",
         collapsed: false,
         channels: [
-            { id: 'default-math', name: 'mathematics', icon: '🔢', isDefault: true },
-            { id: 'default-physics', name: 'physics', icon: '⚛️', isDefault: true },
-            { id: 'default-chemistry', name: 'chemistry', icon: '🧪', isDefault: true },
-            { id: 'default-biology', name: 'biology', icon: '🧬', isDefault: true },
-            { id: 'default-english', name: 'english', icon: '📖', isDefault: true },
-            { id: 'default-history', name: 'history', icon: '🏛️', isDefault: true },
+            { id: 'default-math', name: 'mathematics', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-physics', name: 'physics', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-chemistry', name: 'chemistry', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-biology', name: 'biology', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-english', name: 'english', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-history', name: 'history', icon: <FaHashtag />, isDefault: true },
         ]
     },
     {
-        name: "❓ HELP & SUPPORT",
+        name: "HELP & SUPPORT",
         collapsed: false,
         channels: [
-            { id: 'default-homework', name: 'homework-help', icon: '📝', isDefault: true },
-            { id: 'default-exam', name: 'exam-prep', icon: '📋', isDefault: true },
-            { id: 'default-resources', name: 'resource-sharing', icon: '📂', isDefault: true },
+            { id: 'default-homework', name: 'homework-help', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-exam', name: 'exam-prep', icon: <FaHashtag />, isDefault: true },
+            { id: 'default-resources', name: 'resource-sharing', icon: <FaHashtag />, isDefault: true },
         ]
     }
 ];
@@ -80,7 +89,6 @@ const ChannelList = () => {
     };
 
     const handleChannelClick = (channel) => {
-        // For default channels, we create a pseudo-channel object
         if (channel.isDefault) {
             setCurrentChannel({
                 id: channel.id,
@@ -107,7 +115,7 @@ const ChannelList = () => {
                     </div>
                     {dmConversations.length === 0 ? (
                         <div className="empty-dm-state">
-                            <span className="empty-icon">💬</span>
+                            <span className="empty-icon"><FaUserFriends /></span>
                             <p>No conversations yet</p>
                             <span className="empty-hint">Click on a member in any server to start a DM</span>
                         </div>
@@ -137,16 +145,16 @@ const ChannelList = () => {
         );
     }
 
-    // Community View
+    // Community View - If detailed view
     if (!currentCommunity) {
         return (
             <div className="channel-list">
-                <div className="channel-header">
+                <div className="channel-header center">
                     <h3>Select a Server</h3>
                 </div>
-                <div className="channels-container">
+                <div className="channels-container empty">
                     <div className="empty-dm-state">
-                        <span className="empty-icon">🏠</span>
+                        <span className="empty-icon"><FaCompass /></span>
                         <p>Welcome!</p>
                         <span className="empty-hint">Select or create a server to get started</span>
                     </div>
@@ -161,46 +169,46 @@ const ChannelList = () => {
 
     return (
         <div className="channel-list">
-            <div className="channel-header">
-                <h3>{currentCommunity.name}</h3>
-                <span className="invite-code" title="Invite Code">
-                    Code: {currentCommunity.join_code}
-                </span>
+            {/* Server Header */}
+            <div className="server-header">
+                <h3 className="server-name">{currentCommunity.name}</h3>
+                <FaChevronDown className="server-header-icon" />
             </div>
 
-            <div className="channel-actions">
-                <button
-                    className="action-btn study-groups-btn"
-                    onClick={() => setShowStudyGroups(true)}
-                >
-                    📚 Study Groups
-                </button>
+            {/* Channels & Roles Item (Visual) */}
+            <div className="channel-actions-bar">
+                <div className="menu-item">
+                    <HiUserGroup className="menu-icon" />
+                    <span>Channels & Roles</span>
+                </div>
             </div>
 
-            <div className="channels-container">
+            <div className="channels-scroll-area">
                 {/* Default Channel Categories */}
                 {DEFAULT_CHANNEL_CATEGORIES.map((category) => (
-                    <div key={category.name} className="category-section">
+                    <div key={category.name} className="channel-category-group">
                         <div
-                            className="channel-category"
+                            className="category-header"
                             onClick={() => toggleCategory(category.name)}
                         >
-                            <span className={`category-arrow ${collapsedCategories[category.name] ? 'collapsed' : ''}`}>
-                                ▼
+                            <span className={`category-chevron ${collapsedCategories[category.name] ? 'collapsed' : ''}`}>
+                                <FaChevronDown size={10} />
                             </span>
-                            <span className="category-name">{category.name}</span>
+                            <span className="category-label">{category.name}</span>
                         </div>
 
                         {!collapsedCategories[category.name] && (
-                            <div className="category-channels">
+                            <div className="category-channels-list">
                                 {category.channels.map((channel) => (
                                     <div
                                         key={channel.id}
                                         className={`channel-item ${currentChannel?.id === channel.id ? 'active' : ''}`}
                                         onClick={() => handleChannelClick(channel)}
                                     >
-                                        <span className="channel-icon">{channel.icon}</span>
-                                        <span className="channel-name">{channel.name}</span>
+                                        <span className="channel-icon-wrapper">
+                                            {channel.icon}
+                                        </span>
+                                        <span className="channel-name-text">{channel.name}</span>
                                     </div>
                                 ))}
                             </div>
@@ -209,87 +217,68 @@ const ChannelList = () => {
                 ))}
 
                 {/* User-created channels */}
-                {userChannels.length > 0 && (
-                    <div className="category-section">
-                        <div
-                            className="channel-category"
-                            onClick={() => toggleCategory('user-channels')}
+                <div className="channel-category-group">
+                    <div
+                        className="category-header"
+                        onClick={() => toggleCategory('user-channels')}
+                    >
+                        <span className={`category-chevron ${collapsedCategories['user-channels'] ? 'collapsed' : ''}`}>
+                            <FaChevronDown size={10} />
+                        </span>
+                        <span className="category-label">CUSTOM CHANNELS</span>
+                        <button
+                            className="add-channel-btn-icon"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowCreateChannel(!showCreateChannel);
+                            }}
+                            title="Create Channel"
                         >
-                            <span className={`category-arrow ${collapsedCategories['user-channels'] ? 'collapsed' : ''}`}>
-                                ▼
-                            </span>
-                            <span className="category-name">📁 CUSTOM CHANNELS</span>
-                            <button
-                                className="add-channel-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowCreateChannel(!showCreateChannel);
-                                }}
-                                title="Create Channel"
-                            >
-                                +
-                            </button>
-                        </div>
-
-                        {!collapsedCategories['user-channels'] && (
-                            <div className="category-channels">
-                                {showCreateChannel && (
-                                    <div className="create-channel-form">
-                                        <input
-                                            type="text"
-                                            placeholder="channel-name"
-                                            value={newChannelName}
-                                            onChange={(e) => setNewChannelName(e.target.value)}
-                                            onKeyPress={(e) => e.key === 'Enter' && handleCreateChannel()}
-                                        />
-                                        <button onClick={handleCreateChannel}>Create</button>
-                                    </div>
-                                )}
-                                {userChannels.map((channel) => (
-                                    <div
-                                        key={channel.id}
-                                        className={`channel-item ${currentChannel?.id === channel.id ? 'active' : ''}`}
-                                        onClick={() => setCurrentChannel(channel)}
-                                    >
-                                        <span className="channel-hash">#</span>
-                                        <span className="channel-name">{channel.name}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                            <FaPlus size={10} />
+                        </button>
                     </div>
-                )}
 
-                {/* Add channel button if no user channels */}
-                {userChannels.length === 0 && (
-                    <div className="category-section">
-                        <div className="channel-category">
-                            <span className="category-arrow">▼</span>
-                            <span className="category-name">📁 CUSTOM CHANNELS</span>
-                            <button
-                                className="add-channel-btn"
-                                onClick={() => setShowCreateChannel(!showCreateChannel)}
-                                title="Create Channel"
-                            >
-                                +
-                            </button>
-                        </div>
-                        {showCreateChannel && (
-                            <div className="category-channels">
-                                <div className="create-channel-form">
+                    {!collapsedCategories['user-channels'] && (
+                        <div className="category-channels-list">
+                            {showCreateChannel && (
+                                <div className="create-channel-input-wrapper">
                                     <input
                                         type="text"
-                                        placeholder="channel-name"
+                                        className="new-channel-input"
+                                        placeholder="new-channel"
                                         value={newChannelName}
                                         onChange={(e) => setNewChannelName(e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && handleCreateChannel()}
+                                        autoFocus
                                     />
-                                    <button onClick={handleCreateChannel}>Create</button>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            )}
+                            {userChannels.map((channel) => (
+                                <div
+                                    key={channel.id}
+                                    className={`channel-item ${currentChannel?.id === channel.id ? 'active' : ''}`}
+                                    onClick={() => setCurrentChannel(channel)}
+                                >
+                                    <span className="channel-icon-wrapper">
+                                        <FaHashtag />
+                                    </span>
+                                    <span className="channel-name-text">{channel.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Bottom Actions (Study Groups) */}
+            <div className="sidebar-footer">
+                <button
+                    className="sidebar-footer-btn"
+                    onClick={() => setShowStudyGroups(true)}
+                >
+                    <span className="icon">📚</span>
+                    <span>Study Groups</span>
+                </button>
             </div>
 
             {showStudyGroups && (
