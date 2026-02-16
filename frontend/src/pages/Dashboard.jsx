@@ -208,7 +208,7 @@ const Dashboard = () => {
                                     </div>
                                     {/* Frame Overlay - positioned last to be on top and outline the entire picture */}
                                     {currentFrame.framePath && (
-                                        <img src={currentFrame.framePath} alt="Frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-150 z-20" />
+                                        <img src={currentFrame.framePath} alt="Frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-[1.20] z-20" />
                                     )}
                                 </div>
                             </div>

@@ -64,6 +64,15 @@ export const CommunityProvider = ({ children }) => {
         }
     };
 
+    // Default local community for when no backend communities exist
+    const DEFAULT_COMMUNITY = {
+        id: 'default-workshop',
+        name: 'The Workshop',
+        icon: null,
+        join_code: 'WORKSHOP',
+        isDefault: true
+    };
+
     // ==================== COMMUNITY (SERVER) FUNCTIONS ====================
     const fetchCommunities = async () => {
         try {
@@ -72,16 +81,23 @@ export const CommunityProvider = ({ children }) => {
             });
             if (response.ok) {
                 const data = await response.json();
-                setCommunities(data);
-                if (data.length > 0 && !currentCommunity) {
-                    setCurrentCommunity(data[0]);
+                if (data.length > 0) {
+                    setCommunities(data);
+                    if (!currentCommunity) {
+                        setCurrentCommunity(data[0]);
+                    }
+                    return data;
                 }
-                return data;
             }
         } catch (error) {
             console.error("Failed to fetch communities", error);
         }
-        return [];
+        // If no communities from backend, use the default local community
+        setCommunities([DEFAULT_COMMUNITY]);
+        if (!currentCommunity) {
+            setCurrentCommunity(DEFAULT_COMMUNITY);
+        }
+        return [DEFAULT_COMMUNITY];
     };
 
     const createCommunity = async (name, icon = null) => {
