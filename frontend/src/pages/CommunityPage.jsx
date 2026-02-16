@@ -31,7 +31,7 @@ const CommunityPage = () => {
     }
 
     return (
-        <div className="flex h-[calc(100vh-80px)] mt-[80px] bg-slate-50 overflow-hidden">
+        <div className="flex h-screen mt-0 bg-slate-50 overflow-hidden">
             <ServerList />
             <div className="flex flex-1 overflow-hidden">
                 <ChannelList />

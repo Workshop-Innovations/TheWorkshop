@@ -196,7 +196,7 @@ const Dashboard = () => {
                                 <div className="w-32 h-32 rounded-full relative mt-2">
                                     <div className="w-full h-full rounded-full overflow-hidden relative">
                                         {selectedProfilePic ? (
-                                            <img src={selectedProfilePic} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                                            <img src={selectedProfilePic} alt="Profile" className="w-full h-full object-cover rounded-full scale-90" />
                                         ) : (
                                             <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300 text-5xl">
                                                 <FaUserCircle />
@@ -208,7 +208,7 @@ const Dashboard = () => {
                                     </div>
                                     {/* Frame Overlay - positioned last to be on top and outline the entire picture */}
                                     {currentFrame.framePath && (
-                                        <img src={currentFrame.framePath} alt="Frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-[1.20] z-20" />
+                                        <img src={currentFrame.framePath} alt="Frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-[1.35] z-20" />
                                     )}
                                 </div>
                             </div>

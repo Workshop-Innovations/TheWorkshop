@@ -68,7 +68,7 @@ const ServerList = () => {
     };
 
     return (
-        <div className="w-[72px] bg-slate-900 flex flex-col items-center py-4 gap-3 h-full shrink-0 z-20 shadow-xl overflow-y-auto no-scrollbar">
+        <div className="w-[72px] bg-slate-900 flex flex-col items-center py-4 gap-3 h-full shrink-0 z-20 shadow-xl overflow-y-auto no-scrollbar overflow-x-hidden">
             {/* Home Button (DMs) */}
             <div
                 className={`w-12 h-12 rounded-[24px] hover:rounded-[16px] transition-all duration-300 flex items-center justify-center cursor-pointer group relative ${viewMode === 'dms' ? 'bg-primary text-white rounded-[16px]' : 'bg-slate-700 text-slate-100 hover:bg-primary hover:text-white'}`}

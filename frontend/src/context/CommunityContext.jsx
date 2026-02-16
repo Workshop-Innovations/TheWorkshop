@@ -82,7 +82,8 @@ export const CommunityProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 if (data.length > 0) {
-                    setCommunities(data);
+                    const uniqueCommunities = data.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i);
+                    setCommunities(uniqueCommunities);
                     if (!currentCommunity) {
                         setCurrentCommunity(data[0]);
                     }
