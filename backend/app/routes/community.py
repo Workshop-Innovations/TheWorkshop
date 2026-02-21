@@ -33,7 +33,7 @@ async def create_community(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """Create a new community (server)."""
+    """Create a new community (server) with default channels."""
     db_community = Community(
         name=community_data.name,
         icon=community_data.icon,
@@ -51,14 +51,25 @@ async def create_community(
     )
     session.add(membership)
     
-    # Create default "general" channel
-    default_channel = Channel(
-        name="general",
-        slug=f"{db_community.id[:8]}-general",
-        description="General discussion",
-        community_id=db_community.id
-    )
-    session.add(default_channel)
+    # Create default channels so messages are always DB-backed
+    default_channels = [
+        {"name": "welcome",          "description": "Welcome to the community!"},
+        {"name": "announcements",    "description": "Important announcements"},
+        {"name": "general",          "description": "General discussion"},
+        {"name": "off-topic",        "description": "Casual conversation"},
+        {"name": "homework-help",    "description": "Get help with homework"},
+        {"name": "resource-sharing", "description": "Share useful resources"},
+    ]
+    
+    for ch_data in default_channels:
+        channel = Channel(
+            name=ch_data["name"],
+            slug=f"{db_community.id[:8]}-{ch_data['name']}",
+            description=ch_data["description"],
+            community_id=db_community.id
+        )
+        session.add(channel)
+    
     session.commit()
     
     return CommunityResponse(

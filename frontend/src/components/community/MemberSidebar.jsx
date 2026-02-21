@@ -30,7 +30,7 @@ const MemberSidebar = () => {
     const offlineMembers = members.filter(m => !onlineMemberIds.has(m.user_id));
 
     return (
-        <div className="w-60 bg-slate-50 flex flex-col h-full border-l border-slate-200 shadow-sm shrink-0 overflow-hidden">
+        <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
             {/* Leaderboard Button */}
             <div className="p-4 border-b border-slate-200">
                 <button

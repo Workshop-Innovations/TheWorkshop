@@ -64,15 +64,6 @@ export const CommunityProvider = ({ children }) => {
         }
     };
 
-    // Default local community for when no backend communities exist
-    const DEFAULT_COMMUNITY = {
-        id: 'default-workshop',
-        name: 'The Workshop',
-        icon: null,
-        join_code: 'WORKSHOP',
-        isDefault: true
-    };
-
     // ==================== COMMUNITY (SERVER) FUNCTIONS ====================
     const fetchCommunities = async () => {
         try {
@@ -81,24 +72,18 @@ export const CommunityProvider = ({ children }) => {
             });
             if (response.ok) {
                 const data = await response.json();
-                if (data.length > 0) {
-                    const uniqueCommunities = data.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i);
-                    setCommunities(uniqueCommunities);
-                    if (!currentCommunity) {
-                        setCurrentCommunity(data[0]);
-                    }
-                    return data;
+                const uniqueCommunities = data.filter((v, i, a) => a.findIndex(t => (t.name === v.name)) === i);
+                setCommunities(uniqueCommunities);
+                if (!currentCommunity && uniqueCommunities.length > 0) {
+                    setCurrentCommunity(uniqueCommunities[0]);
                 }
+                return uniqueCommunities;
             }
         } catch (error) {
             console.error("Failed to fetch communities", error);
         }
-        // If no communities from backend, use the default local community
-        setCommunities([DEFAULT_COMMUNITY]);
-        if (!currentCommunity) {
-            setCurrentCommunity(DEFAULT_COMMUNITY);
-        }
-        return [DEFAULT_COMMUNITY];
+        setCommunities([]);
+        return [];
     };
 
     const createCommunity = async (name, icon = null) => {
@@ -204,22 +189,6 @@ export const CommunityProvider = ({ children }) => {
     const sendMessage = async (content) => {
         if (!currentChannel || !content.trim()) return;
 
-        // For default (frontend-only) channels, just add locally
-        if (currentChannel.isDefault) {
-            const localMessage = {
-                id: Date.now(),
-                content,
-                timestamp: new Date().toISOString(),
-                user_id: user?.id,
-                channel_id: currentChannel.id,
-                user_email: user?.email,
-                score: 0,
-                user_vote: 0
-            };
-            setMessages(prev => [...prev, localMessage]);
-            return;
-        }
-
         try {
             const response = await fetch(`${API_BASE}/channels/${currentChannel.id}/messages`, {
                 method: 'POST',
@@ -231,8 +200,10 @@ export const CommunityProvider = ({ children }) => {
             });
             if (response.ok) {
                 const newMessage = await response.json();
-                // Add to local state immediately (WebSocket will also broadcast but this ensures instant feedback)
+                // Add to local state immediately for instant feedback
                 setMessages(prev => [...prev, newMessage]);
+            } else {
+                console.error("Failed to send message, status:", response.status);
             }
         } catch (error) {
             console.error("Failed to send message", error);

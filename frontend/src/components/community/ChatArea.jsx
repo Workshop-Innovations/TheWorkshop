@@ -296,26 +296,38 @@ const ChatArea = () => {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 custom-scrollbar">
-                    {parentMessages.map((msg, index) => renderMessage(msg, index))}
+                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-1 custom-scrollbar">
+                    {parentMessages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                                <span className="text-3xl text-slate-300 font-light">#</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-700 mb-1">Welcome to #{currentChannel.name}</h3>
+                            <p className="text-slate-400 text-sm max-w-sm">
+                                {currentChannel.description || 'This is the beginning of the conversation. Send a message to get started!'}
+                            </p>
+                        </div>
+                    ) : (
+                        parentMessages.map((msg, index) => renderMessage(msg, index))
+                    )}
                     <div ref={messagesEndRef} />
                 </div>
 
-                <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+                <div className="p-4 border-t border-slate-100 bg-white shrink-0">
                     <form
-                        className="flex items-center gap-2 bg-slate-100 rounded-xl px-4 py-2 ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-primary/50 focus-within:bg-white transition-all shadow-inner"
+                        className="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-1 border border-slate-200 focus-within:border-primary/50 focus-within:bg-white focus-within:shadow-sm transition-all"
                         onSubmit={handleSend}
                     >
                         <input
                             type="text"
-                            className="flex-1 bg-transparent border-none focus:outline-none text-slate-800 placeholder-slate-400 py-2"
+                            className="flex-1 bg-transparent border-none focus:outline-none text-slate-800 placeholder-slate-400 py-2.5 text-sm"
                             placeholder={`Message #${currentChannel.name}`}
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                         />
                         <button
                             type="submit"
-                            className="p-2 bg-slate-200 text-slate-600 rounded-lg hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 text-slate-400 rounded-lg hover:bg-primary hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
                             disabled={!inputValue.trim()}
                         >
                             <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
