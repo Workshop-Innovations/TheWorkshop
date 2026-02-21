@@ -235,7 +235,7 @@ const Landing = () => {
             <p className="text-lg text-slate-600 mb-6 leading-relaxed">
               Stuck on a tricky concept? Don't wait for your teacher. Our AI tutor is trained on your curriculum and ready to explain things simply, 24/7.
             </p>
-            <Link to="/ai-tutor" className="inline-flex items-center gap-2 text-purple-600 font-bold hover:underline">
+            <Link to="/study-suite" className="inline-flex items-center gap-2 text-purple-600 font-bold hover:underline">
               Try a demo conversation <FaArrowRight />
             </Link>
           </motion.div>

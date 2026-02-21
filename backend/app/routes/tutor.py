@@ -168,14 +168,33 @@ async def get_document_content(
 @router.get("/files/{document_id}")
 async def serve_document_file(
     document_id: str,
-    current_user: User = Depends(get_current_user),
+    token: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
-    """Serve the original PDF file for embedding."""
+    """Serve the original PDF file for embedding. Accepts token as query parameter."""
+    from jose import jwt, JWTError
+    from ..dependencies import settings as dep_settings
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Manually decode the token
+    try:
+        payload = jwt.decode(token, dep_settings.SECRET_KEY, algorithms=[dep_settings.ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user = session.exec(select(User).where(User.username == username)).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
     doc = session.exec(
         select(TutorDocument).where(
             TutorDocument.id == document_id,
-            TutorDocument.user_id == current_user.id
+            TutorDocument.user_id == user.id
         )
     ).first()
     if not doc:
@@ -307,7 +326,7 @@ async def generate_flashcards(
     doc = session.exec(
         select(TutorDocument).where(
             TutorDocument.id == request.document_id,
-            TutorDocument.user_id == request.user_id
+            TutorDocument.user_id == current_user.id
         )
     ).first()
     if not doc:

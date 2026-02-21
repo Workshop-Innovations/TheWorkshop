@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
+import { useAuth } from '../../context/AuthContext';
 import './StudyGroups.css';
 
 const StudyGroups = ({ onClose }) => {
-    const { currentCommunity, fetchStudyGroups, createStudyGroup, joinStudyGroup, leaveStudyGroup, user } = useCommunity();
+    const { currentCommunity, fetchStudyGroups, createStudyGroup, joinStudyGroup, leaveStudyGroup, fetchStudyGroupDetails, removeGroupMember, user } = useCommunity();
+    const { accessToken } = useAuth();
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'details'
+    const [groups, setGroups] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedGroup, setSelectedGroup] = useState(null);
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newGroup, setNewGroup] = useState({ name: '', description: '', is_public: true, max_members: 20 });
 
     useEffect(() => {
         if (currentCommunity) {
@@ -53,8 +60,6 @@ const StudyGroups = ({ onClose }) => {
     };
 
     const handleViewDetails = async (group) => {
-        const { fetchStudyGroupDetails } = await import('../../context/CommunityContext'); // Dynamic import hack if needed, but context has it
-        // Actually we get it from hook
         const details = await fetchStudyGroupDetails(group.id);
         if (details) {
             setSelectedGroup(details);
@@ -62,18 +67,14 @@ const StudyGroups = ({ onClose }) => {
         }
     };
 
-    // We need to destructure the new functions from useCommunity
-    const { fetchStudyGroupDetails, removeGroupMember } = useCommunity();
-
     const updateMemberStatus = async (groupId, userId, status) => {
         try {
-            const token = localStorage.getItem('token');
             const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1`;
             const response = await fetch(`${API_BASE}/groups/${groupId}/members/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${accessToken}`
                 },
                 body: JSON.stringify({ status })
             });

@@ -114,6 +114,71 @@ def on_startup():
         else:
             print(f"Admin candidate {admin_email} not found. Register with this email to become admin.")
 
+        # Auto-create "The Workshop" default community if it doesn't exist
+        workshop = session.exec(select(Community).where(Community.name == "The Workshop")).first()
+        if not workshop:
+            workshop = Community(
+                name="The Workshop",
+                icon="🏫",
+                owner_id=user.id if user else str(uuid4()),
+            )
+            session.add(workshop)
+            session.commit()
+            session.refresh(workshop)
+
+            # Add owner as member
+            if user:
+                owner_membership = CommunityMember(
+                    community_id=workshop.id,
+                    user_id=user.id,
+                    role="owner"
+                )
+                session.add(owner_membership)
+
+            # Create default channels
+            default_channels = [
+                {"name": "welcome",          "description": "Welcome to The Workshop!"},
+                {"name": "announcements",    "description": "Important announcements"},
+                {"name": "general",          "description": "General discussion"},
+                {"name": "off-topic",        "description": "Casual conversation"},
+                {"name": "homework-help",    "description": "Get help with homework"},
+                {"name": "resource-sharing", "description": "Share useful resources"},
+            ]
+            for ch_data in default_channels:
+                channel = Channel(
+                    name=ch_data["name"],
+                    slug=f"{workshop.id[:8]}-{ch_data['name']}",
+                    description=ch_data["description"],
+                    community_id=workshop.id
+                )
+                session.add(channel)
+
+            session.commit()
+            print("Created default community: The Workshop")
+        else:
+            print("Default community 'The Workshop' already exists.")
+
+        # Backfill: add any existing users who are not yet members of The Workshop
+        if workshop:
+            all_users = session.exec(select(User)).all()
+            existing_member_ids = {
+                m.user_id for m in session.exec(
+                    select(CommunityMember).where(CommunityMember.community_id == workshop.id)
+                ).all()
+            }
+            added = 0
+            for u in all_users:
+                if u.id not in existing_member_ids:
+                    session.add(CommunityMember(
+                        community_id=workshop.id,
+                        user_id=u.id,
+                        role="member"
+                    ))
+                    added += 1
+            if added:
+                session.commit()
+                print(f"Backfilled {added} existing user(s) into The Workshop.")
+
     print("Flashcards router loaded.")
 
 from fastapi.staticfiles import StaticFiles
@@ -152,6 +217,7 @@ async def get_simple_message():
 async def register_user(user_data: UserCreate, session: Session = Depends(get_session)):
     """
     Registers a new user with the provided username, email and password, storing in the database.
+    Auto-adds the user to The Workshop community.
     """
     existing_email = session.exec(select(User).where(User.email == user_data.email)).first()
     if existing_email:
@@ -180,6 +246,24 @@ async def register_user(user_data: UserCreate, session: Session = Depends(get_se
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
+
+    # Auto-add user to The Workshop community
+    workshop = session.exec(select(Community).where(Community.name == "The Workshop")).first()
+    if workshop:
+        existing_member = session.exec(
+            select(CommunityMember).where(
+                CommunityMember.community_id == workshop.id,
+                CommunityMember.user_id == db_user.id
+            )
+        ).first()
+        if not existing_member:
+            membership = CommunityMember(
+                community_id=workshop.id,
+                user_id=db_user.id,
+                role="member"
+            )
+            session.add(membership)
+            session.commit()
 
     return db_user
 

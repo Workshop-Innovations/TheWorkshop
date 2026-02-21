@@ -21,7 +21,7 @@ async def get_current_user_ws(
     except JWTError:
         return None
     
-    user = session.exec(select(User).where(User.email == username)).first()
+    user = session.exec(select(User).where(User.username == username)).first()
     return user
 
 @router.websocket("/ws/community/{channel_slug}")

@@ -37,6 +37,9 @@ const StudySuite = () => {
     const [flashcardIndex, setFlashcardIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
 
+    // PDF blob URL for authenticated iframe viewing
+    const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
+
     useEffect(() => {
         fetchDocuments();
     }, []);
@@ -121,6 +124,9 @@ const StudySuite = () => {
         setMessages([]);
         setGeneratedContent(null);
 
+        // Reset PDF URL for new document
+        setPdfBlobUrl(null);
+
         try {
             const res = await fetch(`${API_BASE}/api/v1/tutor/documents/${docId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -128,6 +134,11 @@ const StudySuite = () => {
             if (res.ok) {
                 const data = await res.json();
                 setDocumentContent(data);  // Store the entire document object
+
+                // If it's a PDF, set the direct URL with token as query param
+                if (data.file_type === 'pdf') {
+                    setPdfBlobUrl(`${API_BASE}/api/v1/tutor/files/${docId}?token=${encodeURIComponent(token)}`);
+                }
             } else {
                 const errorData = await res.json();
                 alert(`Failed to load document: ${errorData.detail || 'Unknown error'}`);
@@ -333,11 +344,15 @@ const StudySuite = () => {
                         {isLoadingDoc ? <div className="flex justify-center items-center h-full"><FaSpinner className="animate-spin text-4xl text-primary" /></div> :
                             selectedDoc && documentContent ? (
                                 documentContent.file_type === 'pdf' ? (
-                                    <iframe
-                                        src={`${API_BASE}/api/v1/tutor/files/${selectedDoc}`}
-                                        className="w-full h-full border-0"
-                                        title={documentContent.filename}
-                                    />
+                                    pdfBlobUrl ? (
+                                        <iframe
+                                            src={pdfBlobUrl}
+                                            className="w-full h-full border-0"
+                                            title={documentContent.filename}
+                                        />
+                                    ) : (
+                                        <div className="flex justify-center items-center h-full"><FaSpinner className="animate-spin text-4xl text-primary" /></div>
+                                    )
                                 ) : (
                                     <div className="p-6 overflow-y-auto h-full prose prose-sm max-w-none">
                                         <pre className="whitespace-pre-wrap font-sans text-slate-700">{documentContent.content}</pre>

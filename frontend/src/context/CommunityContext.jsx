@@ -45,7 +45,6 @@ export const CommunityProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const ws = useRef(null);
 
     // ==================== FETCH USER ====================
     const fetchUser = async () => {
@@ -328,63 +327,6 @@ export const CommunityProvider = ({ children }) => {
             }
         } catch (error) {
             console.error("Failed to fetch online users", error);
-        }
-    };
-
-    // ==================== WEBSOCKET ====================
-    useEffect(() => {
-        if (!token || !currentChannel) return;
-
-        if (ws.current) {
-            ws.current.close();
-        }
-
-        const getWebSocketUrl = (slug, token) => {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            // Replace http with ws, and https with wss
-            const wsProtocol = apiUrl.startsWith('https') ? 'wss' : 'ws';
-            const wsBase = apiUrl.replace(/^http(s)?:\/\//, '');
-            return `${wsProtocol}://${wsBase}/ws/community/${slug}?token=${token}`;
-        };
-
-        const wsUrl = getWebSocketUrl(currentChannel.slug, token);
-        ws.current = new WebSocket(wsUrl);
-
-        ws.current.onopen = () => {
-            console.log("Connected to chat");
-            setIsConnected(true);
-        };
-
-        ws.current.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            handleWebSocketMessage(data);
-        };
-
-        ws.current.onclose = () => {
-            console.log("Disconnected from chat");
-            setIsConnected(false);
-        };
-
-        return () => {
-            if (ws.current) {
-                ws.current.close();
-            }
-        };
-    }, [currentChannel, token]);
-
-    const handleWebSocketMessage = (data) => {
-        if (data.type === 'message') {
-            setMessages(prev => [...prev, data]);
-        } else if (data.type === 'vote_update') {
-            setMessages(prev => prev.map(msg =>
-                msg.id === data.message_id
-                    ? { ...msg, score: data.score }
-                    : msg
-            ));
-        } else if (data.type === 'dm_message') {
-            if (currentDM && data.conversation_id === currentDM.id) {
-                setDmMessages(prev => [...prev, data]);
-            }
         }
     };
 

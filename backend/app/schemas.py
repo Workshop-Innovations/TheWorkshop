@@ -752,6 +752,7 @@ class TopicSummaryResponse(BaseModel):
 
 class TopicResponse(BaseModel):
     id: str
+    subject_id: str
     title: str
     summary_content: str
     order: int
