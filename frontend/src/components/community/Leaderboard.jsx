@@ -21,7 +21,8 @@ const Leaderboard = ({ onClose }) => {
             user_id: member.user_id,
             email: member.user_email,
             messages_this_month: Math.floor(Math.random() * 150) + 10, // Simulated
-            avatar_initial: member.user_email?.charAt(0).toUpperCase() || '?'
+            avatar_initial: member.user_email?.charAt(0).toUpperCase() || '?',
+            profile_pic: member.user_profile_pic
         }));
 
         // Sort by messages (descending)
@@ -81,8 +82,12 @@ const Leaderboard = ({ onClose }) => {
                                     <div className="podium">
                                         {/* 2nd Place */}
                                         <div className="podium-spot second">
-                                            <div className="podium-avatar silver">
-                                                {podiumOrder[0]?.avatar_initial}
+                                            <div className="podium-avatar silver" style={{ overflow: 'hidden' }}>
+                                                {podiumOrder[0]?.profile_pic ? (
+                                                    <img src={podiumOrder[0].profile_pic} alt={podiumOrder[0].email} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                ) : (
+                                                    podiumOrder[0]?.avatar_initial
+                                                )}
                                             </div>
                                             <span className="podium-medal">🥈</span>
                                             <span className="podium-name">{podiumOrder[0]?.email?.split('@')[0]}</span>
@@ -95,8 +100,12 @@ const Leaderboard = ({ onClose }) => {
                                         {/* 1st Place */}
                                         <div className="podium-spot first">
                                             <div className="crown-icon">👑</div>
-                                            <div className="podium-avatar gold">
-                                                {podiumOrder[1]?.avatar_initial}
+                                            <div className="podium-avatar gold" style={{ overflow: 'hidden' }}>
+                                                {podiumOrder[1]?.profile_pic ? (
+                                                    <img src={podiumOrder[1].profile_pic} alt={podiumOrder[1].email} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                ) : (
+                                                    podiumOrder[1]?.avatar_initial
+                                                )}
                                             </div>
                                             <span className="podium-medal">🥇</span>
                                             <span className="podium-name">{podiumOrder[1]?.email?.split('@')[0]}</span>
@@ -108,8 +117,12 @@ const Leaderboard = ({ onClose }) => {
 
                                         {/* 3rd Place */}
                                         <div className="podium-spot third">
-                                            <div className="podium-avatar bronze">
-                                                {podiumOrder[2]?.avatar_initial}
+                                            <div className="podium-avatar bronze" style={{ overflow: 'hidden' }}>
+                                                {podiumOrder[2]?.profile_pic ? (
+                                                    <img src={podiumOrder[2].profile_pic} alt={podiumOrder[2].email} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                ) : (
+                                                    podiumOrder[2]?.avatar_initial
+                                                )}
                                             </div>
                                             <span className="podium-medal">🥉</span>
                                             <span className="podium-name">{podiumOrder[2]?.email?.split('@')[0]}</span>
@@ -149,8 +162,12 @@ const Leaderboard = ({ onClose }) => {
                                             className={`ranking-item ${entry.user_id === user?.id ? 'is-me' : ''}`}
                                         >
                                             <div className="rank-number">#{entry.rank}</div>
-                                            <div className="ranking-avatar">
-                                                {entry.avatar_initial}
+                                            <div className="ranking-avatar" style={{ overflow: 'hidden' }}>
+                                                {entry.profile_pic ? (
+                                                    <img src={entry.profile_pic} alt={entry.email} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                ) : (
+                                                    entry.avatar_initial
+                                                )}
                                             </div>
                                             <div className="ranking-info">
                                                 <span className="ranking-name">

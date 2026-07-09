@@ -116,8 +116,12 @@ const ChatArea = () => {
 
         return (
             <div key={msg.id || index} className={`flex gap-3 group px-2 py-1 rounded-lg transition-colors hover:bg-slate-50/50 ${isOwn ? '' : ''}`}>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0 shadow-sm border border-white">
-                    {msg.user_email?.charAt(0).toUpperCase() || '?'}
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0 shadow-sm border border-white overflow-hidden">
+                    {msg.user_profile_pic ? (
+                        <img src={msg.user_profile_pic} alt={msg.user_email} className="w-full h-full object-cover" />
+                    ) : (
+                        msg.user_email?.charAt(0).toUpperCase() || '?'
+                    )}
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 mb-1">
@@ -189,8 +193,12 @@ const ChatArea = () => {
         return (
             <div className="flex-1 flex flex-col h-full bg-white relative min-w-0">
                 <div className="h-16 flex items-center px-6 border-b border-slate-200 shrink-0 bg-white z-10">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm mr-3">
-                        {currentDM.other_user_email?.charAt(0).toUpperCase() || '?'}
+                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm mr-3 overflow-hidden">
+                        {currentDM.other_user_profile_pic ? (
+                            <img src={currentDM.other_user_profile_pic} alt={currentDM.other_user_email} className="w-full h-full object-cover" />
+                        ) : (
+                            currentDM.other_user_email?.charAt(0).toUpperCase() || '?'
+                        )}
                     </div>
                     <h2 className="font-bold text-slate-800 text-lg truncate flex-1">
                         @{currentDM.other_user_email?.split('@')[0] || 'User'}
@@ -202,8 +210,12 @@ const ChatArea = () => {
                         const isOwn = msg.sender_id === user?.id;
                         return (
                             <div key={msg.id || index} className={`flex gap-3 group ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0 self-start mt-1">
-                                    {msg.sender_email?.charAt(0).toUpperCase() || '?'}
+                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0 self-start mt-1 overflow-hidden">
+                                    {msg.sender_profile_pic ? (
+                                        <img src={msg.sender_profile_pic} alt={msg.sender_email} className="w-full h-full object-cover" />
+                                    ) : (
+                                        msg.sender_email?.charAt(0).toUpperCase() || '?'
+                                    )}
                                 </div>
                                 <div className={`flex flex-col max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
                                     <div className="flex items-center gap-2 mb-1 px-1">

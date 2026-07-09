@@ -4,13 +4,13 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlmodel import Session, select, desc
-from app.database import get_session
-from app.schemas import (
+from ..database import get_session
+from ..schemas import (
     Subject, SubjectResponse, Topic, TopicResponse, PastPaper, PastPaperResponse, 
     TopicSummaryResponse, User,
     SubjectCreate, SubjectUpdate, TopicCreate, TopicUpdate, PastPaperCreate, PastPaperUpdate
 )
-from app.dependencies import get_current_user, get_current_admin_user # Import admin dependency
+from ..dependencies import get_current_user, get_current_admin_user # Import admin dependency
 
 router = APIRouter(prefix="/api/v1", tags=["Subjects & Content"])
 

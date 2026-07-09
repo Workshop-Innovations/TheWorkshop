@@ -78,15 +78,13 @@ export const logPomodoro = async (minutes, coinsEarned = 10, currentCount) => {
 
             for (let attempt = 0; attempt < maxRetries; attempt++) {
                 try {
-                    // Uses the dynamically set API_BASE_URL
-                    const response = await fetch(`${API_BASE_URL}/api/v1/sessions/complete`, {
+                    // Uses the actual backend session logging endpoint
+                    const response = await fetch(`${API_BASE_URL}/api/v1/log/session`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                         body: JSON.stringify({
-                            mode: 'pomodoro',
-                            duration: minutes * 60, // Duration in seconds
-                            coinsEarned: coinsEarned,
-                            completedAt: new Date().toISOString(),
+                            minutes_spent: minutes,
+                            session_type: 'focus',
                         }),
                     });
 
@@ -230,8 +228,8 @@ export const fetchCompletedSessions = async () => {
     }
 
     try {
-        // Uses the dynamically set API_BASE_URL
-        const response = await fetch(`${API_BASE_URL}/api/v1/sessions/all`, {
+        // Uses the actual backend session listing endpoint
+        const response = await fetch(`${API_BASE_URL}/api/v1/log/sessions`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

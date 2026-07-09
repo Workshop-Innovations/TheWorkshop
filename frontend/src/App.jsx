@@ -28,6 +28,7 @@ import AdminDashboard from './pages/AdminDashboard'; // Import AdminDashboard
 import SubjectSummary from './pages/SubjectSummary';
 import Pricing from './pages/Pricing';
 import PaperViewer from './pages/PaperViewer';
+import NotFound from './pages/NotFound';
 
 import ScrollToTop from './components/ScrollToTop';
 
@@ -44,9 +45,9 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/pricing" element={<Pricing />} />
-        <Route path="/rewards" element={<Store />} />
+        <Route path="/rewards" element={<PrivateRoute><Store /></PrivateRoute>} />
         <Route path="/coming-soon" element={<ComingSoon />} />
-        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/feedback" element={<PrivateRoute><Feedback /></PrivateRoute>} />
 
         <Route
           path="/dashboard"
@@ -149,6 +150,9 @@ const AppContent = () => {
             </PrivateRoute>
           }
         />
+
+        {/* Catch-all 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       <AnimatePresence>

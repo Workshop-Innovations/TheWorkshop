@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
+from uuid import uuid4
 from ..database import get_session
 from ..schemas import User, UserResponse, UserUpdate
 from ..dependencies import get_current_admin_user, get_current_user
@@ -88,6 +89,7 @@ async def create_user(
     
     hashed_password = get_password_hash(user_in.password)
     user = User(
+        id=str(uuid4()),
         username=user_in.username,
         email=user_in.email,
         hashed_password=hashed_password,

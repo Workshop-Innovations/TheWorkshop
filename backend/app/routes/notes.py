@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select, desc
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from ..schemas import (
@@ -128,7 +128,7 @@ async def update_note(
         note.content = note_update.content
         
     note.version += 1 # Increment version
-    note.updated_at = datetime.utcnow()
+    note.updated_at = datetime.now(timezone.utc)
     
     session.add(note)
     session.commit()

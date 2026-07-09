@@ -1,7 +1,7 @@
 from typing import Optional, List
 from sqlmodel import Field, SQLModel, Relationship # Import Relationship
-from pydantic import EmailStr, BaseModel
-from datetime import datetime, date
+from pydantic import EmailStr, BaseModel, field_validator
+from datetime import datetime, date, timezone
 from uuid import uuid4 # Import uuid4 for generating UUIDs
 
 # --- User Models ---
@@ -35,6 +35,13 @@ class UserCreate(BaseModel): # Inherit from BaseModel for input validation
     email: EmailStr
     password: str
 
+    @field_validator('password')
+    @classmethod
+    def password_strength(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        return v
+
 # Schema for user login (what the frontend sends for login)
 class UserLogin(BaseModel): # Inherit from BaseModel
     username: str
@@ -64,7 +71,7 @@ class Token(BaseModel): # Inherit from BaseModel
     token_type: str = "bearer"
 
 # Schema for generic messages (e.g., error messages)
-class Message(BaseModel): # Inherit from BaseModel
+class GenericMessage(BaseModel): # Inherit from BaseModel
     content: str
 
 # --- Pomodoro Session Log Models (NEW) ---
@@ -80,7 +87,7 @@ class SessionLog(SQLModel, table=True):
     session_type: str = Field(nullable=False, max_length=20)
     
     # Timestamp when the session was completed (for daily grouping)
-    completion_time: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    completion_time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=False)
     
     # Foreign Key to link the session log back to the User
     user_id: str = Field(foreign_key="user.id", index=True, nullable=False) 
@@ -112,7 +119,7 @@ class Task(SQLModel, table=True):
     description: Optional[str] = None
     completed: bool = Field(default=False)
     priority: str = Field(default="medium", max_length=50) # Added max_length
-    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False) # Store creation time
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=False) # Store creation time
     due_date: Optional[datetime] = None # Can be null
 
     # Foreign key relationship to User
@@ -161,7 +168,7 @@ class Community(SQLModel, table=True):
     icon: Optional[str] = None  # URL to icon image
     owner_id: str = Field(foreign_key="user.id", index=True)
     join_code: str = Field(default_factory=lambda: str(uuid4())[:8], unique=True, index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     channels: List["Channel"] = Relationship(back_populates="community")
     members: List["CommunityMember"] = Relationship(back_populates="community")
@@ -172,7 +179,7 @@ class CommunityMember(SQLModel, table=True):
     community_id: str = Field(foreign_key="community.id", index=True)
     user_id: str = Field(foreign_key="user.id", index=True)
     role: str = Field(default="member")  # "owner", "admin", "member"
-    joined_at: datetime = Field(default_factory=datetime.utcnow)
+    joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     community: Optional["Community"] = Relationship(back_populates="members")
     user: Optional[User] = Relationship()
@@ -202,7 +209,7 @@ class Channel(SQLModel, table=True):
 class Message(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     content: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     channel_id: str = Field(foreign_key="channel.id", index=True)
     user_id: str = Field(foreign_key="user.id", index=True)
@@ -222,7 +229,7 @@ class DMConversation(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     user1_id: str = Field(foreign_key="user.id", index=True)
     user2_id: str = Field(foreign_key="user.id", index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     messages: List["DMMessage"] = Relationship(back_populates="conversation")
 
@@ -230,7 +237,7 @@ class DMMessage(SQLModel, table=True):
     """A message within a DM conversation."""
     id: Optional[int] = Field(default=None, primary_key=True)
     content: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     sender_id: str = Field(foreign_key="user.id", index=True)
     conversation_id: str = Field(foreign_key="dmconversation.id", index=True)
     
@@ -257,6 +264,7 @@ class CommunityMemberResponse(BaseModel):
     id: int
     user_id: str
     user_email: Optional[str] = None
+    user_profile_pic: Optional[str] = None
     role: str
     joined_at: datetime
     
@@ -282,6 +290,16 @@ class MessageCreate(BaseModel):
     content: str
     parent_id: Optional[int] = None  # For threaded replies
 
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError('Message cannot be empty')
+        if len(v) > 4000:
+            raise ValueError('Message exceeds maximum length of 4000 characters')
+        return v
+
 class MessageResponse(BaseModel):
     id: int
     content: str
@@ -289,6 +307,7 @@ class MessageResponse(BaseModel):
     user_id: str
     channel_id: str
     user_email: Optional[str] = None
+    user_profile_pic: Optional[str] = None
     
     # Voting fields
     score: int = 0
@@ -312,6 +331,7 @@ class DMConversationResponse(BaseModel):
     id: str
     other_user_id: str
     other_user_email: Optional[str] = None
+    other_user_profile_pic: Optional[str] = None
     last_message: Optional[str] = None
     last_message_time: Optional[datetime] = None
     
@@ -320,12 +340,23 @@ class DMConversationResponse(BaseModel):
 class DMMessageCreate(BaseModel):
     content: str
 
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v):
+        v = v.strip()
+        if not v:
+            raise ValueError('Message cannot be empty')
+        if len(v) > 4000:
+            raise ValueError('Message exceeds maximum length of 4000 characters')
+        return v
+
 class DMMessageResponse(BaseModel):
     id: int
     content: str
     timestamp: datetime
     sender_id: str
     sender_email: Optional[str] = None
+    sender_profile_pic: Optional[str] = None
     conversation_id: str
     
     model_config = {"from_attributes": True}
@@ -350,7 +381,7 @@ class UserBadge(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: str = Field(foreign_key="user.id", index=True)
     badge_id: int = Field(foreign_key="badge.id", index=True)
-    earned_at: datetime = Field(default_factory=datetime.utcnow)
+    earned_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     user: Optional["User"] = Relationship(back_populates="user_badges")
     badge: Optional["Badge"] = Relationship(back_populates="user_badges")
@@ -371,6 +402,7 @@ class BadgeResponse(BaseModel):
 class UserReputationResponse(BaseModel):
     user_id: str
     email: str
+    profile_pic: Optional[str] = None
     reputation_points: int
     total_messages: int
     helpful_votes: int
@@ -383,6 +415,7 @@ class LeaderboardEntryResponse(BaseModel):
     rank: int
     user_id: str
     email: str
+    profile_pic: Optional[str] = None
     reputation_points: int
     total_messages: int
     helpful_votes: int
@@ -407,7 +440,7 @@ class StudyGroup(SQLModel, table=True):
     creator_id: str = Field(foreign_key="user.id", index=True)
     is_public: bool = Field(default=True)  # Can anyone join?
     max_members: int = Field(default=20)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     members: List["StudyGroupMember"] = Relationship(back_populates="group")
 
@@ -418,7 +451,7 @@ class StudyGroupMember(SQLModel, table=True):
     user_id: str = Field(foreign_key="user.id", index=True)
     role: str = Field(default="member")  # "leader", "moderator", "member"
     status: str = Field(default="approved") # "approved", "pending"
-    joined_at: datetime = Field(default_factory=datetime.utcnow)
+    joined_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     group: Optional["StudyGroup"] = Relationship(back_populates="members")
     user: Optional[User] = Relationship()
@@ -449,6 +482,7 @@ class StudyGroupMemberResponse(BaseModel):
     id: int
     user_id: str
     user_email: Optional[str] = None
+    user_profile_pic: Optional[str] = None
     role: str
     status: str
     joined_at: datetime
@@ -467,7 +501,7 @@ class SharedNote(SQLModel, table=True):
     content: str = Field(sa_column_kwargs={"default": ""}) # Markdown content
     channel_id: str = Field(foreign_key="channel.id", index=True)
     created_by: str = Field(foreign_key="user.id", index=True)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     version: int = Field(default=1) # Optimistic locking
     
     # Relationships
@@ -505,7 +539,7 @@ class PeerReviewSubmission(SQLModel, table=True):
     title: str
     content: Optional[str] = None # Description or text content
     file_url: Optional[str] = None # Link to external file/doc
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Relationships
     author: Optional[User] = Relationship()
@@ -518,7 +552,7 @@ class PeerReviewFeedback(SQLModel, table=True):
     reviewer_id: str = Field(foreign_key="user.id", index=True)
     rating: int = Field(ge=1, le=5) # 1-5 stars
     comments: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     submission: Optional[PeerReviewSubmission] = Relationship(back_populates="feedback")
     reviewer: Optional[User] = Relationship()
@@ -565,7 +599,7 @@ class FlashcardSetLegacy(SQLModel, table=True):
     id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     title: str
     category: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     user_id: str = Field(foreign_key="user.id", index=True)
     
     # user: Optional[User] = Relationship(back_populates="flashcard_sets") # Commented out to avoid relationship conflicts
@@ -614,7 +648,7 @@ class FlashcardCollection(SQLModel, table=True):
     user_id: str = Field(foreign_key="user.id", index=True)
     name: str = Field(nullable=False) # e.g., "Cards from Chemistry 101 Notes"
     file_source: str = Field(nullable=False) # The URL of the PDF/file used
-    date_created: datetime = Field(default_factory=datetime.utcnow)
+    date_created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     cards: List["FlashcardCard"] = Relationship(back_populates="collection")
 
@@ -644,10 +678,9 @@ class FlashcardCollectionResponse(BaseModel):
     name: str
     file_source: str
     date_created: datetime
-    
-    model_config = {"from_attributes": True}
-
     cards: List[FlashcardCardResponse]
+
+    model_config = {"from_attributes": True}
 
 
 # --- AI Tutor Models ---
@@ -659,7 +692,7 @@ class TutorDocument(SQLModel, table=True):
     content: str = Field(sa_column=Column(String)) # Use generic String, or Text for large content if supported by dialect
     file_path: Optional[str] = Field(default=None) # Path to original file for PDFs
     file_type: str = Field(default="text") # "pdf" or "text"
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class TutorChatRequest(BaseModel):
     document_id: str
@@ -785,4 +818,4 @@ class SubjectResponse(BaseModel):
 class KeepAlive(SQLModel, table=True):
     """Table to be pinged by cron jobs to keep Supabase active."""
     id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

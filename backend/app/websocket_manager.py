@@ -12,6 +12,8 @@ class ConnectionManager:
     def __init__(self):
         # Map of channel_slug -> list of WebSocket connections
         self.active_connections: Dict[str, List[WebSocket]] = {}
+        # Map of user_id -> username for tracking online users
+        self.online_users: Dict[str, str] = {}
     
     async def connect(self, websocket: WebSocket, channel: str):
         """Accept a new WebSocket connection and add it to a channel."""

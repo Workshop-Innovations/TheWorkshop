@@ -130,8 +130,8 @@ async def generate_flashcards_from_file(
     # Parse JSON
     try:
         flashcards_data = json.loads(generated_text)
-        if hasattr(flashcards_data, "cards"): # Handle if struct is nested (some models do this)
-             flashcards_data = flashcards_data.cards
+        if isinstance(flashcards_data, dict) and "cards" in flashcards_data:
+             flashcards_data = flashcards_data["cards"]
         
         if not isinstance(flashcards_data, list):
              # Try to find a list in the dictionary if it returned an object

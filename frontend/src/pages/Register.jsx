@@ -14,6 +14,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -28,6 +29,7 @@ const Register = () => {
     }
 
     try {
+      setIsSubmitting(true);
       const response = await axios.post(`${API_BASE_URL}/api/v1/auth/register`, {
         username,
         email,
@@ -53,6 +55,8 @@ const Register = () => {
         setError('An unknown error occurred.');
       }
       console.error('Registration error:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -149,9 +153,17 @@ const Register = () => {
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5"
+                disabled={isSubmitting}
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                Create Account
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                    Creating Account...
+                  </span>
+                ) : (
+                  'Create Account'
+                )}
               </button>
             </div>
           </form>

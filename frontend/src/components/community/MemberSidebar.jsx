@@ -54,8 +54,12 @@ const MemberSidebar = () => {
                             title={member.user_id === user?.id ? 'You' : 'Click to DM'}
                         >
                             <div className="relative">
-                                <div className="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-slate-600 font-bold text-xs">
-                                    {member.user_email?.charAt(0).toUpperCase() || '?'}
+                                <div className="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-slate-600 font-bold text-xs overflow-hidden">
+                                    {member.user_profile_pic ? (
+                                        <img src={member.user_profile_pic} alt={member.user_email} className="w-full h-full object-cover" />
+                                    ) : (
+                                        member.user_email?.charAt(0).toUpperCase() || '?'
+                                    )}
                                 </div>
                                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-slate-50 rounded-full"></span>
                             </div>
@@ -88,8 +92,12 @@ const MemberSidebar = () => {
                             title={member.user_id === user?.id ? 'You' : 'Click to DM'}
                         >
                             <div className="relative">
-                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-xs grayscale">
-                                    {member.user_email?.charAt(0).toUpperCase() || '?'}
+                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-xs grayscale overflow-hidden">
+                                    {member.user_profile_pic ? (
+                                        <img src={member.user_profile_pic} alt={member.user_email} className="w-full h-full object-cover opacity-80" />
+                                    ) : (
+                                        member.user_email?.charAt(0).toUpperCase() || '?'
+                                    )}
                                 </div>
                                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-slate-400 border-2 border-slate-50 rounded-full"></span>
                             </div>

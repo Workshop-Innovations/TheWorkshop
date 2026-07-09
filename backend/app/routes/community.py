@@ -195,6 +195,7 @@ async def get_community_members(
             id=member.id,
             user_id=member.user_id,
             user_email=user.email if user else None,
+            user_profile_pic=user.profile_pic if user else None,
             role=member.role,
             joined_at=member.joined_at
         ))
@@ -310,6 +311,7 @@ async def get_channel_messages(
             user_id=msg.user_id,
             channel_id=msg.channel_id,
             user_email=user.email if user else None,
+            user_profile_pic=user.profile_pic if user else None,
             score=score,
             user_vote=user_vote
         ))
@@ -354,7 +356,8 @@ async def create_message(
             "user_id": db_message.user_id,
             "channel_id": db_message.channel_id,
             "timestamp": db_message.timestamp.isoformat(),
-            "user_email": current_user.email
+            "user_email": current_user.email,
+            "user_profile_pic": current_user.profile_pic
         },
         channel.slug
     )
@@ -366,6 +369,7 @@ async def create_message(
         user_id=db_message.user_id,
         channel_id=db_message.channel_id,
         user_email=current_user.email,
+        user_profile_pic=current_user.profile_pic,
         score=0,
         user_vote=0
     )
@@ -435,6 +439,7 @@ async def vote_message(
         user_id=message.user_id,
         channel_id=message.channel_id,
         user_email=user.email if user else None,
+        user_profile_pic=user.profile_pic if user else None,
         score=score,
         user_vote=vote_value,
         parent_id=message.parent_id,
@@ -493,7 +498,8 @@ async def create_reply(
             "channel_id": reply.channel_id,
             "parent_id": reply.parent_id,
             "timestamp": reply.timestamp.isoformat(),
-            "user_email": current_user.email
+            "user_email": current_user.email,
+            "user_profile_pic": current_user.profile_pic
         },
         channel.slug
     )
@@ -505,6 +511,7 @@ async def create_reply(
         user_id=reply.user_id,
         channel_id=reply.channel_id,
         user_email=current_user.email,
+        user_profile_pic=current_user.profile_pic,
         score=0,
         user_vote=0,
         parent_id=reply.parent_id,
@@ -535,6 +542,7 @@ async def get_thread(
         user_id=parent_message.user_id,
         channel_id=parent_message.channel_id,
         user_email=parent_user.email if parent_user else None,
+        user_profile_pic=parent_user.profile_pic if parent_user else None,
         score=parent_score,
         user_vote=parent_vote,
         parent_id=parent_message.parent_id,
@@ -561,6 +569,7 @@ async def get_thread(
             user_id=reply.user_id,
             channel_id=reply.channel_id,
             user_email=reply_user.email if reply_user else None,
+            user_profile_pic=reply_user.profile_pic if reply_user else None,
             score=reply_score,
             user_vote=reply_vote,
             parent_id=reply.parent_id,
@@ -607,6 +616,7 @@ async def get_dm_conversations(
             id=conv.id,
             other_user_id=other_user_id,
             other_user_email=other_user.email if other_user else None,
+            other_user_profile_pic=other_user.profile_pic if other_user else None,
             last_message=last_msg.content if last_msg else None,
             last_message_time=last_msg.timestamp if last_msg else None
         ))
@@ -642,6 +652,7 @@ async def start_dm_conversation(
             id=existing.id,
             other_user_id=user_id,
             other_user_email=other_user.email,
+            other_user_profile_pic=other_user.profile_pic,
             last_message=None,
             last_message_time=None
         )
@@ -659,6 +670,7 @@ async def start_dm_conversation(
         id=conv.id,
         other_user_id=user_id,
         other_user_email=other_user.email,
+        other_user_profile_pic=other_user.profile_pic,
         last_message=None,
         last_message_time=None
     )
@@ -695,6 +707,7 @@ async def get_dm_messages(
             timestamp=msg.timestamp,
             sender_id=msg.sender_id,
             sender_email=sender.email if sender else None,
+            sender_profile_pic=sender.profile_pic if sender else None,
             conversation_id=msg.conversation_id
         ))
     
@@ -734,7 +747,8 @@ async def send_dm_message(
             "sender_id": msg.sender_id,
             "conversation_id": msg.conversation_id,
             "timestamp": msg.timestamp.isoformat(),
-            "sender_email": current_user.email
+            "sender_email": current_user.email,
+            "sender_profile_pic": current_user.profile_pic
         },
         f"dm-{conversation_id}"
     )
@@ -745,6 +759,7 @@ async def send_dm_message(
         timestamp=msg.timestamp,
         sender_id=msg.sender_id,
         sender_email=current_user.email,
+        sender_profile_pic=current_user.profile_pic,
         conversation_id=msg.conversation_id
     )
 
@@ -1003,6 +1018,7 @@ async def get_leaderboard(
             rank=rank,
             user_id=user.id,
             email=user.email,
+            profile_pic=user.profile_pic,
             reputation_points=user.reputation_points,
             total_messages=user.total_messages,
             helpful_votes=user.helpful_votes,
@@ -1059,6 +1075,7 @@ async def get_user_reputation(
     return UserReputationResponse(
         user_id=user.id,
         email=user.email,
+        profile_pic=user.profile_pic,
         reputation_points=user.reputation_points,
         total_messages=user.total_messages,
         helpful_votes=user.helpful_votes,
@@ -1266,6 +1283,7 @@ async def get_study_group(
             id=member.id,
             user_id=member.user_id,
             user_email=user.email if user else None,
+            user_profile_pic=user.profile_pic if user else None,
             role=member.role,
             status=member.status,
             joined_at=member.joined_at

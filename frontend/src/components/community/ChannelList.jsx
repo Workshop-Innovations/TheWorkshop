@@ -65,8 +65,12 @@ const ChannelList = () => {
                                 className={`flex items-center gap-2.5 px-2 py-2 rounded-lg cursor-pointer transition-colors ${currentDM?.id === dm.id ? 'bg-slate-200/80 text-slate-900' : 'text-slate-600 hover:bg-slate-200/50 hover:text-slate-800'}`}
                                 onClick={() => setCurrentDM(dm)}
                             >
-                                <div className="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
-                                    {dm.other_user_email?.charAt(0).toUpperCase() || '?'}
+                                <div className="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0 overflow-hidden">
+                                    {dm.other_user_profile_pic ? (
+                                        <img src={dm.other_user_profile_pic} alt={dm.other_user_email} className="w-full h-full object-cover" />
+                                    ) : (
+                                        dm.other_user_email?.charAt(0).toUpperCase() || '?'
+                                    )}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <span className="block text-sm font-medium truncate">
@@ -157,8 +161,8 @@ const ChannelList = () => {
                             <div
                                 key={channel.id}
                                 className={`flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-all group ${currentChannel?.id === channel.id
-                                        ? 'bg-slate-200/80 text-slate-900 font-semibold'
-                                        : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-700'
+                                    ? 'bg-slate-200/80 text-slate-900 font-semibold'
+                                    : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-700'
                                     }`}
                                 onClick={() => setCurrentChannel(channel)}
                             >

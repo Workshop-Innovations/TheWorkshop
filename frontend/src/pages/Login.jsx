@@ -13,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   const { login } = useAuth();
@@ -24,6 +25,7 @@ const Login = () => {
     setSuccess('');
 
     try {
+      setIsSubmitting(true);
       // Send username (or email, backend handles both) directly
       const response = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, {
         username: username, // field is named "username" in backend schema
@@ -50,6 +52,8 @@ const Login = () => {
         setError('An unknown error occurred.');
       }
       console.error('Login error:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   return (
@@ -115,9 +119,17 @@ const Login = () => {
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5"
+                disabled={isSubmitting}
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                Sign In
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                    Signing in...
+                  </span>
+                ) : (
+                  'Sign In'
+                )}
               </button>
             </div>
           </form>

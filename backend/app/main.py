@@ -1,6 +1,7 @@
+import logging
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Optional, Dict
+from typing import List, Optional
 import os
 from dotenv import load_dotenv
 
@@ -9,12 +10,7 @@ load_dotenv()
 
 from uuid import uuid4
 from datetime import datetime, timedelta, timezone 
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
-from pydantic import ValidationError, BaseModel, EmailStr
-
-# Password hashing
-
+from contextlib import asynccontextmanager
 
 # SQLModel imports
 from sqlmodel import Field, Session, SQLModel, select
@@ -22,7 +18,7 @@ from .database import engine, create_db_and_tables, get_session
 
 # --- IMPORTANT: Ensure you have a 'schemas.py' file in the same directory (app/)
 from .schemas import (
-    UserCreate, UserLogin, UserResponse, Token, User,
+    UserCreate, UserLogin, UserResponse, Token, User, GenericMessage,
     Task, TaskCreate, TaskUpdate, TaskResponse,
     SessionLog, SessionLogCreate, SessionLogResponse,
     # Community Models
@@ -35,71 +31,24 @@ from .schemas import (
 )
 
 from .routes import community, websocket, flashcards, tutor, notes, reviews, subjects, users, system
-from .dependencies import get_current_user
-# --- Configuration Settings ---
-class Settings(BaseModel):
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-only-secret-change-in-production")
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    # Prioritize DATABASE_URL from environment for production, fallback to SQLite for local dev
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./database.db") # Default to SQLite for local
-    
-    # FIX: Use FRONTEND_URLS to support local dev and live Render URL (comma-separated)
-    FRONTEND_URLS: str = os.getenv("FRONTEND_URLS", "http://localhost:5173,http://localhost:3000") 
-
-settings = Settings()
-
-# --- Password Hashing Context ---
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") # Moved to .utils
-
-# --- OAuth2PasswordBearer for token extraction ---
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
+from .dependencies import get_current_user, settings, create_access_token
 
 # --- Password Utility Functions ---
 from .utils import verify_password, get_password_hash
 
-# --- JWT Utility Functions ---
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta # Use timezone.utc for consistency
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES) # Use timezone.utc for consistency
-    to_encode.update({"exp": expire.timestamp()}) # Store as timestamp
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# --- Database Engine and Session Setup ---
-# Imported from database.py to avoid circular imports
-
-
-# --- FastAPI App Initialization ---
-app = FastAPI(
-    title="WorkShop Backend API",
-    description="API for WorkShop SaaS application",
-    version="0.1.0",
-)
-
-# --- CORS Configuration ---
-# Convert the comma-separated string of FRONTEND_URLS into a list of strings
-allowed_origins = [url.strip() for url in settings.FRONTEND_URLS.split(',')]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins, # Allow your frontend origin(s) from settings
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# --- FastAPI Lifespan Events ---
-@app.on_event("startup")
-def on_startup():
-    print("Application startup - Creating database tables...")
+# --- Lifespan Context Manager (replaces deprecated @app.on_event) ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- STARTUP ---
+    logger.info("Application startup - Creating database tables...")
     create_db_and_tables()
-    print("Database tables created/checked.")
+    logger.info("Database tables created/checked.")
     
-    # Auto-promote a@gmail.com to admin
+    # Auto-promote admin user
     with Session(engine) as session:
         admin_email = os.getenv("ADMIN_EMAIL", "a@gmail.com")
         user = session.exec(select(User).where(User.email == admin_email)).first()
@@ -108,11 +57,11 @@ def on_startup():
                 user.role = "admin"
                 session.add(user)
                 session.commit()
-                print(f"User {admin_email} has been promoted to ADMIN.")
+                logger.info(f"User {admin_email} has been promoted to ADMIN.")
             else:
-                print(f"User {admin_email} is already ADMIN.")
+                logger.info(f"User {admin_email} is already ADMIN.")
         else:
-            print(f"Admin candidate {admin_email} not found. Register with this email to become admin.")
+            logger.info(f"Admin candidate {admin_email} not found. Register with this email to become admin.")
 
         # Auto-create "The Workshop" default community if it doesn't exist
         workshop = session.exec(select(Community).where(Community.name == "The Workshop")).first()
@@ -154,9 +103,9 @@ def on_startup():
                 session.add(channel)
 
             session.commit()
-            print("Created default community: The Workshop")
+            logger.info("Created default community: The Workshop")
         else:
-            print("Default community 'The Workshop' already exists.")
+            logger.info("Default community 'The Workshop' already exists.")
 
         # Backfill: add any existing users who are not yet members of The Workshop
         if workshop:
@@ -177,13 +126,39 @@ def on_startup():
                     added += 1
             if added:
                 session.commit()
-                print(f"Backfilled {added} existing user(s) into The Workshop.")
+                logger.info(f"Backfilled {added} existing user(s) into The Workshop.")
 
-    print("Flashcards router loaded.")
+    logger.info("All routers loaded. Application ready.")
+    
+    yield  # Application runs
+    
+    # --- SHUTDOWN ---
+    logger.info("Application shutdown.")
+
+
+# --- FastAPI App Initialization ---
+app = FastAPI(
+    title="WorkShop Backend API",
+    description="API for WorkShop SaaS application",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+# --- CORS Configuration ---
+# Convert the comma-separated string of FRONTEND_URLS into a list of strings
+allowed_origins = [url.strip() for url in settings.FRONTEND_URLS.split(',')]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins, # Allow your frontend origin(s) from settings
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 from fastapi.staticfiles import StaticFiles
 
-# --- Include New Routers ---
+# --- Include Routers ---
 app.include_router(community.router)
 app.include_router(websocket.router)
 app.include_router(flashcards.router)
@@ -191,8 +166,8 @@ app.include_router(tutor.router)
 app.include_router(notes.router)
 app.include_router(reviews.router)
 app.include_router(subjects.router)
-app.include_router(users.router) # Include users router
-app.include_router(system.router) # Include system router for KeepAlive
+app.include_router(users.router)
+app.include_router(system.router)
 
 # --- Mount Static Files ---
 static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
@@ -207,7 +182,7 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 async def read_root():
     return {"message": "Welcome to the WorkShop Backend API!"}
 
-@app.get("/api/message", response_model=Message, summary="Get a simple message")
+@app.get("/api/message", response_model=GenericMessage, summary="Get a simple message")
 async def get_simple_message():
     return {"content": "Hello from the FastAPI Python backend!"}
 
@@ -269,19 +244,12 @@ async def register_user(user_data: UserCreate, session: Session = Depends(get_se
 
 @app.post("/api/v1/auth/login", response_model=Token, summary="Login user and get access token")
 async def login_for_access_token(user_data: UserLogin, session: Session = Depends(get_session)):
-    print(f"Login attempt for: {user_data.username}")
     # Allow login with either username or email (flexible)
     user = session.exec(select(User).where(
         (User.username == user_data.username) | (User.email == user_data.username)
     )).first()
     
-    if user:
-        print(f"User found: {user.username}, Active: {user.is_active}")
-    else:
-        print("User not found via username/email search")
-
     if not user or not verify_password(user_data.password, user.hashed_password):
-        print("Authentication failed: Invalid credentials")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -289,7 +257,6 @@ async def login_for_access_token(user_data: UserLogin, session: Session = Depend
         )
 
     if not user.is_active:
-        print("Authentication failed: User inactive")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
@@ -309,7 +276,7 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
     """
     return current_user # current_user is already a User model instance from the database
 
-# --- Pomodoro Session Logging Endpoint (NEW) ---
+# --- Pomodoro Session Logging Endpoints ---
 @app.post(
     "/api/v1/log/session", 
     response_model=SessionLogResponse, 
@@ -318,7 +285,7 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
 )
 async def log_pomodoro_session(
     log_data: SessionLogCreate, 
-    current_user: User = Depends(get_current_user), # Requires authentication
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     """
@@ -336,7 +303,7 @@ async def log_pomodoro_session(
         id=str(uuid4()),
         minutes_spent=log_data.minutes_spent,
         session_type=log_data.session_type,
-        user_id=current_user.id, # Link to the current authenticated user's ID
+        user_id=current_user.id,
         completion_time=datetime.now(timezone.utc)
     )
 
@@ -344,8 +311,20 @@ async def log_pomodoro_session(
     session.commit()
     session.refresh(db_log)
     
-    # Return the created log data
     return db_log
+
+@app.get("/api/v1/log/sessions", response_model=List[SessionLogResponse], summary="Get all session logs for the current user")
+async def get_session_logs(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    """
+    Retrieves all session logs for the current user, useful for progress tracking.
+    """
+    logs = session.exec(
+        select(SessionLog).where(SessionLog.user_id == current_user.id)
+    ).all()
+    return logs
 
 
 # --- Task Management Endpoints (Now using Database) ---
@@ -354,7 +333,7 @@ async def log_pomodoro_session(
 async def create_task(
     task: TaskCreate,
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session) # Add session dependency
+    session: Session = Depends(get_session)
 ):
     """
     Creates a new task for the current authenticated user and stores it in the database.
@@ -365,20 +344,20 @@ async def create_task(
         completed=task.completed,
         priority=task.priority,
         due_date=task.due_date,
-        owner_id=current_user.id, # Link task to the current user's ID
-        created_at=datetime.now(timezone.utc) # Set creation time to UTC now
+        owner_id=current_user.id,
+        created_at=datetime.now(timezone.utc)
     )
 
     session.add(db_task)
     session.commit()
-    session.refresh(db_task) # Refresh to get the auto-generated ID
+    session.refresh(db_task)
 
     return db_task
 
 @app.get("/api/v1/tasks/", response_model=List[TaskResponse], summary="Get all tasks for the current user")
 async def get_user_tasks(
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session) # Add session dependency
+    session: Session = Depends(get_session)
 ):
     """
     Retrieves all tasks belonging to the currently authenticated user from the database.
@@ -392,7 +371,7 @@ async def get_user_tasks(
 async def get_task(
     task_id: int,
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session) # Add session dependency
+    session: Session = Depends(get_session)
 ):
     """
     Retrieves a single task by its ID, ensuring it belongs to the current user.
@@ -412,7 +391,7 @@ async def update_task(
     task_id: int,
     task_update: TaskUpdate,
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session) # Add session dependency
+    session: Session = Depends(get_session)
 ):
     """
     Updates an existing task for the current authenticated user.
@@ -442,7 +421,7 @@ async def update_task(
 async def delete_task(
     task_id: int,
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session) # Add session dependency
+    session: Session = Depends(get_session)
 ):
     """
     Deletes a task for the current authenticated user.
