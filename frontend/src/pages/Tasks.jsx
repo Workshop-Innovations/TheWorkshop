@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaPlus, FaCalendarAlt, FaCheck, FaFlag, FaTimes, FaTrashAlt, FaSpinner } from 'react-icons/fa';
+import { Plus, Calendar, Check, Flag, X, Trash2, Loader2 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -178,13 +178,13 @@ const Tasks = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FaPlus />
+              <Plus />
               <span>Add Task</span>
             </motion.button>
           </div>
           {loading && (
             <div className="text-center text-slate-400 text-lg flex items-center justify-center gap-2">
-              <FaSpinner className="animate-spin" /> Loading tasks...
+              <Loader2 className="animate-spin" /> Loading tasks...
             </div>
           )}
           {error && !loading && (
@@ -237,7 +237,7 @@ const Tasks = () => {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-slate-800">Create New Task</h2>
                 <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                  <FaTimes />
+                  <X />
                 </button>
               </div>
 
@@ -275,7 +275,7 @@ const Tasks = () => {
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
                       </select>
-                      <FaFlag className={`absolute right-3 top-1/2 -translate-y-1/2 ${priorityConfig[newTask.priority]?.color}`} />
+                      <Flag className={`absolute right-3 top-1/2 -translate-y-1/2 ${priorityConfig[newTask.priority]?.color}`} />
                     </div>
                   </div>
                   <div>
@@ -289,7 +289,7 @@ const Tasks = () => {
                         placeholderText="Select a due date"
                         isClearable
                       />
-                      <FaCalendarAlt className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
                   </div>
                 </div>
@@ -336,7 +336,7 @@ const TaskCard = ({ task, onComplete, onDelete }) => {
             className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${task.completed ? 'bg-primary border-primary' : 'border-slate-300 hover:border-primary'
               }`}
           >
-            {task.completed && <FaCheck className="text-white text-xs" />}
+            {task.completed && <Check className="text-white text-xs" />}
           </button>
 
           <div className="flex-1">
@@ -345,7 +345,7 @@ const TaskCard = ({ task, onComplete, onDelete }) => {
                 {task.title}
               </h3>
               <div className="flex items-center gap-2">
-                <FaFlag className={`${priorityConfig[task.priority]?.color}`} />
+                <Flag className={`${priorityConfig[task.priority]?.color}`} />
                 <span className="text-sm text-slate-500">{priorityConfig[task.priority]?.label}</span>
               </div>
             </div>
@@ -356,7 +356,7 @@ const TaskCard = ({ task, onComplete, onDelete }) => {
 
             {task.due_date && (
               <div className="flex items-center gap-2 text-sm text-slate-400 mt-2">
-                <FaCalendarAlt />
+                <Calendar />
                 <span>{new Date(task.due_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
               </div>
             )}
@@ -368,7 +368,7 @@ const TaskCard = ({ task, onComplete, onDelete }) => {
           className="flex-shrink-0 text-slate-400 hover:text-red-500 transition-colors"
           title="Delete Task"
         >
-          <FaTrashAlt />
+          <Trash2 />
         </button>
       </div>
     </motion.div>

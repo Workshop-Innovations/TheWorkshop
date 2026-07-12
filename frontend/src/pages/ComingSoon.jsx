@@ -1,4 +1,4 @@
-import { FaTrophy, FaMedal, FaChartLine, FaCrown, FaLock } from 'react-icons/fa'
+import { Trophy, Medal, LineChart, Crown, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -20,31 +20,31 @@ const ComingSoon = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           <FeatureCard
-            icon={<FaTrophy />}
+            icon={<Trophy />}
             title="Challenges"
             description="Complete daily and weekly challenges to earn rewards and boost your productivity streak."
           />
           
           <FeatureCard
-            icon={<FaMedal />}
+            icon={<Medal />}
             title="Leaderboard"
             description="Compete with other users and climb the ranks. Show off your productivity achievements!"
           />
           
           <FeatureCard
-            icon={<FaChartLine />}
+            icon={<LineChart />}
             title="Habit Tracker"
             description="Build and maintain positive habits with our comprehensive tracking system and analytics."
           />
           
           <FeatureCard
-            icon={<FaCrown />}
+            icon={<Crown />}
             title="Levels & Experience"
             description="Gain experience points, level up, and unlock new features as you progress."
           />
           
           <FeatureCard
-            icon={<FaLock />}
+            icon={<Lock />}
             title="Premium Features"
             description="Get access to advanced features, custom themes, and more with our premium subscription."
           />

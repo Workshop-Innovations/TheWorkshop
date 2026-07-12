@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { FaSave, FaTimes, FaMarkdown } from 'react-icons/fa';
+import { Save, X, FileType2 } from 'lucide-react';
 
 const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }) => {
     const [content, setContent] = useState(initialValue);
@@ -33,7 +33,7 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
                 <h3 className="font-bold text-slate-700 flex items-center">
-                    <FaMarkdown className="mr-2 text-primary" /> {title}
+                    <FileType2 className="mr-2 text-primary" /> {title}
                 </h3>
                 <div className="flex space-x-2">
                     <button
@@ -55,7 +55,7 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
                         onClick={handleSave}
                         className="px-4 py-1.5 text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-lg shadow-md shadow-primary/20 transition-colors flex items-center"
                     >
-                        <FaSave className="mr-2" /> Save
+                        <Save className="mr-2" /> Save
                     </button>
                 </div>
             </div>

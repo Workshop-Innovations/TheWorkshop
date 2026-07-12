@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaHome, FaArrowLeft } from 'react-icons/fa';
+import { Home, ArrowLeft } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -39,13 +39,13 @@ const NotFound = () => {
               to="/dashboard"
               className="inline-flex items-center gap-2 px-8 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 hover:-translate-y-0.5 transition-all"
             >
-              <FaHome /> Go to Dashboard
+              <Home /> Go to Dashboard
             </Link>
             <button
               onClick={() => window.history.back()}
               className="inline-flex items-center gap-2 px-8 py-3 bg-white text-slate-700 font-bold rounded-xl border border-slate-200 shadow-sm hover:bg-slate-50 hover:-translate-y-0.5 transition-all"
             >
-              <FaArrowLeft /> Go Back
+              <ArrowLeft /> Go Back
             </button>
           </div>
         </motion.div>

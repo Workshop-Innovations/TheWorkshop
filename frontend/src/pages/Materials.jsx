@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { motion } from 'framer-motion'
-import { FaClipboardCheck, FaFileDownload, FaExternalLinkAlt } from 'react-icons/fa'
+import { ClipboardCheck, FileDown, ExternalLink } from 'lucide-react'
 
 const CURRICULUMS = [
   { id: 'igcse', name: 'IGCSE (Cambridge)' },
@@ -86,9 +86,9 @@ function SelectorGroup({ title, items, selectedId, onSelect }) {
 function TypeSelector({ selectedId, onSelect }) {
   const types = TYPES
   const iconFor = (id) => {
-    if (id === 'past_papers') return <FaFileDownload className="mr-2" />
-    if (id === 'marking_guides') return <FaClipboardCheck className="mr-2" />
-    return <FaExternalLinkAlt className="mr-2" />
+    if (id === 'past_papers') return <FileDown className="mr-2" />
+    if (id === 'marking_guides') return <ClipboardCheck className="mr-2" />
+    return <ExternalLink className="mr-2" />
   }
   return (
     <div className="mb-8">
@@ -248,7 +248,7 @@ export default function Materials() {
                         disabled={!resourceUrl}
                         onClick={() => { if (resourceUrl) window.open(resourceUrl, '_blank') }}
                       >
-                        <FaExternalLinkAlt />
+                        <ExternalLink />
                         Visit
                       </button>
                     </motion.div>
@@ -276,7 +276,7 @@ export default function Materials() {
                           disabled={!f.url}
                           onClick={() => { if (f.url) window.open(f.url, '_blank') }}
                         >
-                          <FaFileDownload />
+                          <FileDown />
                           Download
                         </button>
                       </motion.div>

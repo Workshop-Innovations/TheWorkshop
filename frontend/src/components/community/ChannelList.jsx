@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import StudyGroups from './StudyGroups';
 import {
-    FaHashtag,
-    FaChevronDown,
-    FaPlus,
-    FaUserFriends,
-    FaCompass
-} from 'react-icons/fa';
-import { HiUserGroup } from "react-icons/hi";
+    Hash,
+    ChevronDown,
+    Plus,
+    Compass,
+    Users
+} from 'lucide-react';
 
 const ChannelList = () => {
     const {
@@ -54,7 +53,7 @@ const ChannelList = () => {
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-2 space-y-0.5">
                     {dmConversations.length === 0 ? (
                         <div className="flex flex-col items-center justify-center text-center py-12 px-4">
-                            <FaUserFriends className="text-3xl text-slate-300 mb-3" />
+                            <Users className="text-3xl text-slate-300 mb-3" />
                             <p className="text-sm font-medium text-slate-500">No conversations yet</p>
                             <span className="text-xs text-slate-400 mt-1">Click on a member in any server to start a DM</span>
                         </div>
@@ -96,7 +95,7 @@ const ChannelList = () => {
                     <h3 className="font-bold text-slate-700 text-sm">Select a Server</h3>
                 </div>
                 <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-                    <FaCompass className="text-3xl text-slate-300 mb-3" />
+                    <Compass className="text-3xl text-slate-300 mb-3" />
                     <p className="text-sm font-medium text-slate-500">Welcome!</p>
                     <span className="text-xs text-slate-400 mt-1">Select or create a server to get started</span>
                 </div>
@@ -112,13 +111,13 @@ const ChannelList = () => {
             {/* Server Header */}
             <div className="h-12 flex items-center justify-between px-4 border-b border-slate-200 shrink-0 shadow-sm cursor-pointer hover:bg-slate-100/70 transition-colors">
                 <h3 className="font-bold text-slate-800 text-sm truncate">{currentCommunity.name}</h3>
-                <FaChevronDown className="text-slate-400 text-[10px] shrink-0" />
+                <ChevronDown className="text-slate-400 text-[10px] shrink-0" />
             </div>
 
             {/* Channels & Roles Bar */}
             <div className="px-2 pt-3 pb-1">
                 <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-200/50 cursor-pointer transition-colors text-slate-500 hover:text-slate-700">
-                    <HiUserGroup className="text-base" />
+                    <Users className="text-base" />
                     <span className="text-xs font-semibold">Channels & Roles</span>
                 </div>
             </div>
@@ -136,7 +135,7 @@ const ChannelList = () => {
                             onClick={() => setShowCreateChannel(!showCreateChannel)}
                             title="Create Channel"
                         >
-                            <FaPlus size={10} />
+                            <Plus size={10} />
                         </button>
                     </div>
 
@@ -166,7 +165,7 @@ const ChannelList = () => {
                                     }`}
                                 onClick={() => setCurrentChannel(channel)}
                             >
-                                <FaHashtag className="text-xs shrink-0 opacity-60" />
+                                <Hash className="text-xs shrink-0 opacity-60" />
                                 <span className="text-sm truncate">{channel.name}</span>
                             </div>
                         ))}

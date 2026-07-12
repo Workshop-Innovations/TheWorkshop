@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { FaSearch, FaDownload, FaBookOpen } from 'react-icons/fa';
+import { Search, Download, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const PastPapers = () => {
@@ -75,7 +75,7 @@ const PastPapers = () => {
                     {/* Subject Summaries Quick Links */}
                     <div className="mb-12">
                         <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                            <FaBookOpen className="mr-2 text-primary" /> Study Summaries
+                            <BookOpen className="mr-2 text-primary" /> Study Summaries
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             {subjects.map(subject => (
@@ -115,7 +115,7 @@ const PastPapers = () => {
                         {/* Search Bar */}
                         <div className="flex gap-4">
                             <div className="flex-grow flex items-center bg-slate-50 rounded-xl px-4 border border-slate-200">
-                                <FaSearch className="text-slate-400" />
+                                <Search className="text-slate-400" />
                                 <input
                                     type="text"
                                     placeholder="Search by subject, year or exam..."
@@ -157,7 +157,7 @@ const PastPapers = () => {
                                                 to={`/papers/${paper.id}`}
                                                 className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition-all transform hover:scale-105 flex items-center"
                                             >
-                                                <FaBookOpen className="mr-2" /> View Now
+                                                <BookOpen className="mr-2" /> View Now
                                             </Link>
                                         ) : (
                                             <a
@@ -166,7 +166,7 @@ const PastPapers = () => {
                                                 rel="noopener noreferrer"
                                                 className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-primary hover:text-white transition-all transform hover:scale-110"
                                             >
-                                                <FaDownload />
+                                                <Download />
                                             </a>
                                         )}
                                     </div>

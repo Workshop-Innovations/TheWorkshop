@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaCheck, FaTimes, FaStar } from 'react-icons/fa';
+import { Check, X, Star } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -12,7 +12,7 @@ const Pricing = () => {
             period: '/month',
             description: 'Essential resources for every student.',
             features: [
-                'Access to all Past Papers',
+                'Access to select Past Papers',
                 'Basic Community Access',
                 'limited AI Tutor Queries (5/day)',
                 'Study Timer',
@@ -68,13 +68,13 @@ const Pricing = () => {
                             <div
                                 key={index}
                                 className={`relative p-8 rounded-3xl border transition-all duration-300 flex flex-col ${plan.popular
-                                        ? 'bg-white border-primary shadow-2xl shadow-primary/10 scale-105 z-10'
-                                        : 'bg-slate-50 border-slate-200 hover:bg-white hover:shadow-xl'
+                                    ? 'bg-white border-primary shadow-2xl shadow-primary/10 scale-105 z-10'
+                                    : 'bg-slate-50 border-slate-200 hover:bg-white hover:shadow-xl'
                                     }`}
                             >
                                 {plan.popular && (
                                     <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1 shadow-lg">
-                                        <FaStar className="text-yellow-300" /> Recommended
+                                        Recommended
                                     </div>
                                 )}
 
@@ -90,13 +90,13 @@ const Pricing = () => {
                                 <div className="space-y-4 mb-8 flex-grow">
                                     {plan.features.map((feature, i) => (
                                         <div key={i} className="flex items-start gap-3">
-                                            <div className="mt-1 min-w-[20px] text-green-500"><FaCheck /></div>
+                                            <div className="mt-1 min-w-[20px] text-green-500"><Check /></div>
                                             <span className="text-slate-700 font-medium">{feature}</span>
                                         </div>
                                     ))}
                                     {plan.notIncluded.map((feature, i) => (
                                         <div key={i} className="flex items-start gap-3 opacity-50">
-                                            <div className="mt-1 min-w-[20px] text-slate-400"><FaTimes /></div>
+                                            <div className="mt-1 min-w-[20px] text-slate-400"><X /></div>
                                             <span className="text-slate-500">{feature}</span>
                                         </div>
                                     ))}
@@ -105,8 +105,8 @@ const Pricing = () => {
                                 <Link
                                     to={plan.buttonLink}
                                     className={`w-full py-4 rounded-xl font-bold text-lg text-center transition-all ${plan.popular
-                                            ? 'bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/20 hover:-translate-y-1'
-                                            : 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                                        ? 'bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/20 hover:-translate-y-1'
+                                        : 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                                         }`}
                                 >
                                     {plan.buttonText}

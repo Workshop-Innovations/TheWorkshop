@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { FaUser, FaEnvelope, FaCalendar, FaTrash, FaGoogle } from 'react-icons/fa';
+import { User, Mail, Calendar, Trash, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Profile = () => {
@@ -33,7 +33,7 @@ const Profile = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <FaUser className="text-4xl text-blue-600" />
+                <User className="text-4xl text-blue-600" />
               )}
             </div>
             <div>
@@ -52,7 +52,7 @@ const Profile = () => {
           <div className="space-y-6">
             <div className="flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
               <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
-                <FaUser className="text-xl" />
+                <User className="text-xl" />
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Username</p>
@@ -61,7 +61,7 @@ const Profile = () => {
             </div>
             <div className="flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
               <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
-                <FaEnvelope className="text-xl" />
+                <Mail className="text-xl" />
               </div>
               <div>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Email</p>
@@ -78,11 +78,11 @@ const Profile = () => {
           <h2 className="text-2xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">Account Actions</h2>
           <div className="space-y-4">
             <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 text-slate-400 rounded-xl font-bold cursor-not-allowed">
-              <FaGoogle className="text-slate-400" />
+              <Globe className="text-slate-400" />
               <span>Sync with Google (Coming Soon)</span>
             </button>
             <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-red-50/50 text-red-300 rounded-xl font-bold cursor-not-allowed mt-4">
-              <FaTrash />
+              <Trash />
               <span>Delete Account (Coming Soon)</span>
             </button>
           </div>
@@ -94,3 +94,4 @@ const Profile = () => {
 };
 
 export default Profile;
+

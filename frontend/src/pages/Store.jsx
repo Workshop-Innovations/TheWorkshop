@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FaPlus, FaTimes, FaClock, FaCoins } from 'react-icons/fa';
+import { Plus, X, Clock, Coins } from 'lucide-react';
 import { getProgressData, createReward, redeemReward } from '../services/progressService';
 import { motion, AnimatePresence } from 'framer-motion'
 import { ToastContainer, toast } from 'react-toastify'
@@ -102,7 +102,7 @@ const Store = () => {
                 whileHover={{ y: -2 }}
                 transition={{ duration: 0.2 }}
               >
-                <FaCoins className="text-yellow-500 text-4xl" />
+                <Coins className="text-yellow-500 text-4xl" />
                 <div>
                   <span className="text-3xl font-bold text-slate-800">{coins}</span>
                   <p className="text-sm text-slate-500">Coins Available</p>
@@ -122,7 +122,7 @@ const Store = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <FaPlus />
+                <Plus />
                 <span>Create Reward</span>
               </motion.button>
             </div>
@@ -162,7 +162,7 @@ const Store = () => {
                   onClick={() => setShowModal(false)}
                   className="text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  <FaTimes />
+                  <X />
                 </button>
               </div>
 
@@ -281,7 +281,7 @@ const Store = () => {
                 onClick={() => setActiveReward(null)}
                 className="p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-400"
               >
-                <FaTimes />
+                <X />
               </button>
             </div>
           </motion.div>
@@ -318,11 +318,11 @@ const RewardCard = ({ reward, onRedeem, canAfford, isRewardActive }) => {
         )}
         <div className="flex items-center gap-4 text-sm text-slate-500">
           <div className="flex items-center gap-1">
-            <FaCoins className="text-yellow-500" />
+            <Coins className="text-yellow-500" />
             <span>{reward.cost}</span>
           </div>
           <div className="flex items-center gap-1">
-            <FaClock className="text-slate-400" />
+            <Clock className="text-slate-400" />
             <span>{reward.duration} min</span>
           </div>
         </div>

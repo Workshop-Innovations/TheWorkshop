@@ -1,48 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* Define custom colors directly in the theme */
-  /* COBALT BLUE THEME */
-  --color-primary: #2563eb;
-  /* Blue-600 */
-  --color-primary-light: #3b82f6;
-  /* Blue-500 */
-  --color-primary-dark: #1d4ed8;
-  /* Blue-700 */
+  /* Minimalist monochrome palette */
+  --color-primary: #154c79; /* Dark Blue from Logo */
+  --color-secondary: #71717a; /* Zinc 500 */
+  --color-secondary-dark: #27272a; /* Zinc 800 */
+  
+  --color-accent: #0d9488; /* Teal from Logo */
 
-  /* Secondary can be a lighter blue or a complementary cool gray/indigo */
-  --color-secondary: #60a5fa;
-  /* Blue-400 */
-  --color-secondary-light: #93c5fd;
-  /* Blue-300 */
-  --color-secondary-dark: #1e40af;
-  /* Blue-800 */
-
-  --color-accent: #f472b6;
-  --color-accent-glow: rgba(59, 130, 246, 0.5);
-  /* Blue glow */
-
-  --color-background-main: #FFFFFF;
-  --color-background-secondary: #F8FAFC;
-  /* Lightest Slate */
-  --color-background-tertiary: #E2E8F0;
+  --color-background-main: #ffffff;
+  --color-background-secondary: #f4f4f5; /* Zinc 100 */
+  --color-background-tertiary: #e4e4e7; /* Zinc 200 */
 
   /* Font Family */
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
 /* Base styles */
 @layer base {
   :root {
     font-family: var(--font-sans);
-    line-height: 1.5;
+    line-height: 1.6;
     font-weight: 400;
 
     color-scheme: light;
-    color: #0f172a;
-    /* Slate 900 */
-    background-color: #f8fafc;
-    /* Slate 50 */
+    color: #09090b; /* Zinc 950 */
+    background-color: #ffffff;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -53,9 +37,22 @@
   body {
     margin: 0;
     padding: 0;
-    min-width: 100vw;
+    width: 100%;
     min-height: 100vh;
     overflow-x: hidden;
+    letter-spacing: -0.01em;
+    background-color: var(--color-background-secondary);
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: #ffffff;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.1;
+    letter-spacing: -0.025em; /* tracking-tight */
+    color: #09090b;
   }
 
   #root {
@@ -63,22 +60,26 @@
     width: 100%;
   }
 
-  /* Fix for random transparent text issues */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  span,
-  div,
-  a,
-  li,
-  button,
-  input,
-  label {
-    /* Ensure no accidental transparency unless specified */
-    /* color: inherit; - let Tailwind classes handle it, but provide a safe fallback if needed */
+  /* Micro-interaction transitions */
+  button, a, input, select, textarea, .card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
+
+/* Custom Skeleton Loader Animation */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@layer utilities {
+  .animate-skeleton {
+    background: linear-gradient(90deg, #f4f4f5 25%, #e4e4e7 50%, #f4f4f5 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite linear;
+  }
+}

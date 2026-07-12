@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaEnvelope, FaBug } from 'react-icons/fa';
+import { Mail, Bug } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
 const Feedback = () => {
@@ -24,7 +24,7 @@ const Feedback = () => {
               className="bg-[#1A1A1A] p-6 rounded-lg"
             >
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <FaEnvelope className="text-blue-500" />
+                <Mail className="text-blue-500" />
                 Send Feedback
               </h2>
               <p className="text-gray-300 mb-4">
@@ -43,7 +43,7 @@ const Feedback = () => {
               className="bg-[#1A1A1A] p-6 rounded-lg"
             >
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <FaBug className="text-red-500" />
+                <Bug className="text-red-500" />
                 Report a Bug
               </h2>
               <p className="text-gray-300 mb-4">

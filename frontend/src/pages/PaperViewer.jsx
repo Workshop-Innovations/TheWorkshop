@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { FaArrowLeft } from 'react-icons/fa';
+import { ArrowLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -43,7 +43,7 @@ const PaperViewer = () => {
             <div className="container mx-auto px-4 py-24 flex-grow">
                 <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
                     <Link to="/past-papers" className="inline-flex items-center text-slate-500 hover:text-primary mb-6 transition-colors">
-                        <FaArrowLeft className="mr-2" /> Back to Past Papers
+                        <ArrowLeft className="mr-2" /> Back to Past Papers
                     </Link>
 
                     <div className="mb-8 border-b border-slate-100 pb-4">

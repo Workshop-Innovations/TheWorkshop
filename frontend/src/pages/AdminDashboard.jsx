@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { FaBook, FaFileAlt, FaUserShield, FaPlus, FaEdit, FaTrash, FaLayerGroup, FaTimes } from 'react-icons/fa';
+import { Book, FileText, ShieldAlert, Plus, Edit, Trash, Layers, X } from 'lucide-react';
 import axios from 'axios';
 import ContentEditor from '../components/ContentEditor';
 
@@ -182,7 +182,7 @@ const AdminDashboard = () => {
                         onClick={() => setIsEditorOpen(false)}
                         className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
                     >
-                        <FaTimes />
+                        <X />
                     </button>
                     <h3 className="text-xl font-bold text-slate-900 mb-6">
                         {editorMode === 'create' ? 'Add New' : 'Edit'} {editType === 'subjects' ? 'Subject' : 'Paper'}
@@ -260,7 +260,7 @@ const AdminDashboard = () => {
                                             onClick={() => setShowContentEditor(true)}
                                             className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-sm font-medium flex items-center border border-slate-300"
                                         >
-                                            <FaEdit className="mr-2" /> Open Content Editor
+                                            <Edit className="mr-2" /> Open Content Editor
                                         </button>
                                         <span className="text-xs text-slate-500">
                                             {formData.summary_content ? `${formData.summary_content.length} characters` : 'No content'}
@@ -377,7 +377,7 @@ const AdminDashboard = () => {
                                             onClick={() => setShowContentEditor(true)}
                                             className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-sm font-medium flex items-center border border-slate-300"
                                         >
-                                            <FaEdit className="mr-2" /> Open Content Editor
+                                            <Edit className="mr-2" /> Open Content Editor
                                         </button>
                                         <span className="text-xs text-slate-500">
                                             {formData.content ? `${formData.content.length} characters` : 'No content'}
@@ -422,7 +422,7 @@ const AdminDashboard = () => {
                                 onClick={() => handleCreate('subjects')}
                                 className="px-4 py-2 bg-primary text-white rounded-lg flex items-center text-sm hover:bg-primary-dark"
                             >
-                                <FaPlus className="mr-2" /> Add Subject
+                                <Plus className="mr-2" /> Add Subject
                             </button>
                         </div>
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -447,14 +447,14 @@ const AdminDashboard = () => {
                                                     className="text-blue-600 hover:text-blue-800"
                                                     title="Edit"
                                                 >
-                                                    <FaEdit />
+                                                    <Edit />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(subject.id, 'subjects')}
                                                     className="text-red-500 hover:text-red-700"
                                                     title="Delete"
                                                 >
-                                                    <FaTrash />
+                                                    <Trash />
                                                 </button>
                                             </td>
                                         </tr>
@@ -473,7 +473,7 @@ const AdminDashboard = () => {
                                 onClick={() => handleCreate('topics')}
                                 className="px-4 py-2 bg-primary text-white rounded-lg flex items-center text-sm hover:bg-primary-dark"
                             >
-                                <FaPlus className="mr-2" /> Add Topic
+                                <Plus className="mr-2" /> Add Topic
                             </button>
                         </div>
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -501,14 +501,14 @@ const AdminDashboard = () => {
                                                     className="text-blue-600 hover:text-blue-800"
                                                     title="Edit"
                                                 >
-                                                    <FaEdit />
+                                                    <Edit />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(topic.id, 'topics')}
                                                     className="text-red-500 hover:text-red-700"
                                                     title="Delete"
                                                 >
-                                                    <FaTrash />
+                                                    <Trash />
                                                 </button>
                                             </td>
                                         </tr>
@@ -527,7 +527,7 @@ const AdminDashboard = () => {
                                 onClick={() => handleCreate('papers')}
                                 className="px-4 py-2 bg-primary text-white rounded-lg flex items-center text-sm hover:bg-primary-dark"
                             >
-                                <FaPlus className="mr-2" /> Add Paper
+                                <Plus className="mr-2" /> Add Paper
                             </button>
                         </div>
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -557,14 +557,14 @@ const AdminDashboard = () => {
                                                     className="text-blue-600 hover:text-blue-800"
                                                     title="Edit"
                                                 >
-                                                    <FaEdit />
+                                                    <Edit />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(paper.id, 'papers')}
                                                     className="text-red-500 hover:text-red-700"
                                                     title="Delete"
                                                 >
-                                                    <FaTrash />
+                                                    <Trash />
                                                 </button>
                                             </td>
                                         </tr>
@@ -583,7 +583,7 @@ const AdminDashboard = () => {
                                 onClick={() => handleCreate('users')} // Reuse handleCreate with 'users' type
                                 className="px-4 py-2 bg-primary text-white rounded-lg flex items-center text-sm hover:bg-primary-dark"
                             >
-                                <FaPlus className="mr-2" /> Add Administrator
+                                <Plus className="mr-2" /> Add Administrator
                             </button>
                         </div>
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -659,7 +659,7 @@ const AdminDashboard = () => {
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
-                                <FaLayerGroup className="mr-3" /> Subjects
+                                <Layers className="mr-3" /> Subjects
                             </button>
                             <button
                                 onClick={() => setActiveTab('topics')}
@@ -668,7 +668,7 @@ const AdminDashboard = () => {
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
-                                <FaBook className="mr-3" /> Topics
+                                <Book className="mr-3" /> Topics
                             </button>
                             <button
                                 onClick={() => setActiveTab('papers')}
@@ -677,7 +677,7 @@ const AdminDashboard = () => {
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
-                                <FaFileAlt className="mr-3" /> Past Papers
+                                <FileText className="mr-3" /> Past Papers
                             </button>
                             <button
                                 onClick={() => setActiveTab('admins')}
@@ -686,7 +686,7 @@ const AdminDashboard = () => {
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
                             >
-                                <FaUserShield className="mr-3" /> Administrators
+                                <ShieldAlert className="mr-3" /> Administrators
                             </button>
                         </nav>
                     </div>

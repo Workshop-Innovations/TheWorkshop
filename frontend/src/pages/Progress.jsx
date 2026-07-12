@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { getProgressData, fetchCompletedSessions } from '../services/progressService'; // Added fetchCompletedSessions
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { FaCalendarAlt, FaCheckCircle, FaCoins, FaGift, FaFire, FaClock, FaCoffee } from 'react-icons/fa';
+import { Calendar, CheckCircle2, Coins, Gift, Flame, Clock, Coffee } from 'lucide-react';
 import ActivityHistory from '../components/ActivityHistory';
 
 const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentView prop
@@ -114,22 +114,22 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
             <h2 className="text-2xl font-bold mb-4">Today's Stats</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-[#242424] p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <FaFire className="text-3xl text-red-500 mb-2" />
+                <Flame className="text-3xl text-red-500 mb-2" />
                 <span className="text-2xl font-bold">{todayStats.pomodoros}</span>
                 <span className="text-sm text-gray-400">Pomodoros</span>
               </div>
               <div className="bg-[#242424] p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <FaClock className="text-3xl text-blue-500 mb-2" />
+                <Clock className="text-3xl text-blue-500 mb-2" />
                 <span className="text-2xl font-bold">{todayStats.focusTime}</span>
                 <span className="text-sm text-gray-400">Focus Mins</span>
               </div>
               <div className="bg-[#242424] p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <FaCoffee className="text-3xl text-green-500 mb-2" />
+                <Coffee className="text-3xl text-green-500 mb-2" />
                 <span className="text-2xl font-bold">{todayStats.breakTime}</span>
                 <span className="text-sm text-gray-400">Break Mins</span>
               </div>
               <div className="bg-[#242424] p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <FaCheckCircle className="text-3xl text-purple-500 mb-2" />
+                <CheckCircle2 className="text-3xl text-purple-500 mb-2" />
                 <span className="text-2xl font-bold">{todayStats.tasksCompleted}</span>
                 <span className="text-sm text-gray-400">Tasks Done</span>
               </div>
@@ -141,26 +141,26 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
               <h2 className="text-2xl font-bold mb-4">Lifetime Stats</h2>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-lg"><FaCoins /> Total Coins</span>
+                  <span className="flex items-center gap-2 text-lg"><Coins /> Total Coins</span>
                   <span className="font-bold text-2xl text-yellow-400">{progress.coins}</span>
                 </div>
                 {/* <--- NEW: Display API-derived Total Focus Hours */}
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-lg"><FaClock /> Total Focus</span>
+                  <span className="flex items-center gap-2 text-lg"><Clock /> Total Focus</span>
                   <span className="font-bold text-2xl text-blue-400">{apiStats.totalFocusHours} hrs</span>
                 </div>
                 {/* <--- NEW: Display API-derived Total Sessions */}
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-lg"><FaFire /> Total Pomodoros</span>
+                  <span className="flex items-center gap-2 text-lg"><Flame /> Total Pomodoros</span>
                   <span className="font-bold text-2xl text-red-400">{apiStats.totalSessions}</span>
                 </div>
                 {/* <--- NEW: Display API-derived Longest Streak */}
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-lg"><FaCalendarAlt /> Longest Streak</span>
+                  <span className="flex items-center gap-2 text-lg"><Calendar /> Longest Streak</span>
                   <span className="font-bold text-2xl text-green-400">{apiStats.longestStreak} days</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-lg"><FaCheckCircle /> Total Tasks</span>
+                  <span className="flex items-center gap-2 text-lg"><CheckCircle2 /> Total Tasks</span>
                   <span className="font-bold text-2xl">{progress.tasks.filter(t => t.completed).length}</span>
                 </div>
               </div>
@@ -173,7 +173,7 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
                   {redeemedRewards.map(reward => (
                     <div key={reward.id} className="flex items-center justify-between p-3 bg-[#242424] rounded-md">
                       <div className="flex items-center gap-3">
-                        <FaGift className="text-xl" />
+                        <Gift className="text-xl" />
                         <div>
                           <p className="font-semibold">{reward.name}</p>
                           <p className="text-sm text-gray-400">Redeemed on {new Date(reward.redeemedAt).toLocaleDateString()}</p>

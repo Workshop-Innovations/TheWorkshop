@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { FaRobot, FaPaperPlane, FaUpload, FaLightbulb, FaListAlt, FaFileAlt, FaSpinner, FaTimes, FaCheck, FaUndo, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { Bot, Send, Upload, Lightbulb, List, FileText, Loader2, X, Check, Undo, ArrowLeft, ArrowRight } from 'lucide-react';
 import { API_BASE_URL } from '../services/progressService';
 import { useAuth } from '../context/AuthContext';
 
@@ -230,7 +230,7 @@ const StudySuite = () => {
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
                     <h2 className="text-xl font-bold text-slate-800">📝 Quiz</h2>
                     {quizSubmitted && <span className="font-bold text-lg text-primary">Score: {score}/{questions.length}</span>}
-                    <button onClick={() => setGeneratedContent(null)} className="p-2 text-slate-400 hover:text-red-500"><FaTimes /></button>
+                    <button onClick={() => setGeneratedContent(null)} className="p-2 text-slate-400 hover:text-red-500"><X /></button>
                 </div>
                 <div className="space-y-6">
                     {questions.map((q, qIndex) => (
@@ -263,7 +263,7 @@ const StudySuite = () => {
                         </button>
                     ) : (
                         <button onClick={() => { setQuizSubmitted(false); setQuizAnswers({}); }} className="flex items-center gap-2 px-8 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all">
-                            <FaUndo /> Retake
+                            <Undo /> Retake
                         </button>
                     )}
                 </div>
@@ -280,7 +280,7 @@ const StudySuite = () => {
             <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 flex flex-col items-center h-[400px]">
                 <div className="flex justify-between items-center w-full mb-4">
                     <h2 className="text-xl font-bold text-slate-800">🃏 Flashcards</h2>
-                    <button onClick={() => setGeneratedContent(null)} className="p-2 text-slate-400 hover:text-red-500"><FaTimes /></button>
+                    <button onClick={() => setGeneratedContent(null)} className="p-2 text-slate-400 hover:text-red-500"><X /></button>
                 </div>
                 <div onClick={() => setIsFlipped(!isFlipped)} className="flex-grow w-full flex items-center justify-center cursor-pointer bg-gradient-to-br from-primary/5 to-secondary/10 rounded-xl border-2 border-dashed border-slate-200 p-6">
                     <p className="text-center text-xl font-semibold text-slate-700">
@@ -289,9 +289,9 @@ const StudySuite = () => {
                 </div>
                 <p className="text-xs text-slate-400 mt-2 mb-4">Click to {isFlipped ? 'see term' : 'flip'}</p>
                 <div className="flex items-center gap-6">
-                    <button onClick={() => { setFlashcardIndex(i => Math.max(0, i - 1)); setIsFlipped(false); }} disabled={flashcardIndex === 0} className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 disabled:opacity-30"><FaArrowLeft /></button>
+                    <button onClick={() => { setFlashcardIndex(i => Math.max(0, i - 1)); setIsFlipped(false); }} disabled={flashcardIndex === 0} className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 disabled:opacity-30"><ArrowLeft /></button>
                     <span className="font-bold text-slate-600">{flashcardIndex + 1} / {cards.length}</span>
-                    <button onClick={() => { setFlashcardIndex(i => Math.min(cards.length - 1, i + 1)); setIsFlipped(false); }} disabled={flashcardIndex === cards.length - 1} className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 disabled:opacity-30"><FaArrowRight /></button>
+                    <button onClick={() => { setFlashcardIndex(i => Math.min(cards.length - 1, i + 1)); setIsFlipped(false); }} disabled={flashcardIndex === cards.length - 1} className="p-3 bg-slate-100 rounded-full hover:bg-slate-200 disabled:opacity-30"><ArrowRight /></button>
                 </div>
             </div>
         );
@@ -311,7 +311,7 @@ const StudySuite = () => {
                     {isDragging && (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-20 backdrop-blur-sm">
                             <div className="text-center p-8 border-4 border-dashed border-primary rounded-3xl animate-pulse">
-                                <FaUpload className="text-6xl text-primary mx-auto mb-4" />
+                                <Upload className="text-6xl text-primary mx-auto mb-4" />
                                 <h3 className="text-2xl font-bold text-slate-700">Drop file to upload</h3>
                             </div>
                         </div>
@@ -320,11 +320,11 @@ const StudySuite = () => {
                     {/* Document Header / Toolbar */}
                     <div className="bg-gradient-to-r from-primary to-secondary p-4 text-white flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <FaFileAlt className="text-xl" />
+                            <FileText className="text-xl" />
                             <h2 className="font-bold text-lg">Study Material</h2>
                         </div>
                         <label className={`flex items-center gap-2 px-4 py-2 bg-white/20 text-white rounded-lg cursor-pointer hover:bg-white/30 transition-all ${isUploading ? 'opacity-50' : ''}`}>
-                            {isUploading ? <FaSpinner className="animate-spin" /> : <FaUpload />}
+                            {isUploading ? <Loader2 className="animate-spin" /> : <Upload />}
                             <span className="font-semibold text-sm">{isUploading ? 'Uploading...' : 'Upload'}</span>
                             <input type="file" className="hidden" onChange={handleFileUpload} accept=".txt,.md,.pdf" disabled={isUploading} />
                         </label>
@@ -341,7 +341,7 @@ const StudySuite = () => {
                     )}
                     {/* Content */}
                     <div className="flex-grow overflow-hidden bg-slate-50/50">
-                        {isLoadingDoc ? <div className="flex justify-center items-center h-full"><FaSpinner className="animate-spin text-4xl text-primary" /></div> :
+                        {isLoadingDoc ? <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin text-4xl text-primary" /></div> :
                             selectedDoc && documentContent ? (
                                 documentContent.file_type === 'pdf' ? (
                                     pdfBlobUrl ? (
@@ -351,7 +351,7 @@ const StudySuite = () => {
                                             title={documentContent.filename}
                                         />
                                     ) : (
-                                        <div className="flex justify-center items-center h-full"><FaSpinner className="animate-spin text-4xl text-primary" /></div>
+                                        <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin text-4xl text-primary" /></div>
                                     )
                                 ) : (
                                     <div className="p-6 overflow-y-auto h-full prose prose-sm max-w-none">
@@ -360,7 +360,7 @@ const StudySuite = () => {
                                 )
                             ) : (
                                 <div className="flex flex-col justify-center items-center h-full text-slate-400 text-center">
-                                    <FaUpload className="text-5xl mb-4" />
+                                    <Upload className="text-5xl mb-4" />
                                     <p>Drag and drop a file or upload to get started.</p>
                                 </div>
                             )
@@ -370,11 +370,11 @@ const StudySuite = () => {
                     {selectedDoc && (
                         <div className="p-4 border-t border-slate-100 bg-white flex gap-4 justify-center">
                             <button onClick={() => handleGenerate('quiz')} disabled={isGenerating} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-wait">
-                                {isGenerating && genType === 'quiz' ? <FaSpinner className="animate-spin" /> : <FaListAlt />}
+                                {isGenerating && genType === 'quiz' ? <Loader2 className="animate-spin" /> : <List />}
                                 Generate Quiz
                             </button>
                             <button onClick={() => handleGenerate('flashcards')} disabled={isGenerating} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-400 to-cyan-500 text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-wait">
-                                {isGenerating && genType === 'flashcards' ? <FaSpinner className="animate-spin" /> : <FaLightbulb />}
+                                {isGenerating && genType === 'flashcards' ? <Loader2 className="animate-spin" /> : <Lightbulb />}
                                 Generate Flashcards
                             </button>
                         </div>
@@ -389,7 +389,7 @@ const StudySuite = () => {
                         <div className="flex-grow bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden flex flex-col">
                             {/* Chat Header */}
                             <div className="bg-primary p-4 text-white flex items-center gap-3">
-                                <div className="p-2 bg-white/20 rounded-full"><FaRobot className="text-xl" /></div>
+                                <div className="p-2 bg-white/20 rounded-full"><Bot className="text-xl" /></div>
                                 <div>
                                     <h1 className="font-bold text-lg">Study Suite</h1>
                                     <p className="text-white/80 text-xs">Ask questions about your uploaded material.</p>
@@ -409,7 +409,7 @@ const StudySuite = () => {
                                         </div>
                                     </div>
                                 ))}
-                                {isSending && <div className="flex justify-start"><div className="p-4 bg-white border border-slate-100 rounded-2xl rounded-tl-none shadow-sm"><FaSpinner className="animate-spin text-primary" /></div></div>}
+                                {isSending && <div className="flex justify-start"><div className="p-4 bg-white border border-slate-100 rounded-2xl rounded-tl-none shadow-sm"><Loader2 className="animate-spin text-primary" /></div></div>}
                                 <div ref={chatEndRef} />
                             </div>
                             {/* Chat Input */}
@@ -425,7 +425,7 @@ const StudySuite = () => {
                                         disabled={!selectedDoc || isSending}
                                     />
                                     <button onClick={sendMessage} disabled={!selectedDoc || isSending || !inputMessage.trim()} className="p-3 bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50">
-                                        <FaPaperPlane />
+                                        <Send />
                                     </button>
                                 </div>
                             </div>

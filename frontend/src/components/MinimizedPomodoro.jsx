@@ -1,5 +1,5 @@
 import { usePomodoro } from '../context/PomodoroContext';
-import { FaPlay, FaPause, FaForward, FaExpand } from 'react-icons/fa';
+import { Play, Pause, Forward, Maximize } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -49,13 +49,13 @@ const MinimizedPomodoro = () => {
           <p className="text-5xl font-mono tracking-tighter">{formatTime(time)}</p>
         </div>
         <div className="flex flex-col gap-2">
-          <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handleExpand} className="p-2 rounded-full hover:bg-white/10"><FaExpand /></motion.button>
+          <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handleExpand} className="p-2 rounded-full hover:bg-white/10"><Maximize /></motion.button>
           {isRunning ? (
-            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handlePause} className="p-2 rounded-full hover:bg-white/10"><FaPause /></motion.button>
+            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handlePause} className="p-2 rounded-full hover:bg-white/10"><Pause /></motion.button>
           ) : (
-            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handleStart} className="p-2 rounded-full hover:bg-white/10"><FaPlay /></motion.button>
+            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handleStart} className="p-2 rounded-full hover:bg-white/10"><Play /></motion.button>
           )}
-          <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handleSkip} className="p-2 rounded-full hover:bg-white/10"><FaForward /></motion.button>
+          <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={handleSkip} className="p-2 rounded-full hover:bg-white/10"><Forward /></motion.button>
         </div>
       </div>
     </motion.div>

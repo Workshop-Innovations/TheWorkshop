@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePomodoro } from '../context/PomodoroContext';
-import { FaPlay, FaPause, FaForward, FaRedo, FaCog, FaFire } from 'react-icons/fa';
+import { Play, Pause, Forward, RotateCw, Settings, Flame } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -40,7 +40,7 @@ const ProgressView = ({ totalCompletedPomodoros }) => {
         <p className="text-sm text-slate-500 mt-2 font-medium uppercase tracking-wide">Total Pomodoros Completed</p>
         <div className="flex items-center justify-center gap-3 mt-4">
           <div className="p-3 bg-green-50 rounded-full text-green-600">
-            <FaFire className="text-2xl" />
+            <Flame className="text-2xl" />
           </div>
           <span className="text-5xl font-extrabold text-slate-800">{totalCompletedPomodoros}</span>
           <span className="text-xl text-slate-400 font-medium self-end mb-2">sessions</span>
@@ -235,7 +235,7 @@ const Pomodoro = () => {
                     onClick={() => { setTempSettings(settings); setShowSettings(true); }}
                     className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
                   >
-                    <FaCog className="text-xl" />
+                    <Settings className="text-xl" />
                   </button>
                 </div>
 
@@ -256,14 +256,14 @@ const Pomodoro = () => {
                     className="p-4 rounded-2xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all"
                     title="Reset Timer"
                   >
-                    <FaRedo className="text-2xl" />
+                    <RotateCw className="text-2xl" />
                   </button>
 
                   <button
                     onClick={isRunning ? handlePause : handleStart}
                     className={`w-24 h-24 rounded-3xl flex items-center justify-center text-4xl text-white shadow-xl hover:scale-105 active:scale-95 transition-all ${modeColors[mode].split(' ')[0]}`}
                   >
-                    {isRunning ? <FaPause /> : <FaPlay className="ml-2" />}
+                    {isRunning ? <Pause /> : <Play className="ml-2" />}
                   </button>
 
                   <button
@@ -271,7 +271,7 @@ const Pomodoro = () => {
                     className="p-4 rounded-2xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all"
                     title="Skip Session"
                   >
-                    <FaForward className="text-2xl" />
+                    <Forward className="text-2xl" />
                   </button>
                 </div>
               </div>

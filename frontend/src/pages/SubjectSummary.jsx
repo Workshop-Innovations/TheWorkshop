@@ -6,7 +6,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css'; // Import KaTeX styles
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { FaArrowLeft, FaBookOpen } from 'react-icons/fa';
+import { ArrowLeft, BookOpen } from 'lucide-react';
 
 const SubjectSummary = () => {
     const { subjectId } = useParams();
@@ -80,7 +80,7 @@ const SubjectSummary = () => {
                     {/* Header */}
                     <div className="mb-8">
                         <Link to="/past-papers" className="inline-flex items-center text-slate-500 hover:text-primary mb-4 transition-colors">
-                            <FaArrowLeft className="mr-2" /> Back to Past Papers
+                            <ArrowLeft className="mr-2" /> Back to Past Papers
                         </Link>
                         <h1 className="text-4xl font-bold text-slate-900">{subject.name}</h1>
                         <p className="text-slate-600 mt-2">{subject.description}</p>
@@ -92,7 +92,7 @@ const SubjectSummary = () => {
                             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-24">
                                 {/* Course Topics Section */}
                                 <div className="p-4 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 flex items-center">
-                                    <FaBookOpen className="mr-2" /> Course Topics
+                                    <BookOpen className="mr-2" /> Course Topics
                                 </div>
                                 <div className="max-h-[40vh] overflow-y-auto border-b border-slate-100">
                                     {subject.topics.filter(t => !t.title.startsWith("Past Questions")).map((topic) => (
@@ -137,7 +137,7 @@ const SubjectSummary = () => {
                                     </article>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                                        <FaBookOpen className="text-6xl mb-4 opacity-20" />
+                                        <BookOpen className="text-6xl mb-4 opacity-20" />
                                         <p>Select a topic to view its summary.</p>
                                     </div>
                                 )}
