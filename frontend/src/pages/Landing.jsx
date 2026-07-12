@@ -46,7 +46,7 @@ const Landing = () => {
 
           {/* Soft Premium Hero Visual */}
           <motion.div
-            className="flex-1 w-full max-w-lg mx-auto"
+            className="hidden lg:block flex-1 w-full max-w-lg mx-auto"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -72,6 +72,38 @@ const Landing = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* --- HERO FOOTER / SOCIAL PROOF --- */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pt-12 pb-8"
+        >
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="pt-6 border-t border-slate-200/60 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="flex -space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-xs font-bold text-slate-600">JD</div>
+                  <div className="w-10 h-10 rounded-full bg-primary/20 border-2 border-white shadow-sm flex items-center justify-center text-xs font-bold text-primary">AM</div>
+                  <div className="w-10 h-10 rounded-full bg-accent/20 border-2 border-white shadow-sm flex items-center justify-center text-xs font-bold text-accent">SO</div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1 text-amber-400 mb-0.5">
+                    <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Trusted by students and schools</p>
+                </div>
+              </div>
+
+              <div className="hidden sm:flex items-center gap-10 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <div className="flex items-center gap-2">
+                  <Bot className="w-4 h-4 text-slate-300" /> <span>AI Powered</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* --- PROBLEM / SOLUTION --- */}
