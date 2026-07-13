@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 const OUTER_SIZE = 25;   // px — outer ring diameter
 const INNER_SIZE = 7;    // px — inner dot (smaller, fixed)
-const OUTER_LERP = 0.03; // very lazy — ring drifts to catch up after fast movement
+const OUTER_LERP = 0.08; // ring drifts to catch up after fast movement
 // Inner dot renders at the exact raw mouse position (no lerp)
 
 const CustomCursor = () => {
@@ -77,6 +77,7 @@ const CustomCursor = () => {
           width: `${OUTER_SIZE}px`,
           height: `${OUTER_SIZE}px`,
           border: '1px solid #154c79',
+          opacity: 0.45,
           borderRadius: '50%',
           pointerEvents: 'none',
           zIndex: 99999,
