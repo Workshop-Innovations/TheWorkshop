@@ -42,7 +42,10 @@
     overflow-x: hidden;
     letter-spacing: -0.01em;
     background-color: var(--color-background-secondary);
+    cursor: none;
   }
+
+  * { cursor: none !important; }
 
   ::selection {
     background-color: var(--color-primary);

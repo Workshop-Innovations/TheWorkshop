@@ -31,6 +31,7 @@ import PaperViewer from './pages/PaperViewer';
 import NotFound from './pages/NotFound';
 
 import ScrollToTop from './components/ScrollToTop';
+import CustomCursor from './components/CustomCursor';
 
 const AppContent = () => {
   const { isRunning } = usePomodoro();
@@ -165,6 +166,7 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
+      <CustomCursor />
       <AuthProvider>
         <PomodoroProvider>
           <CommunityProvider>

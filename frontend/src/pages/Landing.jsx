@@ -14,12 +14,11 @@ const Landing = () => {
       <Navbar />
 
       {/* --- HERO SECTION --- */}
-      <section className="relative h-[calc(100dvh-1px)] pt-25 pb-30 px-6 overflow-hidden">       {/* Soft Background Gradients */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-primary/10 to-transparent rounded-full blur-[100px] pointer-events-none" />
+      <section className="relative min-h-[calc(100dvh-1px)] pt-32 pb-24 px-6 flex items-center bg-white">
 
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 relative z-10">
+        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16 relative z-10">
           <motion.div
-            className="flex-1 text-center lg:text-left"
+            className="w-full flex-1 text-center lg:text-left"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -29,16 +28,16 @@ const Landing = () => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Actual Past Papers.</span>
             </h1>
 
-            <p className="text-lg text-slate-500 mb-8 max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed tracking-tight">
+            <p className="text-lg text-slate-500 mb-10 max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed tracking-tight">
               A beautifully structured platform for serious students. Access verified past papers, detailed solutions, and focused study tools without the clutter.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <Link to="/register" className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white text-sm font-bold rounded-xl shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
+              <Link to="/register" className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white text-sm font-bold rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
                 Start Practicing
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/dashboard" className="w-full sm:w-auto px-8 py-3.5 bg-white text-slate-700 text-sm font-bold rounded-xl shadow-sm border border-slate-200 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center active:scale-95">
+              <Link to="/dashboard" className="w-full sm:w-auto px-8 py-3.5 bg-white text-slate-700 text-sm font-bold rounded-lg shadow-sm border border-slate-200 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center active:scale-95">
                 View Features
               </Link>
             </div>
@@ -46,12 +45,12 @@ const Landing = () => {
 
           {/* Soft Premium Hero Visual */}
           <motion.div
-            className="hidden lg:block flex-1 w-full max-w-lg mx-auto"
+            className="hidden lg:block w-full flex-1 max-w-lg mx-auto lg:mx-0"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="w-full bg-white/80 backdrop-blur-xl border border-white/50 p-8 rounded-[24px] shadow-2xl shadow-slate-200/50">
+            <div className="w-full bg-white/80 backdrop-blur-xl border border-white/50 p-8 rounded-xl shadow-2xl shadow-slate-200/50">
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <BookOpen className="w-5 h-5 text-primary" />
@@ -62,48 +61,20 @@ const Landing = () => {
                 </div>
               </div>
               <div className="space-y-3">
-                {[1, 2, 3].map((_, i) => (
-                  <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group hover:shadow-sm">
-                    <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">WAEC Mathematics 202{3 - i}</span>
+                {[
+                  "WAEC Mathematics 2023",
+                  "UTME Physics 2022",
+                  "NECO English Language 2021"
+                ].map((examStr, i) => (
+                  <Link to="/register" key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group hover:shadow-sm">
+                    <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{examStr}</span>
                     <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
           </motion.div>
         </div>
-
-        {/* --- HERO FOOTER / SOCIAL PROOF --- */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pt-12 pb-8"
-        >
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="pt-6 border-t border-slate-200/60 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-5">
-                <div className="flex -space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm flex items-center justify-center text-xs font-bold text-slate-600">JD</div>
-                  <div className="w-10 h-10 rounded-full bg-primary/20 border-2 border-white shadow-sm flex items-center justify-center text-xs font-bold text-primary">AM</div>
-                  <div className="w-10 h-10 rounded-full bg-accent/20 border-2 border-white shadow-sm flex items-center justify-center text-xs font-bold text-accent">SO</div>
-                </div>
-                <div>
-                  <div className="flex items-center gap-1 text-amber-400 mb-0.5">
-                    <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
-                  </div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Trusted by students and schools</p>
-                </div>
-              </div>
-
-              <div className="hidden sm:flex items-center gap-10 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                <div className="flex items-center gap-2">
-                  <Bot className="w-4 h-4 text-slate-300" /> <span>AI Powered</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </section>
 
       {/* --- PROBLEM / SOLUTION --- */}
@@ -124,10 +95,7 @@ const Landing = () => {
               { title: "Direct Answers", icon: <Bot className="w-7 h-7" />, desc: "Get straight-to-the-point explanations for complex problems.", solve: "Study Suite", color: "text-accent", bg: "bg-accent/10" },
               { title: "No Distractions", icon: <Clock className="w-7 h-7" />, desc: "Built-in tools to manage your time and track actual progress.", solve: "Focus Timer", color: "text-slate-600", bg: "bg-slate-100" }
             ].map((item, i) => (
-              <div key={i} className="p-8 bg-slate-50 rounded-[24px] border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all card">
-                <div className={`${item.bg} ${item.color} w-14 h-14 rounded-2xl flex items-center justify-center mb-6`}>
-                  {item.icon}
-                </div>
+              <div key={i} className="p-8 bg-slate-50 rounded-xl border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all card">
                 <h3 className="text-xl font-extrabold text-slate-800 mb-3 tracking-tight">{item.title}</h3>
                 <p className="text-sm text-slate-500 font-medium mb-8 leading-relaxed">{item.desc}</p>
                 <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
@@ -158,7 +126,7 @@ const Landing = () => {
               ))}
             </ul>
           </div>
-          <div className="bg-white p-8 rounded-[24px] shadow-xl shadow-slate-200/50 border border-slate-100">
+          <div className="bg-white p-8 rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100">
             <div className="border-b border-slate-100 pb-5 mb-5 flex justify-between items-center">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Document Database</span>
               <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">v1.2.0</span>
@@ -189,7 +157,7 @@ const Landing = () => {
               { step: "02", title: "Configure", desc: "Set your specific examination boards and subjects." },
               { step: "03", title: "Execute", desc: "Begin accessing papers and utilizing the study suite." }
             ].map((item, i) => (
-              <div key={i} className="p-8 flex flex-col items-center text-center bg-slate-800/50 backdrop-blur-md rounded-[24px] border border-slate-700 hover:bg-slate-800 transition-colors">
+              <div key={i} className="p-8 flex flex-col items-center text-center bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700 hover:bg-slate-800 transition-colors">
                 <div className="text-[10px] font-bold text-primary mb-6 tracking-[0.2em] bg-primary/10 inline-block px-3 py-1.5 rounded-full">STEP {item.step}</div>
                 <h3 className="text-xl font-extrabold mb-3 tracking-tight text-white">{item.title}</h3>
                 <p className="text-slate-400 text-base font-medium leading-relaxed">{item.desc}</p>
@@ -235,7 +203,7 @@ const Landing = () => {
 const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="bg-slate-50 rounded-[20px] border border-slate-100 overflow-hidden">
+    <div className="bg-slate-50 rounded-lg border border-slate-100 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full p-6 flex items-center justify-between text-left hover:bg-slate-100 transition-colors"

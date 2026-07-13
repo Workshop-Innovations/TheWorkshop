@@ -178,7 +178,7 @@ const Dashboard = () => {
                             {/* User Info */}
                             <div className="text-center sm:text-left flex flex-col justify-center h-full pt-2">
                                 <div className="inline-flex items-center gap-2 mb-4">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse"></span>
                                     <span className="text-xs font-bold text-slate-500 tracking-[0.15em] uppercase">Online & Ready</span>
                                 </div>
                                 <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-4">
@@ -216,9 +216,9 @@ const Dashboard = () => {
                         </Link>
                     </div>
 
-                    {/* STATS ROW (Spans 12 columns, split into 3 blocks) */}
-                    <div className="md:col-span-4 bg-white p-8 rounded-[32px] shadow-sm border border-slate-100/50 flex items-center gap-6 card hover:shadow-md">
-                        <div className="w-20 h-20 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                    {/* STATS ROW (Spans 12 columns, split into 2 blocks) */}
+                    <div className="md:col-span-6 bg-white p-8 rounded-[32px] shadow-sm border border-slate-100/50 flex items-center gap-6 card hover:shadow-md">
+                        <div className="w-20 h-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                             <Crown className="w-10 h-10" />
                         </div>
                         <div>
@@ -227,23 +227,13 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    <div className="md:col-span-4 bg-white p-8 rounded-[32px] shadow-sm border border-slate-100/50 flex items-center gap-6 card hover:shadow-md">
+                    <div className="md:col-span-6 bg-white p-8 rounded-[32px] shadow-sm border border-slate-100/50 flex items-center gap-6 card hover:shadow-md">
                         <div className="w-20 h-20 rounded-2xl bg-accent/10 text-accent flex items-center justify-center shrink-0">
                             <Brain className="w-10 h-10" />
                         </div>
                         <div>
                             <div className="text-4xl font-black text-slate-800 mb-1">{totalPomodoros}</div>
                             <div className="text-xs font-bold text-slate-400 uppercase tracking-[0.1em]">Study Sessions</div>
-                        </div>
-                    </div>
-
-                    <div className="md:col-span-4 bg-white p-8 rounded-[32px] shadow-sm border border-slate-100/50 flex items-center gap-6 card hover:shadow-md">
-                        <div className="w-20 h-20 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-                            <Users className="w-10 h-10" />
-                        </div>
-                        <div>
-                            <div className="text-4xl font-black text-slate-800 mb-1">Active</div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-[0.1em]">Community</div>
                         </div>
                     </div>
 

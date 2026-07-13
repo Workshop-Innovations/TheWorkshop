@@ -26,6 +26,17 @@ export default {
             fontFamily: {
                 sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
             },
+            borderRadius: {
+                'none': '0',
+                'sm': '0.125rem',
+                'DEFAULT': '0.125rem',
+                'md': '0.25rem',
+                'lg': '0.375rem',
+                'xl': '0.5rem',
+                '2xl': '0.75rem',
+                '3xl': '1rem',
+                'full': '9999px',
+            },
             boxShadow: {
                 // Deep, soft, layered drop shadows
                 'sm': '0 4px 14px 0 rgba(0,0,0,0.05)',

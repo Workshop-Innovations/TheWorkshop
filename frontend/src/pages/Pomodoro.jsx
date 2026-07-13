@@ -39,9 +39,7 @@ const ProgressView = ({ totalCompletedPomodoros }) => {
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Focus Challenges</h2>
         <p className="text-sm text-slate-500 mt-2 font-medium uppercase tracking-wide">Total Pomodoros Completed</p>
         <div className="flex items-center justify-center gap-3 mt-4">
-          <div className="p-3 bg-green-50 rounded-full text-green-600">
-            <Flame className="text-2xl" />
-          </div>
+
           <span className="text-5xl font-extrabold text-slate-800">{totalCompletedPomodoros}</span>
           <span className="text-xl text-slate-400 font-medium self-end mb-2">sessions</span>
         </div>

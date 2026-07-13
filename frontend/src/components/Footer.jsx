@@ -34,10 +34,10 @@ const Footer = () => {
           <div>
             <h4 className="text-primary font-bold text-sm tracking-tight mb-6">Features</h4>
             <ul className="space-y-4">
-              <li><Link to="/past-papers" className="flex items-center gap-2 text-sm hover:text-primary transition-colors"><BookOpen className="w-4 h-4" /> Past Papers</Link></li>
-              <li><Link to="/study-suite" className="flex items-center gap-2 text-sm hover:text-primary transition-colors"><Bot className="w-4 h-4" /> Study Suite</Link></li>
-              <li><Link to="/community" className="flex items-center gap-2 text-sm hover:text-primary transition-colors"><Users className="w-4 h-4" /> Community</Link></li>
-              <li><Link to="/pomodoro" className="flex items-center gap-2 text-sm hover:text-primary transition-colors"><Clock className="w-4 h-4" /> Focus Timer</Link></li>
+              <li><Link to="/past-papers" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">Past Papers</Link></li>
+              <li><Link to="/study-suite" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">Study Suite</Link></li>
+              <li><Link to="/community" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">Community</Link></li>
+              <li><Link to="/pomodoro" className="flex items-center gap-2 text-sm hover:text-primary transition-colors">Focus Timer</Link></li>
             </ul>
           </div>
 
