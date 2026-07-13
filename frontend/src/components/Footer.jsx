@@ -16,17 +16,6 @@ const Footer = () => {
             <p className="text-sm leading-relaxed mb-6">
               The standard study platform for African students. Master your exams with structured tools and a focused community.
             </p>
-            <div className="flex gap-4">
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-primary transition-colors" aria-label="Twitter">
-                <MessageCircle className="w-5 h-5" />
-              </a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-primary transition-colors" aria-label="GitHub">
-                <Code className="w-5 h-5" />
-              </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-primary transition-colors" aria-label="LinkedIn">
-                <Briefcase className="w-5 h-5" />
-              </a>
-            </div>
 
           </div>
 

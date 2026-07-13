@@ -52,9 +52,6 @@ const Landing = () => {
           >
             <div className="w-full bg-white/80 backdrop-blur-xl border border-white/50 p-8 rounded-xl shadow-2xl shadow-slate-200/50">
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-primary" />
-                </div>
                 <div>
                   <h3 className="font-extrabold text-slate-800 tracking-tight text-lg">Recent Papers</h3>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mt-1">Updated Today</p>
