@@ -16,7 +16,6 @@ import Store from './pages/Store';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ComingSoon from './pages/ComingSoon';
-import Feedback from './pages/Feedback';
 import Progress from './pages/Progress';
 import Profile from './pages/Profile';
 import Materials from './pages/Materials';
@@ -48,7 +47,6 @@ const AppContent = () => {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/rewards" element={<PrivateRoute><Store /></PrivateRoute>} />
         <Route path="/coming-soon" element={<ComingSoon />} />
-        <Route path="/feedback" element={<PrivateRoute><Feedback /></PrivateRoute>} />
 
         <Route
           path="/dashboard"

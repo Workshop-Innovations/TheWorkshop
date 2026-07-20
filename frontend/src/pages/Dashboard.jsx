@@ -4,6 +4,7 @@ import { Clock, Brain, UserCircle, Camera, X, Crown, BookOpen, Bot, Users, Arrow
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import GlobalLoader from '../components/GlobalLoader';
 import { useAuth } from '../context/AuthContext';
 import { usePomodoro } from '../context/PomodoroContext';
 import { REWARDS } from '../constants/rewardConstants';
@@ -114,11 +115,7 @@ const Dashboard = () => {
         return () => controller.abort();
     }, [navigate]);
 
-    if (loading) return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-    );
+    if (loading) return <GlobalLoader message="Loading Dashboard..." />;
 
     if (error) return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -156,31 +153,27 @@ const Dashboard = () => {
                         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-10 relative z-10">
                             {/* Profile Picture */}
                             <div className="relative group cursor-pointer shrink-0" onClick={() => setIsSettingsOpen(true)}>
-                                <div className="w-40 h-40 rounded-full relative">
-                                    <div className="w-full h-full rounded-full overflow-hidden relative shadow-lg shadow-primary/10">
+                                <div className="w-48 h-48 rounded-full relative flex items-center justify-center">
+                                    <div className="w-32 h-32 rounded-full overflow-hidden relative shadow-lg shadow-primary/10">
                                         {selectedProfilePic ? (
                                             <img src={selectedProfilePic} alt="Profile" className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
-                                                <UserCircle className="w-20 h-20" />
+                                                <UserCircle className="w-16 h-16" />
                                             </div>
                                         )}
                                     </div>
-                                    <div className="absolute bottom-2 right-2 bg-white text-slate-700 p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform z-30">
+                                    <div className="absolute bottom-6 right-6 bg-white text-slate-700 p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform z-30">
                                         <Camera className="w-5 h-5" />
                                     </div>
                                     {currentFrame.framePath && (
-                                        <img src={currentFrame.framePath} alt="Frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-[1.3] z-20" />
+                                        <img src={currentFrame.framePath} alt="Frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-[1.1] z-20" />
                                     )}
                                 </div>
                             </div>
 
                             {/* User Info */}
                             <div className="text-center sm:text-left flex flex-col justify-center h-full pt-2">
-                                <div className="inline-flex items-center gap-2 mb-4">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-accent animate-pulse"></span>
-                                    <span className="text-xs font-bold text-slate-500 tracking-[0.15em] uppercase">Online & Ready</span>
-                                </div>
                                 <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-4">
                                     Hello, <span className="text-primary">{currentUsername}</span>
                                 </h1>

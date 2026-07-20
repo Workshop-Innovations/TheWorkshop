@@ -35,8 +35,7 @@ const Footer = () => {
             <h4 className="text-primary font-bold text-sm tracking-tight mb-6">Company</h4>
             <ul className="space-y-4">
               <li><Link to="/pricing" className="text-sm hover:text-primary transition-colors">Pricing</Link></li>
-              <li><Link to="/feedback" className="text-sm hover:text-primary transition-colors">Feedback</Link></li>
-              <li><a href="mailto:support@workshop.app" className="text-sm hover:text-primary transition-colors">Contact Us</a></li>
+              <li><a href="mailto:contact@workshop.com.ng" className="text-sm hover:text-primary transition-colors">Contact Us</a></li>
             </ul>
           </div>
 
