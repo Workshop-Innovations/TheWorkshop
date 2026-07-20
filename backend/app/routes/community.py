@@ -87,36 +87,65 @@ async def get_user_communities(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """Get all communities the current user is a member of."""
-    memberships = session.exec(
-        select(CommunityMember).where(CommunityMember.user_id == current_user.id)
-    ).all()
+    """Get the main community, creating it and adding the user if necessary."""
+    # Find the main community
+    main_comm = session.exec(select(Community).where(Community.name == "The Workshop")).first()
     
-    community_ids = [m.community_id for m in memberships]
+    if not main_comm:
+        main_comm = Community(
+            name="The Workshop",
+            icon="🛠️",
+            owner_id=current_user.id
+        )
+        session.add(main_comm)
+        session.commit()
+        session.refresh(main_comm)
+        
+        # Create default channels
+        default_channels = [
+            {"name": "general",          "description": "General discussion"},
+            {"name": "homework-help",    "description": "Get help with homework"},
+            {"name": "resource-sharing", "description": "Share useful resources"},
+        ]
+        for ch_data in default_channels:
+            channel = Channel(
+                name=ch_data["name"],
+                slug=f"workshop-{ch_data['name']}",
+                description=ch_data["description"],
+                community_id=main_comm.id
+            )
+            session.add(channel)
+        session.commit()
+
+    # Ensure user is a member
+    membership = session.exec(
+        select(CommunityMember)
+        .where(CommunityMember.community_id == main_comm.id)
+        .where(CommunityMember.user_id == current_user.id)
+    ).first()
     
-    if not community_ids:
-        return []
+    if not membership:
+        membership = CommunityMember(
+            community_id=main_comm.id,
+            user_id=current_user.id,
+            role="member"
+        )
+        session.add(membership)
+        session.commit()
+
+    member_count = len(session.exec(
+        select(CommunityMember).where(CommunityMember.community_id == main_comm.id)
+    ).all())
     
-    communities = session.exec(
-        select(Community).where(Community.id.in_(community_ids))
-    ).all()
-    
-    result = []
-    for comm in communities:
-        member_count = len(session.exec(
-            select(CommunityMember).where(CommunityMember.community_id == comm.id)
-        ).all())
-        result.append(CommunityResponse(
-            id=comm.id,
-            name=comm.name,
-            icon=comm.icon,
-            owner_id=comm.owner_id,
-            join_code=comm.join_code,
-            created_at=comm.created_at,
-            member_count=member_count
-        ))
-    
-    return result
+    return [CommunityResponse(
+        id=main_comm.id,
+        name=main_comm.name,
+        icon=main_comm.icon,
+        owner_id=main_comm.owner_id,
+        join_code=main_comm.join_code,
+        created_at=main_comm.created_at,
+        member_count=member_count
+    )]
 
 @router.post("/communities/join")
 async def join_community(
@@ -348,7 +377,7 @@ async def create_message(
     await check_and_award_badges(session, current_user)
     
     # Broadcast via WebSocket
-    await manager.broadcast(
+    await manager.broadcast_all(
         {
             "type": "message",
             "id": db_message.id,
@@ -358,8 +387,7 @@ async def create_message(
             "timestamp": db_message.timestamp.isoformat(),
             "user_email": current_user.email,
             "user_profile_pic": current_user.profile_pic
-        },
-        channel.slug
+        }
     )
     
     return MessageResponse(
@@ -446,6 +474,96 @@ async def vote_message(
         reply_count=message.reply_count
     )
 
+# ==================== MESSAGE EDIT / DELETE ====================
+
+@router.put("/channels/{channel_id}/messages/{message_id}", response_model=MessageResponse)
+async def edit_message(
+    channel_id: str,
+    message_id: int,
+    message_data: MessageCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Edit a message. Only the author can edit their own messages."""
+    message = session.get(Message, message_id)
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    if message.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only edit your own messages")
+
+    message.content = message_data.content
+    session.add(message)
+    session.commit()
+    session.refresh(message)
+
+    user = session.get(User, message.user_id)
+    score = sum(v.value for v in message.votes) if message.votes else 0
+    user_vote = next((v.value for v in message.votes if v.user_id == current_user.id), 0) if message.votes else 0
+
+    channel = session.get(Channel, channel_id)
+    await manager.broadcast_all(
+        {
+            "type": "message_edited",
+            "id": message.id,
+            "content": message.content,
+            "channel_id": channel_id,
+        }
+    )
+
+    return MessageResponse(
+        id=message.id,
+        content=message.content,
+        timestamp=message.timestamp,
+        user_id=message.user_id,
+        channel_id=message.channel_id,
+        user_email=user.email if user else None,
+        user_profile_pic=user.profile_pic if user else None,
+        score=score,
+        user_vote=user_vote,
+        parent_id=message.parent_id,
+        reply_count=message.reply_count
+    )
+
+@router.delete("/channels/{channel_id}/messages/{message_id}")
+async def delete_message(
+    channel_id: str,
+    message_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a message. Only the author can delete their own messages."""
+    message = session.get(Message, message_id)
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    if message.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own messages")
+
+    # Delete all votes on this message first
+    votes = session.exec(select(MessageVote).where(MessageVote.message_id == message_id)).all()
+    for vote in votes:
+        session.delete(vote)
+
+    # Decrement parent reply count if this is a reply
+    if message.parent_id:
+        parent = session.get(Message, message.parent_id)
+        if parent and parent.reply_count > 0:
+            parent.reply_count -= 1
+            session.add(parent)
+
+    session.delete(message)
+    session.commit()
+
+    channel = session.get(Channel, channel_id)
+    await manager.broadcast_all(
+        {
+            "type": "message_deleted",
+            "id": message_id,
+            "channel_id": channel_id,
+        }
+    )
+
+    return {"message": "Message deleted successfully"}
+
 # ==================== THREADED DISCUSSIONS ====================
 
 @router.post("/channels/{channel_id}/messages/{message_id}/reply", response_model=MessageResponse)
@@ -489,7 +607,7 @@ async def create_reply(
     await check_and_award_badges(session, current_user)
     
     # Broadcast via WebSocket
-    await manager.broadcast(
+    await manager.broadcast_all(
         {
             "type": "reply",
             "id": reply.id,
@@ -500,8 +618,7 @@ async def create_reply(
             "timestamp": reply.timestamp.isoformat(),
             "user_email": current_user.email,
             "user_profile_pic": current_user.profile_pic
-        },
-        channel.slug
+        }
     )
     
     return MessageResponse(
@@ -739,7 +856,7 @@ async def send_dm_message(
     session.refresh(msg)
     
     # Broadcast via WebSocket (using conversation_id as channel)
-    await manager.broadcast(
+    await manager.send_personal_message(
         {
             "type": "dm_message",
             "id": msg.id,
@@ -749,9 +866,19 @@ async def send_dm_message(
             "timestamp": msg.timestamp.isoformat(),
             "sender_email": current_user.email,
             "sender_profile_pic": current_user.profile_pic
-        },
-        f"dm-{conversation_id}"
-    )
+        }, conversation.user1_id)
+    if conversation.user1_id != conversation.user2_id:
+        await manager.send_personal_message(
+            {
+            "type": "dm_message",
+            "id": msg.id,
+            "content": msg.content,
+            "sender_id": msg.sender_id,
+            "conversation_id": msg.conversation_id,
+            "timestamp": msg.timestamp.isoformat(),
+            "sender_email": current_user.email,
+            "sender_profile_pic": current_user.profile_pic
+        }, conversation.user2_id)
     
     return DMMessageResponse(
         id=msg.id,
@@ -762,6 +889,63 @@ async def send_dm_message(
         sender_profile_pic=current_user.profile_pic,
         conversation_id=msg.conversation_id
     )
+
+# ==================== USER SEARCH ====================
+
+@router.get("/users/search")
+async def search_users(
+    q: str = Query(..., min_length=1),
+    limit: int = 20,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Search users by username or email prefix for DM friend search."""
+    search_term = f"%{q.lower()}%"
+    users = session.exec(
+        select(User)
+        .where(
+            or_(
+                User.username.ilike(search_term),
+                User.email.ilike(search_term)
+            )
+        )
+        .where(User.id != current_user.id)
+        .where(User.is_active == True)
+        .limit(limit)
+    ).all()
+
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "profile_pic": u.profile_pic,
+            "reputation_points": u.reputation_points,
+        }
+        for u in users
+    ]
+
+@router.get("/communities/{community_id}/join-code")
+async def get_community_join_code(
+    community_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Get the join code for a community (members only)."""
+    community = session.get(Community, community_id)
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found")
+
+    # Verify user is a member
+    membership = session.exec(
+        select(CommunityMember)
+        .where(CommunityMember.community_id == community_id)
+        .where(CommunityMember.user_id == current_user.id)
+    ).first()
+    if not membership:
+        raise HTTPException(status_code=403, detail="You must be a member to see the join code")
+
+    return {"join_code": community.join_code, "community_name": community.name}
 
 # ==================== LEGACY ENDPOINTS (for backwards compatibility) ====================
 
@@ -855,7 +1039,7 @@ async def create_message_by_slug(
     session.commit()
     session.refresh(db_message)
     
-    await manager.broadcast(
+    await manager.broadcast_all(
         {
             "type": "message",
             "id": db_message.id,
@@ -864,8 +1048,7 @@ async def create_message_by_slug(
             "channel_id": db_message.channel_id,
             "timestamp": db_message.timestamp.isoformat(),
             "user_email": current_user.email
-        },
-        channel_slug
+        }
     )
     
     return MessageResponse(
@@ -923,14 +1106,13 @@ async def vote_message_by_slug(
     score = sum(v.value for v in message.votes) if message.votes else 0
     user = session.get(User, message.user_id)
     
-    await manager.broadcast(
+    await manager.broadcast_all(
         {
             "type": "vote_update",
             "message_id": message_id,
             "channel_id": channel.id,
             "score": score
-        },
-        channel_slug
+        }
     )
     
     return MessageResponse(

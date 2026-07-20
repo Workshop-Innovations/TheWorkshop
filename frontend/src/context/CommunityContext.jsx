@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 
 const CommunityContext = createContext();
@@ -6,6 +6,7 @@ const CommunityContext = createContext();
 export const useCommunity = () => useContext(CommunityContext);
 
 const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/community`;
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const CommunityProvider = ({ children }) => {
     const { accessToken, logout } = useAuth();
@@ -39,17 +40,29 @@ export const CommunityProvider = ({ children }) => {
     // Connection state
     const [onlineUsers, setOnlineUsers] = useState([]);
 
+    // Refs to access latest state in WebSocket closures without triggering reconnects
+    const currentChannelRef = useRef(currentChannel);
+    const currentDMRef = useRef(currentDM);
+    const viewModeRef = useRef(viewMode);
+
+    useEffect(() => { currentChannelRef.current = currentChannel; }, [currentChannel]);
+    useEffect(() => { currentDMRef.current = currentDM; }, [currentDM]);
+    useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
+
+    // Unread tracking: Set of channel IDs that have unread messages
+    const [unreadChannels, setUnreadChannels] = useState(new Set());
+    const [unreadDMs, setUnreadDMs] = useState(new Set());
+
     // WebSocket ref
     const wsRef = useRef(null);
     const [isConnected, setIsConnected] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
     // ==================== FETCH USER ====================
     const fetchUser = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/me`, {
+            const response = await fetch(`${BASE_URL}/api/v1/users/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
@@ -99,6 +112,7 @@ export const CommunityProvider = ({ children }) => {
                 const newCommunity = await response.json();
                 setCommunities(prev => [...prev, newCommunity]);
                 setCurrentCommunity(newCommunity);
+                setViewMode('community');
                 return newCommunity;
             }
         } catch (error) {
@@ -124,6 +138,20 @@ export const CommunityProvider = ({ children }) => {
             console.error("Failed to join community", error);
             throw error;
         }
+    };
+
+    const getCommunityJoinCode = async (communityId) => {
+        try {
+            const response = await fetch(`${API_BASE}/communities/${communityId}/join-code`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                return await response.json();
+            }
+        } catch (error) {
+            console.error("Failed to fetch join code", error);
+        }
+        return null;
     };
 
     // ==================== CHANNEL FUNCTIONS ====================
@@ -179,6 +207,12 @@ export const CommunityProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 setMessages(data);
+                // Mark channel as read when we load messages
+                setUnreadChannels(prev => {
+                    const next = new Set(prev);
+                    next.delete(channelId);
+                    return next;
+                });
             }
         } catch (error) {
             console.error("Failed to fetch messages", error);
@@ -199,7 +233,6 @@ export const CommunityProvider = ({ children }) => {
             });
             if (response.ok) {
                 const newMessage = await response.json();
-                // Add to local state immediately for instant feedback
                 setMessages(prev => [...prev, newMessage]);
             } else {
                 console.error("Failed to send message, status:", response.status);
@@ -207,6 +240,45 @@ export const CommunityProvider = ({ children }) => {
         } catch (error) {
             console.error("Failed to send message", error);
         }
+    };
+
+    const editMessage = async (messageId, content) => {
+        if (!currentChannel || !content.trim()) return null;
+        try {
+            const response = await fetch(`${API_BASE}/channels/${currentChannel.id}/messages/${messageId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ content })
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setMessages(prev => prev.map(msg => msg.id === messageId ? updated : msg));
+                return updated;
+            }
+        } catch (error) {
+            console.error("Failed to edit message", error);
+        }
+        return null;
+    };
+
+    const deleteMessage = async (messageId) => {
+        if (!currentChannel) return false;
+        try {
+            const response = await fetch(`${API_BASE}/channels/${currentChannel.id}/messages/${messageId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                setMessages(prev => prev.filter(msg => msg.id !== messageId));
+                return true;
+            }
+        } catch (error) {
+            console.error("Failed to delete message", error);
+        }
+        return false;
     };
 
     const voteMessage = async (messageId, value) => {
@@ -228,6 +300,30 @@ export const CommunityProvider = ({ children }) => {
         } catch (error) {
             console.error("Failed to vote", error);
         }
+    };
+
+    const markChannelAsRead = useCallback((channelId) => {
+        setUnreadChannels(prev => {
+            const next = new Set(prev);
+            next.delete(channelId);
+            return next;
+        });
+    }, []);
+
+    // ==================== USER SEARCH ====================
+    const searchUsers = async (query) => {
+        if (!query.trim()) return [];
+        try {
+            const response = await fetch(`${API_BASE}/users/search?q=${encodeURIComponent(query)}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                return await response.json();
+            }
+        } catch (error) {
+            console.error("Failed to search users", error);
+        }
+        return [];
     };
 
     // ==================== MEMBERS FUNCTIONS ====================
@@ -289,6 +385,12 @@ export const CommunityProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 setDmMessages(data);
+                // Mark DM as read
+                setUnreadDMs(prev => {
+                    const next = new Set(prev);
+                    next.delete(conversationId);
+                    return next;
+                });
             }
         } catch (error) {
             console.error("Failed to fetch DM messages", error);
@@ -339,7 +441,8 @@ export const CommunityProvider = ({ children }) => {
             Promise.all([
                 fetchUser(),
                 fetchCommunities(),
-                fetchDMConversations()
+                fetchDMConversations(),
+                fetchOnlineUsers()
             ]).finally(() => setLoading(false));
         } else {
             setLoading(false);
@@ -354,7 +457,7 @@ export const CommunityProvider = ({ children }) => {
         }
     }, [currentCommunity, token]);
 
-    // When channel changes, fetch messages
+    // When channel changes, fetch messages and mark as read
     useEffect(() => {
         if (currentChannel && token) {
             fetchMessages(currentChannel.id);
@@ -363,15 +466,12 @@ export const CommunityProvider = ({ children }) => {
 
     // WebSocket connection for real-time messaging
     useEffect(() => {
-        // Only connect if we have a channel with a slug and a token
-        if (!currentChannel?.slug || !token) return;
+        if (!token) return;
 
-        // Derive WebSocket URL from API URL (http -> ws, https -> wss)
         const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
         const wsBase = apiBase.replace(/^http/, 'ws');
-        const wsUrl = `${wsBase}/ws/community/${currentChannel.slug}?token=${token}`;
+        const wsUrl = `${wsBase}/ws/community/global?token=${token}`;
 
-        // Close any existing connection before creating a new one
         if (wsRef.current) {
             wsRef.current.close();
             wsRef.current = null;
@@ -381,6 +481,7 @@ export const CommunityProvider = ({ children }) => {
         wsRef.current = ws;
 
         ws.onopen = () => {
+            setIsConnected(true);
             console.log(`[WS] Connected to channel: ${currentChannel.slug}`);
         };
 
@@ -392,6 +493,11 @@ export const CommunityProvider = ({ children }) => {
                     // Deduplicate: the sender already added the message via HTTP response
                     setMessages(prev => {
                         if (prev.some(m => m.id === data.id)) return prev;
+                        // If we're in a different channel or view, mark as unread and DO NOT append
+                        if (data.channel_id !== currentChannelRef.current?.id || viewModeRef.current !== 'community') {
+                            setUnreadChannels(p => new Set([...p, data.channel_id]));
+                            return prev;
+                        }
                         return [...prev, {
                             id: data.id,
                             content: data.content,
@@ -399,12 +505,44 @@ export const CommunityProvider = ({ children }) => {
                             channel_id: data.channel_id,
                             timestamp: data.timestamp,
                             user_email: data.user_email,
+                            user_profile_pic: data.user_profile_pic,
                             parent_id: data.parent_id || null,
                             score: 0,
                             user_vote: 0,
                             reply_count: 0
                         }];
                     });
+                } else if (data.type === 'message_edited') {
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === data.id ? { ...msg, content: data.content } : msg
+                    ));
+                } else if (data.type === 'message_deleted') {
+                    setMessages(prev => prev.filter(msg => msg.id !== data.id));
+                } else if (data.type === 'user_online') {
+                    setOnlineUsers(prev => {
+                        if (prev.includes(data.user_id)) return prev;
+                        return [...prev, data.user_id];
+                    });
+                } else if (data.type === 'user_offline') {
+                    setOnlineUsers(prev => prev.filter(id => id !== data.user_id));
+                } else if (data.type === 'dm_message') {
+                    // If it's for a DM conversation we have open, add it
+                    if (data.conversation_id === currentDMRef.current?.id && viewModeRef.current === 'dms') {
+                        setDmMessages(prev => {
+                            if (prev.some(m => m.id === data.id)) return prev;
+                            return [...prev, {
+                                id: data.id,
+                                content: data.content,
+                                sender_id: data.sender_id,
+                                sender_email: data.sender_email,
+                                sender_profile_pic: data.sender_profile_pic,
+                                timestamp: data.timestamp,
+                                conversation_id: data.conversation_id
+                            }];
+                        });
+                    } else {
+                        setUnreadDMs(prev => new Set([...prev, data.conversation_id]));
+                    }
                 }
             } catch (err) {
                 console.error('[WS] Failed to parse message:', err);
@@ -413,20 +551,24 @@ export const CommunityProvider = ({ children }) => {
 
         ws.onerror = (err) => {
             console.error('[WS] WebSocket error:', err);
+            setIsConnected(false);
         };
 
         ws.onclose = (event) => {
-            console.log(`[WS] Disconnected from channel: ${currentChannel.slug}`, event.code);
+            setIsConnected(false);
+            console.log(`[WS] Disconnected from global websocket`, event.code);
         };
 
-        // Cleanup: close the WebSocket when channel changes or component unmounts
         return () => {
             if (wsRef.current) {
                 wsRef.current.close();
                 wsRef.current = null;
             }
         };
-    }, [currentChannel?.slug, token]);
+    // Include currentChannel.id and currentDM.id so that the closures in onmessage get the latest values.
+    // However, recreating the websocket on every channel switch defeats the purpose of a global WS.
+    // We should use a ref for currentChannel and currentDM to avoid reconnecting.
+    }, [token]);
 
     // When DM changes, fetch DM messages
     useEffect(() => {
@@ -519,7 +661,12 @@ export const CommunityProvider = ({ children }) => {
                 body: JSON.stringify({ content })
             });
             if (response.ok) {
-                return await response.json();
+                const reply = await response.json();
+                // Update reply_count of parent message optimistically
+                setMessages(prev => prev.map(msg =>
+                    msg.id === messageId ? { ...msg, reply_count: (msg.reply_count || 0) + 1 } : msg
+                ));
+                return reply;
             }
         } catch (error) {
             console.error("Failed to create reply", error);
@@ -718,7 +865,7 @@ export const CommunityProvider = ({ children }) => {
         } catch (error) {
             console.error("Failed to submit feedback", error);
         }
-        return null; // Return null if failed or self-review
+        return null;
     };
 
     const fetchSubmissionFeedback = async (submissionId) => {
@@ -744,6 +891,7 @@ export const CommunityProvider = ({ children }) => {
         setCurrentCommunity,
         createCommunity,
         joinCommunity,
+        getCommunityJoinCode,
 
         // Channels
         channels,
@@ -759,7 +907,6 @@ export const CommunityProvider = ({ children }) => {
         fetchStudyGroupDetails,
         removeGroupMember,
 
-
         // Notes
         fetchChannelNotes,
         createNote,
@@ -774,12 +921,13 @@ export const CommunityProvider = ({ children }) => {
         // Messages
         messages,
         sendMessage,
+        editMessage,
+        deleteMessage,
         voteMessage,
 
         // Threading
         createReply,
         getThread,
-
 
         // Members
         members,
@@ -793,6 +941,9 @@ export const CommunityProvider = ({ children }) => {
         sendDMMessage,
         fetchDMConversations,
 
+        // User Search
+        searchUsers,
+
         // View mode
         viewMode,
         setViewMode,
@@ -802,6 +953,11 @@ export const CommunityProvider = ({ children }) => {
         isConnected,
         loading,
         error,
+
+        // Unread tracking
+        unreadChannels,
+        unreadDMs,
+        markChannelAsRead,
 
         // Refresh functions
         fetchCommunities,
@@ -822,4 +978,3 @@ export const CommunityProvider = ({ children }) => {
         </CommunityContext.Provider>
     );
 };
-
