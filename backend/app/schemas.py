@@ -15,6 +15,7 @@ class User(SQLModel, table=True):
     is_active: bool = Field(default=True) # Field is for SQLModel specific column options
     role: str = Field(default="user") # "user" or "admin"
     profile_pic: Optional[str] = Field(default=None) # URL or Base64 string of profile picture
+    study_goal: Optional[str] = Field(default=None) # The user's study goal from onboarding
     
     # Gamification fields
     reputation_points: int = Field(default=0)  # Karma from upvotes received
@@ -44,6 +45,7 @@ class UserCreate(BaseModel): # Inherit from BaseModel for input validation
     username: str
     email: EmailStr
     password: str
+    study_goal: Optional[str] = None
 
     @field_validator('password')
     @classmethod
@@ -71,6 +73,7 @@ class UserResponse(BaseModel): # Inherit from BaseModel for API response
     is_active: bool
     role: str = "user"
     profile_pic: Optional[str] = None
+    study_goal: Optional[str] = None
     subscription_tier: str = "basic"
     subscription_expiry: Optional[datetime] = None
     ai_queries_today: int = 0

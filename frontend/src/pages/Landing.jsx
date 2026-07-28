@@ -33,7 +33,7 @@ const Landing = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <Link to="/register" className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white text-sm font-bold rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
+              <Link to="/onboarding" className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white text-sm font-bold rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
                 Start Practicing
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -63,7 +63,7 @@ const Landing = () => {
                   "UTME Physics 2022",
                   "NECO English Language 2021"
                 ].map((examStr, i) => (
-                  <Link to="/register" key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group hover:shadow-sm">
+                  <Link to="/onboarding" key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group hover:shadow-sm">
                     <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{examStr}</span>
                     <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
                   </Link>
@@ -185,7 +185,7 @@ const Landing = () => {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-slate-900">Begin Practice.</h2>
           <p className="text-lg text-slate-500 mb-10 font-medium tracking-tight">Join the standard platform for serious students.</p>
-          <Link to="/register" className="inline-block px-8 py-4 bg-primary text-white text-base font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark hover:-translate-y-1 active:scale-95 transition-all">
+          <Link to="/onboarding" className="inline-block px-8 py-4 bg-primary text-white text-base font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark hover:-translate-y-1 active:scale-95 transition-all">
             Create Account
           </Link>
         </div>

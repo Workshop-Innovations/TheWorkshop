@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-const PLANS = [
+export const PLANS = [
     {
         id: 'basic',
         name: 'Basic',
@@ -100,7 +100,7 @@ const PLANS = [
 
 const TIER_ORDER = ['basic', 'pro', 'premium', 'max'];
 
-const formatPrice = (price) => {
+export const formatPrice = (price) => {
     if (price === 0) return 'Free';
     return `₦${price.toLocaleString()}`;
 };
@@ -255,8 +255,8 @@ const Pricing = () => {
 
     const handleUpgrade = async (planId) => {
         if (!isAuthenticated) {
-            toast.info('Please log in to upgrade your plan.');
-            navigate('/login?redirect=/pricing');
+            toast.info('Please tell us a bit about yourself to get started.');
+            navigate(`/onboarding?plan=${planId}`);
             return;
         }
 

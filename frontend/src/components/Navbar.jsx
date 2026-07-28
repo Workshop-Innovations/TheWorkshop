@@ -78,7 +78,7 @@ const Navbar = () => {
                   <NavLink to="/pricing" label="Pricing" />
                   <NavLink to="/login" label="Log In" />
                   <Link
-                    to="/register"
+                    to="/onboarding"
                     className="ml-4 px-8 py-3 bg-slate-900 text-white text-sm font-bold rounded-full shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 transition-all"
                   >
                     Get Started
@@ -156,7 +156,7 @@ const Navbar = () => {
                     
                     <div className="pt-8 mt-4 border-t border-slate-100">
                       <Link
-                        to="/register"
+                        to="/onboarding"
                         onClick={closeMobile}
                         className="block w-full text-center px-8 py-4 bg-primary text-white font-bold rounded-2xl shadow-xl shadow-primary/20 hover:-translate-y-1 active:scale-95 transition-all"
                       >

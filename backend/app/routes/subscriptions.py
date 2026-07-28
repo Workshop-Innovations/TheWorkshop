@@ -16,7 +16,14 @@ router = APIRouter(
     tags=["subscriptions"]
 )
 
-PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY", "sk_test_placeholder")
+def get_paystack_key():
+    key = os.getenv("PAYSTACK_SECRET_KEY")
+    if not key or key == "sk_test_placeholder":
+        raise HTTPException(
+            status_code=500, 
+            detail="Paystack secret key is not configured or still using placeholder."
+        )
+    return key
 
 # Amounts in kobo (NGN x 100)
 PLAN_PRICES = {
@@ -130,8 +137,10 @@ async def initialize_payment(
     amount = PLAN_PRICES[plan]
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
+    paystack_key = get_paystack_key()
+
     headers = {
-        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+        "Authorization": f"Bearer {paystack_key}",
         "Content-Type": "application/json",
     }
 
@@ -175,7 +184,8 @@ async def verify_payment(
     session: Session = Depends(get_session),
 ):
     """Verify a Paystack transaction by reference and upgrade the user's plan."""
-    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+    paystack_key = get_paystack_key()
+    headers = {"Authorization": f"Bearer {paystack_key}"}
 
     async with httpx.AsyncClient() as client:
         response = await client.get(
@@ -253,8 +263,9 @@ async def paystack_webhook(request: Request, session: Session = Depends(get_sess
     signature = request.headers.get("x-paystack-signature", "")
 
     # Verify webhook signature
+    paystack_key = get_paystack_key()
     expected_sig = hmac.new(
-        PAYSTACK_SECRET_KEY.encode("utf-8"), raw_body, hashlib.sha512
+        paystack_key.encode("utf-8"), raw_body, hashlib.sha512
     ).hexdigest()
 
     if signature != expected_sig:

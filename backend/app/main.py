@@ -216,6 +216,7 @@ async def register_user(user_data: UserCreate, session: Session = Depends(get_se
         username=user_data.username,
         email=user_data.email,
         hashed_password=hashed_password,
+        study_goal=user_data.study_goal,
         is_active=True # Default is_active to True
     )
 

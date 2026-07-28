@@ -26,6 +26,7 @@ import StudySuite from './pages/StudySuite';
 import AdminDashboard from './pages/AdminDashboard'; // Import AdminDashboard
 import SubjectSummary from './pages/SubjectSummary';
 import Pricing from './pages/Pricing';
+import Onboarding from './pages/Onboarding';
 import PaperViewer from './pages/PaperViewer';
 import NotFound from './pages/NotFound';
 import About from './pages/About';
@@ -45,6 +46,7 @@ const AppContent = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/about" element={<About />} />
         <Route path="/rewards" element={<PrivateRoute><Store /></PrivateRoute>} />
