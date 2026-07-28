@@ -4,16 +4,16 @@ import { Building2, Users } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ayanfeoluwaImg from '../assets/team/ayanfeoluwa.png';
-import davidImg from '../assets/team/david.jpg';
+import davidImg from '../assets/team/david.png';
 import oluwatamilolaImg from '../assets/team/oluwatamilola.png';
-import chibuezeImg from '../assets/team/chibueze.jpg';
+import chibuezeImg from '../assets/team/chibueze.png';
 
 const About = () => {
   const team = [
-    { name: "Ayanfeoluwa Ayanlade", role: "CTO", image: ayanfeoluwaImg },
-    { name: "Mesh-Masade David Omoafe", role: "Director / Shareholder", image: davidImg },
-    { name: "Akinbola Oluwatamilore Ayodeji-Mattew", role: "Shareholder", image: oluwatamilolaImg },
-    { name: "Nwagwu Chibueze William", role: "Director / Shareholder", image: chibuezeImg }
+    { name: "Ayanfeoluwa Ayanlade", role: "Chief Technology Officer", image: ayanfeoluwaImg },
+    { name: "Mesh-Masade David Omoafe", role: "Head of Recruitment and Human Resources", image: davidImg },
+    { name: "Akinbola Oluwatamilore Ayodeji-Mattew", role: "Head of Data Acquisition", image: oluwatamilolaImg },
+    { name: "Nwagwu Chibueze William", role: "Chief Operations Officer", image: chibuezeImg }
   ];
 
   return (
@@ -32,7 +32,7 @@ const About = () => {
               Workshop Innovations Ltd
             </h1>
             <p className="text-lg md:text-xl text-slate-500 max-w-3xl mx-auto font-medium leading-relaxed tracking-tight">
-              We focus on the design, development, testing, and maintenance of computer software, applications, and related digital solutions for individuals and businesses.
+              We are a passionate group who understand the difficulties faced by students in the West African education system and are committed to building solutions to fix them.
             </p>
           </motion.div>
         </div>
@@ -62,8 +62,8 @@ const About = () => {
               >
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full mb-6 overflow-hidden bg-slate-100 flex-shrink-0 border-4 border-slate-50 group-hover:border-primary/10 transition-colors">
                   {member.image ? (
-                    <img 
-                      src={member.image} 
+                    <img
+                      src={member.image}
                       alt={member.name}
                       className="w-full h-full object-cover object-top"
                     />
