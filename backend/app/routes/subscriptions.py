@@ -150,11 +150,23 @@ async def initialize_payment(
         "currency": "NGN",
         "metadata": {
             "user_id": current_user.id,
-            "plan": plan,
+            "plan_id": plan,
             "cancel_action": f"{frontend_url}/pricing",
         },
         "callback_url": f"{frontend_url}/pricing?status=success&ref={{reference}}",
     }
+
+    # If the user selects a recurring plan, attach the Paystack Plan code
+    plan_code = None
+    if plan == "pro":
+        plan_code = os.getenv("PAYSTACK_PLAN_PRO")
+    elif plan == "premium":
+        plan_code = os.getenv("PAYSTACK_PLAN_PREMIUM")
+    elif plan == "max":
+        plan_code = os.getenv("PAYSTACK_PLAN_MAX")
+
+    if plan_code and not plan_code.startswith("PLN_placeholder"):
+        payload["plan"] = plan_code
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
@@ -203,7 +215,7 @@ async def verify_payment(
 
     # Extract plan from metadata
     metadata = data["data"].get("metadata", {})
-    plan = metadata.get("plan")
+    plan = metadata.get("plan_id") or metadata.get("plan")
     user_id = metadata.get("user_id")
 
     # Security: ensure the verified payment belongs to the current user
@@ -277,16 +289,40 @@ async def paystack_webhook(request: Request, session: Session = Depends(get_sess
     if event == "charge.success":
         data = payload.get("data", {})
         metadata = data.get("metadata", {})
-        plan = metadata.get("plan")
+        plan_id = metadata.get("plan_id") or metadata.get("plan")
         user_id = metadata.get("user_id")
+        customer_email = data.get("customer", {}).get("email")
 
-        if user_id and plan and plan in PLAN_PRICES:
-            from sqlmodel import select
+        from sqlmodel import select
+        user = None
+        if user_id:
             user = session.exec(select(User).where(User.id == user_id)).first()
-            if user:
-                user.subscription_tier = plan
-                user.subscription_expiry = datetime.now(timezone.utc) + timedelta(days=30)
-                session.add(user)
-                session.commit()
+        if not user and customer_email:
+            # Fallback for recurring charges that might drop custom metadata
+            user = session.exec(select(User).where(User.email == customer_email)).first()
+
+        if user:
+            # Determine plan from paystack plan code if metadata plan_id is missing
+            paystack_plan_code = data.get("plan", {}).get("plan_code") if isinstance(data.get("plan"), dict) else data.get("plan")
+            
+            if not plan_id and paystack_plan_code:
+                 if paystack_plan_code == os.getenv("PAYSTACK_PLAN_PRO"): plan_id = "pro"
+                 elif paystack_plan_code == os.getenv("PAYSTACK_PLAN_PREMIUM"): plan_id = "premium"
+                 elif paystack_plan_code == os.getenv("PAYSTACK_PLAN_MAX"): plan_id = "max"
+            
+            # If still no plan_id, renew current active tier, else default to pro
+            if not plan_id or plan_id not in PLAN_PRICES:
+                 plan_id = user.subscription_tier if user.subscription_tier != "basic" else "pro"
+
+            user.subscription_tier = plan_id
+            user.subscription_expiry = datetime.now(timezone.utc) + timedelta(days=30)
+            
+            # Store customer code
+            customer_code = data.get("customer", {}).get("customer_code")
+            if customer_code:
+                user.paystack_customer_id = customer_code
+                
+            session.add(user)
+            session.commit()
 
     return {"status": "success"}

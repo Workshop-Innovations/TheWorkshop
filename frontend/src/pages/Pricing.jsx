@@ -113,8 +113,8 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className={`relative flex flex-col rounded-lg border bg-white transition-all overflow-hidden ${
-                plan.popular ? 'border-slate-900 shadow-md' : 'border-slate-200 shadow-sm'
+            className={`relative flex flex-col rounded-2xl border bg-white transition-all overflow-hidden ${
+                plan.popular ? 'border-primary shadow-xl shadow-primary/5' : 'border-slate-200 shadow-sm'
             }`}
         >
             <div className="p-8 flex-grow flex flex-col">
@@ -125,7 +125,7 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
                         <p className="text-sm text-slate-500 mt-2 font-medium">{plan.description}</p>
                     </div>
                     {plan.badge && (
-                        <span className="bg-slate-100 text-slate-900 text-xs font-semibold px-2 py-1 rounded">
+                        <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full tracking-tight">
                             {plan.badge}
                         </span>
                     )}
@@ -170,10 +170,10 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
                             onClick={() => onUpgrade(plan.id)}
                             disabled={loading === plan.id}
                             id={`upgrade-btn-${plan.id}`}
-                            className={`w-full py-2.5 rounded text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-60 ${
+                            className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 ${
                                 plan.popular
-                                    ? 'bg-slate-900 text-white hover:bg-slate-800'
-                                    : 'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50'
+                                    ? 'bg-primary text-white hover:bg-primary/90 shadow-md shadow-primary/20'
+                                    : 'bg-white text-slate-800 border border-slate-200 hover:bg-slate-50'
                             }`}
                         >
                             {loading === plan.id ? (
@@ -193,7 +193,7 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
                     <p className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-2">Includes</p>
                     {plan.features.map((feature, i) => (
                         <div key={i} className="flex items-start gap-3">
-                            <Check className="text-slate-900 mt-0.5 shrink-0" size={16} />
+                            <Check className="text-primary mt-0.5 shrink-0" size={16} />
                             <span className="text-slate-600 text-sm font-medium">{feature}</span>
                         </div>
                     ))}
@@ -297,12 +297,13 @@ const Pricing = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-white/90 flex items-center justify-center"
+                        className="fixed inset-0 z-50 bg-white/60 backdrop-blur-md flex items-center justify-center p-4"
                     >
-                        <div className="text-left">
-                            <Loader2 size={32} className="animate-spin text-slate-900 mb-4" />
-                            <p className="text-lg font-semibold text-slate-900">Verifying your payment…</p>
-                            <p className="text-slate-500 mt-2 font-medium">Please wait, this won't take long.</p>
+                        <div className="text-center bg-white p-10 rounded-[2rem] border border-slate-100 shadow-2xl flex flex-col items-center max-w-sm w-full relative overflow-hidden">
+                            <div className="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+                            <div className="w-12 h-12 rounded-full border-4 border-slate-100 border-t-primary animate-spin mb-6 relative z-10"></div>
+                            <p className="text-xl font-bold text-slate-900 tracking-tight relative z-10">Verifying payment</p>
+                            <p className="text-slate-500 mt-2 font-medium text-sm relative z-10">Please hold on, this won't take long.</p>
                         </div>
                     </motion.div>
                 )}
@@ -322,8 +323,8 @@ const Pricing = () => {
 
                     {/* Current plan banner */}
                     {isAuthenticated && currentTier !== 'basic' && (
-                        <div className="max-w-3xl mb-12 p-6 rounded-lg bg-white border border-slate-200 shadow-sm flex items-start gap-4">
-                            <Check className="text-slate-900 shrink-0 mt-0.5" size={20} />
+                        <div className="max-w-3xl mb-12 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-start gap-4">
+                            <Check className="text-primary shrink-0 mt-0.5" size={20} />
                             <div>
                                 <p className="font-bold text-slate-900">
                                     You're on the <span className="capitalize">{currentTier}</span> plan
@@ -366,8 +367,11 @@ const Pricing = () => {
                     </div>
 
                     {/* FAQ */}
-                    <div className="mt-24 max-w-3xl">
-                        <h2 className="text-2xl font-bold text-slate-900 mb-8">Frequently Asked Questions</h2>
+                    <div className="mt-32 max-w-4xl mx-auto">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-bold text-slate-900 tracking-tight mb-4">Frequently Asked Questions</h2>
+                            <p className="text-slate-500 font-medium">Everything you need to know about the product and billing.</p>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {[
                                 {
@@ -387,9 +391,9 @@ const Pricing = () => {
                                     a: 'Absolutely. All payments are processed through Paystack, a PCI DSS compliant payment processor trusted across Africa.'
                                 },
                             ].map((faq, i) => (
-                                <div key={i} className="bg-white rounded-lg border border-slate-200 p-6">
+                                <div key={i} className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
                                     <h3 className="font-bold text-slate-900 mb-3 text-base">{faq.q}</h3>
-                                    <p className="text-slate-600 text-sm leading-relaxed font-medium">{faq.a}</p>
+                                    <p className="text-slate-500 text-sm leading-relaxed font-medium">{faq.a}</p>
                                 </div>
                             ))}
                         </div>
