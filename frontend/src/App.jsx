@@ -33,6 +33,7 @@ import About from './pages/About';
 
 import ScrollToTop from './components/ScrollToTop';
 import CustomCursor from './components/CustomCursor';
+import TopProgressBar from './components/TopProgressBar';
 
 const AppContent = () => {
   const { isRunning } = usePomodoro();
@@ -42,6 +43,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen bg-background-secondary text-slate-900 font-sans selection:bg-primary-light selection:text-white">
       <ScrollToTop />
+      <TopProgressBar />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
