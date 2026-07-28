@@ -47,7 +47,7 @@ const About = () => {
               Our Team
             </h2>
             <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium tracking-tight">
-              The dedicated individuals building the future of digital solutions.
+              Built by Students for Students
             </p>
           </div>
 
