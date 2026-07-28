@@ -26,11 +26,10 @@ const StepIndicator = ({ current }) => (
             return (
                 <React.Fragment key={label}>
                     <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                            isDone ? 'bg-primary text-white' :
-                            isActive ? 'bg-slate-900 text-white' :
-                            'bg-slate-100 text-slate-400'
-                        }`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${isDone ? 'bg-primary text-white' :
+                                isActive ? 'bg-slate-900 text-white' :
+                                    'bg-slate-100 text-slate-400'
+                            }`}>
                             {isDone ? <Check size={14} /> : num}
                         </div>
                         <span className={`text-sm font-semibold hidden sm:block ${isActive ? 'text-slate-900' : 'text-slate-400'}`}>
@@ -63,11 +62,10 @@ const InputField = ({ label, type = 'text', value, onChange, placeholder, requir
 const OnboardingPlanCard = ({ plan, onSelect, loading }) => {
     const isBasic = plan.id === 'basic';
     return (
-        <div className={`relative flex flex-col rounded-2xl border bg-white p-6 transition-all ${
-            plan.popular
+        <div className={`relative flex flex-col rounded-2xl border bg-white p-6 transition-all ${plan.popular
                 ? 'border-primary shadow-lg shadow-primary/10'
                 : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
-        }`}>
+            }`}>
             {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
@@ -103,11 +101,10 @@ const OnboardingPlanCard = ({ plan, onSelect, loading }) => {
             <button
                 onClick={() => onSelect(plan.id)}
                 disabled={loading === plan.id}
-                className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 ${
-                    plan.popular
+                className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 ${plan.popular
                         ? 'bg-primary text-white hover:bg-primary/90 shadow-md shadow-primary/20'
                         : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
-                }`}
+                    }`}
             >
                 {loading === plan.id ? <Loader2 size={16} className="animate-spin" /> : (isBasic ? 'Start Free' : 'Select Plan')}
             </button>
@@ -225,12 +222,10 @@ const Onboarding = () => {
 
                                     <form onSubmit={handleQuestionSubmit} className="space-y-3">
                                         {STUDY_GOALS.map((goal) => {
-                                            const Icon = goal.icon;
                                             const isSelected = studyGoal === goal.id;
                                             return (
-                                                <label key={goal.id} className={`flex items-center gap-4 p-4 border rounded-2xl cursor-pointer transition-all ${
-                                                    isSelected ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
-                                                }`}>
+                                                <label key={goal.id} className={`flex items-center gap-4 p-4 border rounded-2xl cursor-pointer transition-all ${isSelected ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                                                    }`}>
                                                     <input type="radio" name="studyGoal" value={goal.id} checked={isSelected} onChange={(e) => setStudyGoal(e.target.value)} className="sr-only" />
                                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'}`}>
                                                         <Icon size={18} />
