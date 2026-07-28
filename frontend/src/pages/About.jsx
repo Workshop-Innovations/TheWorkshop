@@ -78,7 +78,7 @@ const About = () => {
                 <h3 className="text-lg font-extrabold text-slate-800 mb-1 tracking-tight">
                   {member.name}
                 </h3>
-                <div className="text-xs font-bold uppercase tracking-widest text-primary bg-primary/5 px-3 py-1 rounded-full mt-2">
+                <div className="text-xs font-bold uppercase tracking-widest text-primary">
                   {member.role}
                 </div>
               </motion.div>
