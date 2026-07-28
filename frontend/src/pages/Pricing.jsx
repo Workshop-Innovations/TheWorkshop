@@ -245,14 +245,22 @@ const Pricing = () => {
         }
     }, [accessToken]);
 
+    // Guard ref so verification only fires once per page load, even if the effect
+    // re-runs due to accessToken or searchParams identity changes.
+    const hasVerified = React.useRef(false);
+
     useEffect(() => {
         const status = searchParams.get('status');
         // Paystack appends 'reference' and 'trxref' automatically to the callback URL
         const ref = searchParams.get('reference') || searchParams.get('trxref') || searchParams.get('ref');
-        if (status === 'success' && ref && ref !== '{reference}') {
+
+        if (status === 'success' && ref && ref !== '{reference}' && !hasVerified.current) {
+            hasVerified.current = true;
+            // Strip query params from URL immediately so a re-render never re-triggers this
+            navigate('/pricing', { replace: true });
             verifyPayment(ref);
         }
-    }, [searchParams, verifyPayment]);
+    }, [searchParams, verifyPayment, navigate]);
 
     const handleUpgrade = async (planId) => {
         if (!isAuthenticated) {

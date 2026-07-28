@@ -2,11 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css'; // Import KaTeX styles
+import 'katex/dist/katex.min.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowLeft, BookOpen } from 'lucide-react';
+
+/** Normalise Windows line-endings so remark parses paragraphs correctly. */
+function preprocessContent(raw) {
+    if (!raw) return '';
+    return raw
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/\n{3,}/g, '\n\n');
+}
+
+const remarkPlugins = [
+    [remarkMath, { singleDollarTextMath: true }],
+    remarkGfm,
+];
+
+const rehypePlugins = [
+    [rehypeKatex, { throwOnError: false, strict: false, trust: true }],
+];
 
 const SubjectSummary = () => {
     const { subjectId } = useParams();
@@ -128,10 +147,10 @@ const SubjectSummary = () => {
                                             </div>
                                         ) : (
                                             <ReactMarkdown
-                                                remarkPlugins={[remarkMath]}
-                                                rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
+                                                remarkPlugins={remarkPlugins}
+                                                rehypePlugins={rehypePlugins}
                                             >
-                                                {activeTopicContent || ""}
+                                                {preprocessContent(activeTopicContent || "")}
                                             </ReactMarkdown>
                                         )}
                                     </article>
