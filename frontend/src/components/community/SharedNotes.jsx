@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
+import { FileText, Plus, X, Edit2, AlertCircle, ChevronLeft } from 'lucide-react';
 
 const SharedNotes = ({ onClose }) => {
     const { currentChannel, fetchChannelNotes, createNote, updateNote, user } = useCommunity();
@@ -89,25 +90,23 @@ const SharedNotes = ({ onClose }) => {
     });
 
     const renderEditor = () => (
-        <form onSubmit={selectedNote ? handleUpdate : handleCreate} className="h-full flex flex-col">
-            <div className="flex items-center gap-2 px-6 py-3 border-b border-slate-700 shrink-0">
+        <form onSubmit={selectedNote ? handleUpdate : handleCreate} className="h-full flex flex-col bg-slate-50">
+            <div className="flex items-center gap-2 px-6 py-3 border-b border-slate-200 shrink-0 bg-white">
                 <button
                     type="button"
-                    className="text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 mr-1"
+                    className="text-slate-500 hover:text-slate-900 transition-colors p-1.5 rounded-lg hover:bg-slate-100 mr-2"
                     onClick={() => setIsEditing(false)}
                 >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
+                    <ChevronLeft className="w-5 h-5" />
                 </button>
-                <h3 className="text-white font-bold text-sm">{selectedNote ? 'Edit Note' : 'New Note'}</h3>
+                <h3 className="text-slate-900 font-bold text-sm tracking-tight">{selectedNote ? 'Edit Note' : 'New Note'}</h3>
                 <div className="flex-1"></div>
                 <button
                     type="submit"
                     disabled={saving || !formData.title.trim()}
-                    className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
                 >
-                    {saving && <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                    {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
                     {saving ? 'Saving...' : selectedNote ? 'Save Changes' : 'Create Note'}
                 </button>
             </div>
@@ -116,14 +115,14 @@ const SharedNotes = ({ onClose }) => {
                 <input
                     ref={titleInputRef}
                     type="text"
-                    className="w-full px-6 py-4 bg-transparent border-b border-slate-700/50 text-white font-black text-xl placeholder-slate-600 focus:outline-none"
+                    className="w-full px-8 py-5 bg-white border-b border-slate-200 text-slate-900 font-bold text-2xl placeholder-slate-400 focus:outline-none tracking-tight"
                     placeholder="Note title..."
                     value={formData.title}
                     onChange={e => setFormData({ ...formData, title: e.target.value })}
                     required
                 />
                 <textarea
-                    className="flex-1 w-full px-6 py-4 bg-transparent text-slate-300 placeholder-slate-600 focus:outline-none resize-none text-sm leading-relaxed"
+                    className="flex-1 w-full px-8 py-6 bg-slate-50 text-slate-700 placeholder-slate-400 focus:outline-none resize-none text-[15px] leading-relaxed custom-scrollbar"
                     placeholder="Write your note here... You can use markdown formatting."
                     value={formData.content}
                     onChange={e => setFormData({ ...formData, content: e.target.value })}
@@ -133,66 +132,62 @@ const SharedNotes = ({ onClose }) => {
     );
 
     const renderDetail = () => (
-        <div className="h-full flex flex-col">
-            <div className="flex items-center gap-2 px-6 py-3 border-b border-slate-700 shrink-0">
+        <div className="h-full flex flex-col bg-white">
+            <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200 shrink-0">
                 <button
-                    className="text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 mr-1"
+                    className="text-slate-400 hover:text-slate-900 transition-colors p-1.5 rounded-lg hover:bg-slate-100"
                     onClick={() => setSelectedNote(null)}
                 >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
+                    <ChevronLeft className="w-5 h-5" />
                 </button>
                 <div className="flex-1 min-w-0">
-                    <h2 className="text-white font-black text-base truncate">{selectedNote.title}</h2>
+                    <h2 className="text-slate-900 font-bold text-xl truncate tracking-tight">{selectedNote.title}</h2>
                 </div>
                 <button
-                    className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-colors flex items-center gap-2 shadow-sm"
                     onClick={() => startEditing(selectedNote)}
                 >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
-                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                    </svg>
+                    <Edit2 className="w-4 h-4" />
                     Edit
                 </button>
             </div>
 
-            <div className="px-6 py-2 border-b border-slate-700/40 flex items-center gap-4 shrink-0">
-                <span className="text-xs text-slate-500">
-                    By <span className="text-slate-400 font-semibold">{selectedNote.creator_email?.split('@')[0]}</span>
+            <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-4 shrink-0">
+                <span className="text-xs text-slate-500 font-medium">
+                    By <span className="text-slate-700 font-bold">{selectedNote.creator_email?.split('@')[0]}</span>
                 </span>
-                <span className="text-slate-700">·</span>
-                <span className="text-xs text-slate-500">
+                <span className="text-slate-300">•</span>
+                <span className="text-xs text-slate-500 font-medium">
                     Updated {formatDate(selectedNote.updated_at)}
                 </span>
                 {selectedNote.version > 1 && (
-                    <span className="text-xs bg-indigo-900/40 text-indigo-400 px-2 py-0.5 rounded-full font-medium">
+                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-md">
                         v{selectedNote.version}
                     </span>
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar bg-white">
                 {selectedNote.content ? (
-                    <div className="prose prose-sm max-w-none">
+                    <div className="prose prose-slate max-w-none prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:text-slate-600 prose-li:text-slate-600">
                         {selectedNote.content.split('\n').map((line, i) => (
                             line.trim() === '' ? <br key={i} /> :
-                            line.startsWith('# ') ? <h1 key={i} className="text-white text-xl font-black mt-4 mb-2">{line.replace(/^#+ /, '')}</h1> :
-                            line.startsWith('## ') ? <h2 key={i} className="text-white text-lg font-bold mt-3 mb-1.5">{line.replace(/^#+ /, '')}</h2> :
-                            line.startsWith('### ') ? <h3 key={i} className="text-white text-base font-bold mt-2 mb-1">{line.replace(/^#+ /, '')}</h3> :
-                            line.startsWith('- ') || line.startsWith('* ') ? <li key={i} className="text-slate-300 text-sm leading-relaxed ml-4">{line.replace(/^[-*] /, '')}</li> :
-                            <p key={i} className="text-slate-300 text-sm leading-relaxed mb-1">{line}</p>
+                            line.startsWith('# ') ? <h1 key={i} className="text-2xl font-bold mt-6 mb-4">{line.replace(/^#+ /, '')}</h1> :
+                            line.startsWith('## ') ? <h2 key={i} className="text-xl font-bold mt-5 mb-3">{line.replace(/^#+ /, '')}</h2> :
+                            line.startsWith('### ') ? <h3 key={i} className="text-lg font-bold mt-4 mb-2">{line.replace(/^#+ /, '')}</h3> :
+                            line.startsWith('- ') || line.startsWith('* ') ? <li key={i} className="ml-4 list-disc">{line.replace(/^[-*] /, '')}</li> :
+                            <p key={i} className="mb-2 leading-relaxed">{line}</p>
                         ))}
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-center">
-                        <span className="text-4xl mb-3 opacity-30">📄</span>
-                        <p className="text-slate-500 text-sm">This note is empty.</p>
+                        <FileText className="w-16 h-16 text-slate-200 mb-4" />
+                        <p className="text-slate-500 text-sm font-medium">This note is empty.</p>
                         <button
-                            className="mt-3 text-indigo-400 text-sm font-semibold hover:text-indigo-300 transition-colors"
+                            className="mt-4 text-primary text-sm font-bold hover:text-primary/80 transition-colors flex items-center gap-1"
                             onClick={() => startEditing(selectedNote)}
                         >
-                            Add content →
+                            <Edit2 className="w-4 h-4" /> Add content
                         </button>
                     </div>
                 )}
@@ -201,59 +196,73 @@ const SharedNotes = ({ onClose }) => {
     );
 
     const renderList = () => (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col bg-slate-50">
             {/* Toolbar */}
-            <div className="px-4 py-3 border-b border-slate-700 flex items-center gap-3 shrink-0">
+            <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center gap-4 shrink-0">
                 <button
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/20"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95"
                     onClick={() => startEditing(null)}
                 >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    <Plus className="w-4 h-4" />
                     New Note
                 </button>
-                <span className="text-xs text-slate-500 ml-auto">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
+                <span className="text-xs font-bold text-slate-500 ml-auto bg-slate-100 px-3 py-1.5 rounded-lg">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-3">
-                        <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
-                        <p className="text-slate-500 text-sm">Loading notes...</p>
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                        <p className="text-slate-500 text-sm font-medium">Loading notes...</p>
                     </div>
                 ) : notes.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                        <span className="text-6xl mb-4 opacity-30">📝</span>
-                        <h3 className="text-white font-bold text-base mb-1">No shared notes yet</h3>
-                        <p className="text-slate-500 text-sm mb-5">Create a note to share knowledge with your community</p>
+                    <div className="flex flex-col items-center justify-center h-full text-center px-4 max-w-sm mx-auto">
+                        <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <FileText className="w-8 h-8 text-slate-300" />
+                        </div>
+                        <h3 className="text-slate-900 font-bold text-lg mb-2 tracking-tight">No shared notes yet</h3>
+                        <p className="text-slate-500 text-sm mb-6 font-medium leading-relaxed">Create a note to share knowledge, summaries, or study plans with your community.</p>
                         <button
-                            className="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 transition-colors"
+                            className="px-6 py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95"
                             onClick={() => startEditing(null)}
                         >
                             Create First Note
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {notes.map(note => (
                             <div
                                 key={note.id}
-                                className="bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-slate-500 rounded-xl p-4 cursor-pointer transition-all group hover:-translate-y-0.5 hover:shadow-lg"
+                                className="bg-white border border-slate-200 hover:border-primary/40 rounded-2xl p-5 cursor-pointer transition-all group shadow-sm hover:shadow-md"
                                 onClick={() => { setSelectedNote(note); setIsEditing(false); }}
                             >
-                                <h3 className="text-white font-bold text-sm truncate mb-1.5 group-hover:text-indigo-300 transition-colors">
-                                    {note.title}
-                                </h3>
+                                <div className="flex items-start gap-3 mb-2">
+                                    <div className="mt-0.5 w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                                        <FileText className="w-4 h-4" />
+                                    </div>
+                                    <h3 className="text-slate-900 font-bold text-[15px] leading-snug tracking-tight group-hover:text-primary transition-colors line-clamp-2">
+                                        {note.title}
+                                    </h3>
+                                </div>
+                                
                                 {note.content && (
-                                    <p className="text-slate-400 text-xs leading-relaxed line-clamp-3 mb-3">
+                                    <p className="text-slate-500 text-xs leading-relaxed line-clamp-3 mb-4 font-medium pl-11">
                                         {note.content.replace(/^[#*-\s]+/gm, '')}
                                     </p>
                                 )}
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs text-slate-500">
-                                        {note.creator_email?.split('@')[0]}
-                                    </span>
-                                    <span className="text-xs text-slate-600">
+                                
+                                <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">
+                                            {note.creator_email?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-xs font-bold text-slate-700">
+                                            {note.creator_email?.split('@')[0]}
+                                        </span>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400">
                                         {new Date(note.updated_at).toLocaleDateString()}
                                     </span>
                                 </div>
@@ -266,36 +275,35 @@ const SharedNotes = ({ onClose }) => {
     );
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
             <div
-                className="bg-slate-800 rounded-2xl w-full max-w-3xl h-[80vh] flex flex-col border border-slate-700 shadow-2xl overflow-hidden"
+                className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Modal Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 shrink-0">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-indigo-600/20 flex items-center justify-center">
-                            <span className="text-xl">📝</span>
+                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                            <FileText className="w-5 h-5 text-slate-700" />
                         </div>
                         <div>
-                            <h2 className="text-white font-black text-base">Shared Notes</h2>
-                            <p className="text-slate-500 text-xs">
+                            <h2 className="text-slate-900 font-bold text-lg tracking-tight">Shared Notes</h2>
+                            <p className="text-slate-500 text-xs font-medium">
                                 #{currentChannel?.name}
                             </p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                    <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Error Banner */}
                 {error && (
-                    <div className="mx-6 mt-3 px-4 py-2.5 bg-red-900/30 border border-red-700/40 rounded-xl text-red-300 text-sm flex items-center gap-2 shrink-0">
-                        <span>⚠️</span>{error}
-                        <button className="ml-auto text-red-400 hover:text-red-300 text-xs font-bold" onClick={() => setError(null)}>Dismiss</button>
+                    <div className="mx-6 mt-4 px-4 py-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm font-medium flex items-center gap-3 shrink-0">
+                        <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
+                        {error}
+                        <button className="ml-auto text-rose-600 hover:text-rose-800 text-xs font-bold bg-white px-2 py-1 rounded shadow-sm" onClick={() => setError(null)}>Dismiss</button>
                     </div>
                 )}
 

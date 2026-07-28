@@ -3,18 +3,17 @@ import { motion } from 'framer-motion';
 import { Building2, Users } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import ayanfeoluwaImg from '../assets/team/ayanfeoluwa.png';
+import davidImg from '../assets/team/david.jpg';
+import oluwatamilolaImg from '../assets/team/oluwatamilola.png';
+import chibuezeImg from '../assets/team/chibueze.jpg';
 
 const About = () => {
   const team = [
-    { name: "Ayanfeoluwa Ayanlade", role: "CTO" },
-    { name: "Mesh-Masade David Omoafe", role: "Director / Shareholder" },
-    { name: "Sosina Maria Omuose", role: "Director / Shareholder" },
-    { name: "Nwagwu Chibueze William", role: "Director / Shareholder" },
-    { name: "Nweke Bryan Tochukwu", role: "Shareholder" },
-    { name: "Ayileka Oladotun Ifeoluwa", role: "Shareholder" },
-    { name: "Omisakin Promise Oreoluwa", role: "Shareholder" },
-    { name: "Mayowa-Stephen Anuoluwapoloromi Olorunjuedalo", role: "Shareholder" },
-    { name: "Akinbola Oluwatamilore Ayodeji-Mattew", role: "Shareholder" }
+    { name: "Ayanfeoluwa Ayanlade", role: "CTO", image: ayanfeoluwaImg },
+    { name: "Mesh-Masade David Omoafe", role: "Director / Shareholder", image: davidImg },
+    { name: "Akinbola Oluwatamilore Ayodeji-Mattew", role: "Shareholder", image: oluwatamilolaImg },
+    { name: "Nwagwu Chibueze William", role: "Director / Shareholder", image: chibuezeImg }
   ];
 
   return (
@@ -29,10 +28,6 @@ const About = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-xs uppercase tracking-widest mb-6">
-              <Building2 className="w-4 h-4" />
-              Our Company
-            </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.1] tracking-tighter mb-6">
               Workshop Innovations Ltd
             </h1>
@@ -65,10 +60,20 @@ const About = () => {
                 transition={{ duration: 0.5, delay: i * 0.05 }}
                 className="p-6 bg-white rounded-xl border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-200 transition-all group flex flex-col items-center text-center card"
               >
-                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4 text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                  <span className="text-xl font-bold uppercase tracking-widest">
-                    {member.name.charAt(0)}
-                  </span>
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full mb-6 overflow-hidden bg-slate-100 flex-shrink-0 border-4 border-slate-50 group-hover:border-primary/10 transition-colors">
+                  {member.image ? (
+                    <img 
+                      src={member.image} 
+                      alt={member.name}
+                      className="w-full h-full object-cover object-top"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                      <span className="text-3xl font-bold uppercase tracking-widest">
+                        {member.name.charAt(0)}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <h3 className="text-lg font-extrabold text-slate-800 mb-1 tracking-tight">
                   {member.name}

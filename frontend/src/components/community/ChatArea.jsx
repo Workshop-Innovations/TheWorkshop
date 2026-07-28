@@ -207,11 +207,11 @@ const ChatArea = () => {
             <React.Fragment key={msg.id || index}>
                 {showDivider && (
                     <div className="flex items-center gap-4 my-6 px-6">
-                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent opacity-50"></div>
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
                             {getDateLabel(msg.timestamp)}
                         </span>
-                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent opacity-50"></div>
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
                     </div>
                 )}
 
@@ -257,16 +257,16 @@ const ChatArea = () => {
                                 </div>
                             </div>
                         ) : isDeleting ? (
-                            <div className="mt-2 bg-rose-950/30 border border-rose-900/50 rounded-xl px-4 py-3 backdrop-blur-sm">
-                                <p className="text-sm text-slate-600 mb-3 font-medium">Are you sure you want to delete this message?</p>
+                            <div className="mt-2 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
+                                <p className="text-sm text-slate-800 mb-3 font-medium">Are you sure you want to delete this message?</p>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => handleDeleteConfirm(msg.id)}
-                                        className="px-4 py-1.5 bg-rose-600/90 text-slate-800 text-xs font-bold rounded-lg hover:bg-rose-500 transition-colors shadow-lg shadow-rose-900/20"
+                                        className="px-4 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-500 transition-colors shadow-sm"
                                     >Delete</button>
                                     <button
                                         onClick={() => setDeletingMessageId(null)}
-                                        className="px-4 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-700 transition-colors"
+                                        className="px-4 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors"
                                     >Cancel</button>
                                 </div>
                             </div>
@@ -364,7 +364,7 @@ const ChatArea = () => {
                         const isOwn = msg.sender_id === user?.id;
                         return (
                             <div key={msg.id || index} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-                                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-slate-800 font-bold text-xs shrink-0 self-end overflow-hidden shadow-md">
+                                <div className="w-9 h-9 rounded-2xl bg-slate-200 flex items-center justify-center text-slate-800 font-bold text-xs shrink-0 self-end overflow-hidden shadow-sm">
                                     {msg.sender_profile_pic ? (
                                         <img src={msg.sender_profile_pic} alt={msg.sender_email} className="w-full h-full object-cover" />
                                     ) : (
@@ -485,7 +485,7 @@ const ChatArea = () => {
                                 {COMMON_EMOJIS.map(emoji => (
                                     <button
                                         key={emoji}
-                                        className="text-2xl hover:bg-slate-700 rounded-xl p-1.5 transition-colors transform hover:scale-110"
+                                        className="text-2xl hover:bg-slate-200 rounded-xl p-1.5 transition-colors transform hover:scale-110"
                                         onClick={() => handleEmojiSelect(emoji)}
                                     >{emoji}</button>
                                 ))}
@@ -552,11 +552,11 @@ const ChatArea = () => {
                                 </div>
 
                                 <div className="flex items-center gap-4 py-2 mb-4 px-6">
-                                    <div className="h-px bg-slate-700/50 flex-1"></div>
+                                    <div className="h-px bg-slate-200 flex-1"></div>
                                     <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-slate-200">
                                         {threadData.total_replies} {threadData.total_replies === 1 ? 'reply' : 'replies'}
                                     </span>
-                                    <div className="h-px bg-slate-700/50 flex-1"></div>
+                                    <div className="h-px bg-slate-200 flex-1"></div>
                                 </div>
 
                                 {threadData.replies.map((reply, index) => (

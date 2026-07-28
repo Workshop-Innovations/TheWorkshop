@@ -41,6 +41,7 @@ def read_content():
 def format_content(content):
     """
     Apply heuristics to format the dense text into readable Markdown.
+    Used for topic/subject summaries (subjects.txt).
     """
     # 1. Separate concatenated sentences/headers (e.g. "NumerationTerms", "54Express")
     # Insert double newline between lowercase/digit and Uppercase
@@ -62,14 +63,14 @@ def format_content(content):
     # "Sub-Topic" -> ### Sub-Topic
     content = re.sub(r'(Sub-Topic [A-Z]:)', r'\n\n### \1', content)
 
-    # 3. Add newlines before other keywords but make them bold?
+    # 3. Add newlines before other keywords but make them bold
     keywords_bold = ["Definition:", "Example:", "Solution:", "Note:"]
     for kw in keywords_bold:
         content = re.sub(f'({kw})', r'\n\n**\1**', content)
         
-    # 4. Format Options (A. B. C. D.)
-    content = re.sub(r'([\.\?!])([A-D]\.)', r'\1\n\n- **\2** ', content)
-    content = re.sub(r'\s([A-D]\.)\s', r'\n\n- **\1** ', content)
+    # 4. Format Options (A. B. C. D.) — keep them as paragraphs not lists
+    content = re.sub(r'([\.\?!])([A-D]\.)', r'\1\n\n\2 ', content)
+    content = re.sub(r'\s([A-D]\.)\s', r'\n\n\1 ', content)
 
     # 4b. Format Numbered Questions (1. 2. 3...)
     content = re.sub(r'([\.\?!])\s*(\d+\.)', r'\1\n\n\2', content)
@@ -78,17 +79,64 @@ def format_content(content):
     # 5. Fix specific known concatenations
     content = content.replace("Mathematics Stock Note", "")
     
-    # 6. Math/LaTeX spacing
-    content = content.replace("$$", "\n$$\n")
+    # 6. Math/LaTeX spacing — only add newlines around display math ($$)
+    content = content.replace("$$", "\n\n$$\n\n")
     
-    # Heuristic: Escape `$` that acts as currency
-    content = re.sub(r'\$(\d)', r'\\$\1', content)
+    # NOTE: Do NOT escape $ signs — they are LaTeX math delimiters.
+    # The old regex \$(\d) -> \\$\1 was breaking all inline math.
 
-    # 7. General definitions/terms: "Word: Definition" -> "- **Word:** Definition"
-    content = re.sub(r'\n([A-Z][a-zA-Z -]+):', r'\n\n- **\1:**', content)
+    # 7. General definitions/terms: "Word: Definition" -> "**Word:** Definition"
+    content = re.sub(r'\n([A-Z][a-zA-Z -]+):', r'\n\n**\1:**', content)
     
     # 8. Ensure space after colon
     content = re.sub(r':([^\s\d])', r': \1', content)
+
+    return content.strip()
+
+
+def format_past_paper(content):
+    """
+    Lightly format past paper content, preserving LaTeX math ($...$)
+    and producing clean, readable Markdown.
+
+    The key rule: DO NOT escape or transform dollar signs — they are
+    LaTeX inline-math delimiters and must reach the frontend unmodified.
+    """
+    # 1. Normalise line endings
+    content = content.replace('\r\n', '\n').replace('\r', '\n')
+
+    # 2. Ensure answer option lines (A. B. C. D.) are each on their own
+    #    paragraph (preceded by a blank line).
+    content = re.sub(r'\n([A-D]\.\s)', r'\n\n\1', content)
+
+    # 3. Ensure numbered question lines start a new paragraph.
+    content = re.sub(r'\n(\d+\.\s)', r'\n\n\1', content)
+
+    # 4. Make section headings proper Markdown headings.
+    content = re.sub(
+        r'^(SECTION [A-Z][^\n]*)',
+        r'## \1',
+        content,
+        flags=re.MULTILINE
+    )
+    content = re.sub(
+        r'^(ANSWER BANK.*)',
+        r'## \1',
+        content,
+        flags=re.MULTILINE | re.IGNORECASE
+    )
+
+    # 5. Make the paper-header metadata lines bold labels.
+    for key in ["Year:", "Paper Type:", "Time Allowed:", "Total Marks:", "Instructions:"]:
+        content = re.sub(
+            rf'^({re.escape(key)})',
+            r'**\1**',
+            content,
+            flags=re.MULTILINE
+        )
+
+    # 6. Collapse runs of 3+ blank lines.
+    content = re.sub(r'\n{3,}', '\n\n', content)
 
     return content.strip()
 
@@ -211,7 +259,7 @@ def main():
         with open(past_papers_file, 'r', encoding='utf-8') as f:
             pp_content = f.read().strip()
             if pp_content:
-                formatted_pp = format_content(pp_content)
+                formatted_pp = format_past_paper(pp_content)
                 # Hardcoded metadata for now based on the file content
                 past_papers.append({
                     "title": "Mathematics Past Questions 2024",

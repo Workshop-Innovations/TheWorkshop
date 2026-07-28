@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCommunity } from '../context/CommunityContext';
 import ChannelList from '../components/community/ChannelList';
 import ChatArea from '../components/community/ChatArea';
-import MemberSidebar from '../components/community/MemberSidebar';
 import GlobalLoader from '../components/GlobalLoader';
 
 const CommunityPage = () => {
@@ -42,11 +41,6 @@ const CommunityPage = () => {
             {/* Main Chat Area */}
             <div className="flex flex-1 flex-col min-w-0 bg-slate-50 h-full relative z-0">
                 <ChatArea />
-            </div>
-
-            {/* Member Sidebar */}
-            <div className="hidden lg:flex w-72 bg-white shrink-0 h-full flex-col border-l border-slate-200 shadow-sm z-10">
-                <MemberSidebar />
             </div>
 
             {/* Connection indicator */}

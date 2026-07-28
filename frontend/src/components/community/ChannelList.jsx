@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import StudyGroups from './StudyGroups';
 import FindFriendsModal from './FindFriendsModal';
+import Leaderboard from './Leaderboard';
+import { Trophy } from 'lucide-react';
 
 const ChannelList = () => {
     const {
@@ -26,6 +28,7 @@ const ChannelList = () => {
     const [channelSearch, setChannelSearch] = useState('');
     const [showStudyGroups, setShowStudyGroups] = useState(false);
     const [showFindFriends, setShowFindFriends] = useState(false);
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     const handleCreateChannel = async () => {
         if (!newChannelName.trim() || !currentCommunity) return;
@@ -65,17 +68,24 @@ const ChannelList = () => {
     if (!currentCommunity) return null;
 
     return (
-        <div className="flex flex-col h-full bg-white">
+        <div className="flex flex-col h-full bg-slate-50 border-r border-slate-200">
             {/* Header */}
-            <div className="h-16 flex items-center px-5 border-b border-slate-200 shrink-0 bg-white/80 backdrop-blur-md">
+            <div className="h-16 flex items-center justify-between px-5 border-b border-slate-200 shrink-0 bg-white">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-900 border border-slate-200">
                         {currentCommunity.icon || '🛠️'}
                     </div>
-                    <h3 className="font-extrabold text-slate-800 text-lg tracking-tight truncate">
+                    <h3 className="font-bold text-slate-900 text-base tracking-tight truncate">
                         {currentCommunity.name}
                     </h3>
                 </div>
+                <button
+                    onClick={() => setShowLeaderboard(true)}
+                    className="w-8 h-8 rounded flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
+                    title="Leaderboard"
+                >
+                    <Trophy className="w-4 h-4" />
+                </button>
             </div>
 
             {/* Search */}
@@ -274,6 +284,9 @@ const ChannelList = () => {
             )}
             {showFindFriends && (
                 <FindFriendsModal onClose={() => setShowFindFriends(false)} />
+            )}
+            {showLeaderboard && (
+                <Leaderboard onClose={() => setShowLeaderboard(false)} />
             )}
         </div>
     );

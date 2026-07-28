@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
+import { ClipboardCheck, X, Star, MessageCircle, ExternalLink, Plus, ChevronLeft, Send } from 'lucide-react';
 
 const StarRating = ({ value, onChange, readonly = false }) => (
     <div className="flex gap-1">
@@ -9,11 +10,11 @@ const StarRating = ({ value, onChange, readonly = false }) => (
                 type="button"
                 disabled={readonly}
                 onClick={() => !readonly && onChange && onChange(star)}
-                className={`text-xl transition-all ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-125'} ${
-                    star <= value ? 'text-yellow-400' : 'text-slate-600 hover:text-yellow-300'
+                className={`transition-all ${readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'} ${
+                    star <= value ? 'text-yellow-400' : 'text-slate-200 hover:text-yellow-200'
                 }`}
             >
-                ★
+                <Star className={`w-5 h-5 ${star <= value ? 'fill-yellow-400' : ''}`} />
             </button>
         ))}
     </div>
@@ -98,6 +99,8 @@ const PeerReview = ({ onClose }) => {
         if (added) {
             setFeedbacks([added, ...feedbacks]);
             setNewFeedback({ rating: 5, comments: '' });
+            
+            // Optimistically update the feedback count on the submission list item
             setSubmissions(prev => prev.map(s =>
                 s.id === selectedSubmission.id
                     ? { ...s, feedback_count: (s.feedback_count || 0) + 1 }
@@ -114,55 +117,51 @@ const PeerReview = ({ onClose }) => {
     });
 
     const renderDetail = () => (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col bg-white">
             {/* Detail Header */}
-            <div className="flex items-center gap-2 px-6 py-3 border-b border-slate-700 shrink-0">
+            <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200 shrink-0">
                 <button
-                    className="text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700 mr-1"
+                    className="text-slate-400 hover:text-slate-900 transition-colors p-1.5 rounded-lg hover:bg-slate-100"
                     onClick={() => { setSelectedSubmission(null); setFeedbacks([]); setError(null); }}
                 >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
+                    <ChevronLeft className="w-5 h-5" />
                 </button>
                 <div className="flex-1 min-w-0">
-                    <h2 className="text-white font-black text-sm truncate">{selectedSubmission.title}</h2>
+                    <h2 className="text-slate-900 font-bold text-lg truncate tracking-tight">{selectedSubmission.title}</h2>
                 </div>
                 {selectedSubmission.average_rating && (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                        <StarRating value={Math.round(selectedSubmission.average_rating)} readonly />
-                        <span className="text-yellow-400 text-xs font-bold">{selectedSubmission.average_rating.toFixed(1)}</span>
+                    <div className="flex items-center gap-2 shrink-0 bg-yellow-50 px-3 py-1.5 rounded-lg border border-yellow-100">
+                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                        <span className="text-yellow-700 text-sm font-bold">{selectedSubmission.average_rating.toFixed(1)}</span>
                     </div>
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50">
                 {/* Submission Info */}
-                <div className="px-6 py-4 border-b border-slate-700/50">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm overflow-hidden shrink-0">
+                <div className="px-8 py-6 bg-white border-b border-slate-200">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm overflow-hidden shrink-0">
                             {selectedSubmission.author_email?.charAt(0).toUpperCase() || '?'}
                         </div>
                         <div>
-                            <p className="text-slate-200 font-semibold text-sm">{selectedSubmission.author_email?.split('@')[0]}</p>
-                            <p className="text-slate-500 text-xs">{formatDate(selectedSubmission.created_at)}</p>
+                            <p className="text-slate-900 font-bold text-[15px] tracking-tight">{selectedSubmission.author_email?.split('@')[0]}</p>
+                            <p className="text-slate-500 font-medium text-xs">{formatDate(selectedSubmission.created_at)}</p>
                         </div>
                     </div>
 
-                    <div className="bg-slate-700/40 rounded-xl p-4 border border-slate-600/40">
-                        <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">
-                            {selectedSubmission.content || <span className="text-slate-500 italic">No description provided.</span>}
+                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+                        <p className="text-slate-700 text-[15px] leading-relaxed whitespace-pre-wrap font-medium">
+                            {selectedSubmission.content || <span className="text-slate-400 italic">No description provided.</span>}
                         </p>
                         {selectedSubmission.file_url && (
                             <a
                                 href={selectedSubmission.file_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-3 inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-sm font-semibold transition-colors"
+                                className="mt-4 inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-bold transition-colors bg-primary/5 px-4 py-2 rounded-xl border border-primary/20"
                             >
-                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
-                                </svg>
+                                <ExternalLink className="w-4 h-4" />
                                 View Attached File
                             </a>
                         )}
@@ -170,31 +169,31 @@ const PeerReview = ({ onClose }) => {
                 </div>
 
                 {/* Feedback Section */}
-                <div className="px-6 py-4">
-                    <h3 className="text-white font-bold text-sm mb-4 flex items-center gap-2">
-                        <span>💬</span>
-                        Peer Feedback
-                        <span className="bg-slate-700 text-slate-400 text-xs px-2 py-0.5 rounded-full font-semibold">
+                <div className="px-8 py-6 max-w-4xl mx-auto">
+                    <div className="flex items-center gap-3 mb-6">
+                        <MessageCircle className="w-5 h-5 text-slate-400" />
+                        <h3 className="text-slate-900 font-bold text-lg tracking-tight">Peer Feedback</h3>
+                        <span className="bg-slate-200 text-slate-600 text-xs px-2.5 py-1 rounded-md font-bold">
                             {feedbacks.length}
                         </span>
-                    </h3>
+                    </div>
 
                     {/* Add Feedback Form (not own submission) */}
                     {user?.id !== selectedSubmission.author_id && (
-                        <form className="mb-6 bg-slate-700/30 border border-slate-600/50 rounded-xl p-4" onSubmit={handleSubmitFeedback}>
-                            <h4 className="text-slate-200 font-bold text-xs uppercase tracking-wider mb-3">Add Your Review</h4>
+                        <form className="mb-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm" onSubmit={handleSubmitFeedback}>
+                            <h4 className="text-slate-900 font-bold text-sm uppercase tracking-wider mb-4">Add Your Review</h4>
 
-                            <div className="flex items-center gap-3 mb-3">
-                                <label className="text-slate-400 text-xs font-semibold">Rating:</label>
+                            <div className="flex items-center gap-4 mb-4 bg-slate-50 w-fit px-4 py-2 rounded-xl border border-slate-200">
+                                <label className="text-slate-600 text-sm font-bold">Rating:</label>
                                 <StarRating
                                     value={newFeedback.rating}
                                     onChange={val => setNewFeedback({ ...newFeedback, rating: val })}
                                 />
-                                <span className="text-slate-500 text-xs">{newFeedback.rating}/5</span>
+                                <span className="text-slate-500 font-bold text-sm bg-white px-2 py-0.5 rounded shadow-sm border border-slate-100">{newFeedback.rating}/5</span>
                             </div>
 
                             <textarea
-                                className="w-full bg-slate-800 border border-slate-600 rounded-xl px-3 py-2.5 text-slate-200 placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 resize-none transition-colors"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-[15px] font-medium focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 resize-none transition-all shadow-inner"
                                 placeholder="Write constructive, helpful feedback..."
                                 value={newFeedback.comments}
                                 onChange={e => setNewFeedback({ ...newFeedback, comments: e.target.value })}
@@ -202,17 +201,21 @@ const PeerReview = ({ onClose }) => {
                                 required
                             />
 
-                            <div className="flex items-center justify-between mt-3">
+                            <div className="flex items-center justify-between mt-4">
                                 {error && (
-                                    <p className="text-red-400 text-xs">{error}</p>
+                                    <p className="text-rose-500 text-sm font-medium">{error}</p>
                                 )}
                                 <button
                                     type="submit"
                                     disabled={submittingFeedback || !newFeedback.comments.trim()}
-                                    className="ml-auto px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="ml-auto px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
-                                    {submittingFeedback && <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
-                                    Submit Feedback
+                                    {submittingFeedback ? (
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    ) : (
+                                        <Send className="w-4 h-4" />
+                                    )}
+                                    {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
                                 </button>
                             </div>
                         </form>
@@ -220,31 +223,34 @@ const PeerReview = ({ onClose }) => {
 
                     {/* Feedback List */}
                     {feedbackLoading ? (
-                        <div className="flex items-center justify-center py-8 text-slate-500 text-sm gap-2">
-                            <div className="w-4 h-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                        <div className="flex flex-col items-center justify-center py-12 text-slate-500 text-sm font-medium gap-3">
+                            <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
                             Loading feedback...
                         </div>
                     ) : feedbacks.length === 0 ? (
-                        <div className="text-center py-8">
-                            <p className="text-slate-500 text-sm">No feedback yet. Be the first to review!</p>
+                        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 border-dashed">
+                            <MessageCircle className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                            <p className="text-slate-500 text-sm font-medium">No feedback yet. Be the first to review!</p>
                         </div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             {feedbacks.map(fb => (
-                                <div key={fb.id} className="bg-slate-700/40 border border-slate-600/40 rounded-xl p-4">
-                                    <div className="flex items-start justify-between gap-3 mb-2">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                <div key={fb.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                                    <div className="flex items-start justify-between gap-3 mb-3 border-b border-slate-100 pb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
                                                 {fb.reviewer_email?.charAt(0).toUpperCase() || '?'}
                                             </div>
                                             <div>
-                                                <p className="text-slate-200 font-semibold text-sm">{fb.reviewer_email?.split('@')[0]}</p>
-                                                <p className="text-slate-500 text-xs">{formatDate(fb.created_at)}</p>
+                                                <p className="text-slate-900 font-bold text-sm tracking-tight">{fb.reviewer_email?.split('@')[0]}</p>
+                                                <p className="text-slate-500 font-medium text-xs">{formatDate(fb.created_at)}</p>
                                             </div>
                                         </div>
-                                        <StarRating value={fb.rating} readonly />
+                                        <div className="bg-yellow-50 px-2.5 py-1 rounded-lg border border-yellow-100">
+                                            <StarRating value={fb.rating} readonly />
+                                        </div>
                                     </div>
-                                    <p className="text-slate-300 text-sm leading-relaxed">{fb.comments}</p>
+                                    <p className="text-slate-700 text-[15px] font-medium leading-relaxed">{fb.comments}</p>
                                 </div>
                             ))}
                         </div>
@@ -255,33 +261,33 @@ const PeerReview = ({ onClose }) => {
     );
 
     const renderList = () => (
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col bg-slate-50">
             {/* Toolbar */}
-            <div className="px-4 py-3 border-b border-slate-700 flex items-center gap-3 shrink-0">
+            <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center gap-4 shrink-0">
                 <button
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold rounded-xl transition-all ${
+                    className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95 ${
                         showCreateForm
-                            ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/20'
+                            ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                            : 'bg-primary text-white hover:bg-primary/90'
                     }`}
                     onClick={() => { setShowCreateForm(!showCreateForm); setError(null); }}
                 >
                     {showCreateForm ? (
-                        <><svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>Cancel</>
+                        <><X className="w-4 h-4" />Cancel</>
                     ) : (
-                        <><svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Submit Work</>
+                        <><Plus className="w-4 h-4" />Submit Work</>
                     )}
                 </button>
-                <span className="text-xs text-slate-500 ml-auto">{submissions.length} submission{submissions.length !== 1 ? 's' : ''}</span>
+                <span className="text-xs font-bold text-slate-500 ml-auto bg-slate-100 px-3 py-1.5 rounded-lg">{submissions.length} submission{submissions.length !== 1 ? 's' : ''}</span>
             </div>
 
             {/* Create form (collapsed) */}
             {showCreateForm && (
-                <div className="px-4 py-3 border-b border-slate-700 bg-slate-700/20 shrink-0">
-                    <form onSubmit={handleCreate} className="space-y-3">
+                <div className="px-6 py-5 border-b border-slate-200 bg-white shrink-0 shadow-sm relative z-10">
+                    <form onSubmit={handleCreate} className="space-y-4 max-w-3xl mx-auto">
                         <input
                             type="text"
-                            className="w-full px-3 py-2.5 bg-slate-800 border border-slate-600 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
                             placeholder="Title (e.g., Essay Draft 1, My Project)"
                             value={newSubmission.title}
                             onChange={e => setNewSubmission({ ...newSubmission, title: e.target.value })}
@@ -289,7 +295,7 @@ const PeerReview = ({ onClose }) => {
                             autoFocus
                         />
                         <textarea
-                            className="w-full px-3 py-2.5 bg-slate-800 border border-slate-600 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner resize-none"
                             placeholder="Describe your work, add text content, or paste code..."
                             value={newSubmission.content}
                             onChange={e => setNewSubmission({ ...newSubmission, content: e.target.value })}
@@ -297,84 +303,95 @@ const PeerReview = ({ onClose }) => {
                         />
                         <input
                             type="url"
-                            className="w-full px-3 py-2.5 bg-slate-800 border border-slate-600 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
                             placeholder="External link (Google Doc, GitHub, etc.) — optional"
                             value={newSubmission.file_url}
                             onChange={e => setNewSubmission({ ...newSubmission, file_url: e.target.value })}
                         />
                         {error && (
-                            <p className="text-red-400 text-xs flex items-center gap-1.5">
-                                <span>⚠️</span>{error}
+                            <p className="text-rose-500 text-sm font-medium flex items-center gap-2 bg-rose-50 p-3 rounded-xl border border-rose-100">
+                                <AlertCircle className="w-4 h-4" />{error}
                             </p>
                         )}
-                        <button
-                            type="submit"
-                            disabled={submitting || !newSubmission.title.trim()}
-                            className="px-5 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                            {submitting && <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
-                            {submitting ? 'Posting...' : 'Post Submission'}
-                        </button>
+                        <div className="flex justify-end pt-2">
+                            <button
+                                type="submit"
+                                disabled={submitting || !newSubmission.title.trim()}
+                                className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {submitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                                {submitting ? 'Posting...' : 'Post Submission'}
+                            </button>
+                        </div>
                     </form>
                 </div>
             )}
 
             {/* Submissions list */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-3">
-                        <div className="w-8 h-8 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
-                        <p className="text-slate-500 text-sm">Loading submissions...</p>
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                        <p className="text-slate-500 text-sm font-medium">Loading submissions...</p>
                     </div>
                 ) : submissions.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                        <span className="text-6xl mb-4 opacity-30">📋</span>
-                        <h3 className="text-white font-bold text-base mb-1">No submissions yet</h3>
-                        <p className="text-slate-500 text-sm mb-5">Submit your work to get peer feedback from the community</p>
+                    <div className="flex flex-col items-center justify-center h-full text-center px-4 max-w-sm mx-auto">
+                        <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <ClipboardCheck className="w-8 h-8 text-slate-300" />
+                        </div>
+                        <h3 className="text-slate-900 font-bold text-lg mb-2 tracking-tight">No submissions yet</h3>
+                        <p className="text-slate-500 text-sm mb-6 font-medium leading-relaxed">Submit your work to get constructive peer feedback from the community</p>
                         <button
-                            className="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-500 transition-colors"
+                            className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95"
                             onClick={() => setShowCreateForm(true)}
                         >
                             Submit Your Work
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4 max-w-4xl mx-auto">
                         {submissions.map(sub => (
                             <div
                                 key={sub.id}
-                                className="bg-slate-700/40 hover:bg-slate-700/70 border border-slate-600/40 hover:border-slate-500/60 rounded-xl p-4 cursor-pointer transition-all group hover:-translate-y-0.5 hover:shadow-lg"
+                                className="bg-white hover:bg-slate-50/80 border border-slate-200 hover:border-primary/40 rounded-2xl p-5 cursor-pointer transition-all group shadow-sm hover:shadow-md"
                                 onClick={() => setSelectedSubmission(sub)}
                             >
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                    <h3 className="text-white font-bold text-sm group-hover:text-indigo-300 transition-colors truncate flex-1">
+                                <div className="flex items-start justify-between gap-4 mb-3">
+                                    <h3 className="text-slate-900 font-bold text-[16px] group-hover:text-primary transition-colors tracking-tight line-clamp-2">
                                         {sub.title}
                                     </h3>
                                     {sub.average_rating ? (
-                                        <div className="flex items-center gap-1 shrink-0">
-                                            <span className="text-yellow-400 text-sm">★</span>
-                                            <span className="text-yellow-400 text-xs font-bold">{sub.average_rating.toFixed(1)}</span>
+                                        <div className="flex items-center gap-1.5 shrink-0 bg-yellow-50 px-2 py-1 rounded border border-yellow-100">
+                                            <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                            <span className="text-yellow-700 text-xs font-bold">{sub.average_rating.toFixed(1)}</span>
                                         </div>
                                     ) : (
-                                        <span className="text-xs text-slate-500 shrink-0">Awaiting review</span>
+                                        <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded shrink-0 uppercase tracking-wide">Awaiting review</span>
                                     )}
                                 </div>
                                 {sub.content && (
-                                    <p className="text-slate-400 text-xs leading-relaxed line-clamp-2 mb-3">
+                                    <p className="text-slate-500 text-sm font-medium leading-relaxed line-clamp-2 mb-4">
                                         {sub.content}
                                     </p>
                                 )}
-                                <div className="flex items-center gap-3 text-xs text-slate-500">
-                                    <span>by {sub.author_email?.split('@')[0]}</span>
-                                    <span>·</span>
-                                    <span className="flex items-center gap-1">
-                                        <span>💬</span>
+                                <div className="flex items-center gap-3 text-xs font-bold text-slate-500 border-t border-slate-100 pt-3 mt-auto">
+                                    <span className="flex items-center gap-1.5">
+                                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px]">
+                                            {sub.author_email?.charAt(0).toUpperCase()}
+                                        </div>
+                                        {sub.author_email?.split('@')[0]}
+                                    </span>
+                                    <span className="text-slate-300">•</span>
+                                    <span className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md text-slate-600">
+                                        <MessageCircle className="w-3.5 h-3.5" />
                                         {sub.feedback_count || 0} review{(sub.feedback_count || 0) !== 1 ? 's' : ''}
                                     </span>
                                     {sub.file_url && (
                                         <>
-                                            <span>·</span>
-                                            <span className="text-indigo-400">🔗 Link</span>
+                                            <span className="text-slate-300">•</span>
+                                            <span className="flex items-center gap-1 text-primary bg-primary/10 px-2 py-1 rounded-md">
+                                                <ExternalLink className="w-3 h-3" /> Link
+                                            </span>
                                         </>
                                     )}
                                 </div>
@@ -387,26 +404,24 @@ const PeerReview = ({ onClose }) => {
     );
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
             <div
-                className="bg-slate-800 rounded-2xl w-full max-w-3xl h-[85vh] flex flex-col border border-slate-700 shadow-2xl overflow-hidden"
+                className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Modal Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 shrink-0">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-purple-600/20 flex items-center justify-center">
-                            <span className="text-xl">📋</span>
+                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                            <ClipboardCheck className="w-5 h-5 text-slate-700" />
                         </div>
                         <div>
-                            <h2 className="text-white font-black text-base">Peer Reviews</h2>
-                            <p className="text-slate-500 text-xs">#{currentChannel?.name}</p>
+                            <h2 className="text-slate-900 font-bold text-lg tracking-tight">Peer Reviews</h2>
+                            <p className="text-slate-500 font-medium text-xs">#{currentChannel?.name}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                    <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 

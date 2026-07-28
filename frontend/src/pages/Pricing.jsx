@@ -113,9 +113,8 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className={`relative flex flex-col rounded-2xl border bg-white transition-all overflow-hidden ${
-                plan.popular ? 'border-primary shadow-xl shadow-primary/5' : 'border-slate-200 shadow-sm'
-            }`}
+            className={`relative flex flex-col rounded-2xl border bg-white transition-all overflow-hidden ${plan.popular ? 'border-primary shadow-xl shadow-primary/5' : 'border-slate-200 shadow-sm'
+                }`}
         >
             <div className="p-8 flex-grow flex flex-col">
                 {/* Header */}
@@ -153,13 +152,9 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
 
                 {/* CTA Button */}
                 <div className="mb-8">
-                    {isBasic ? (
-                        <div className="w-full py-2.5 rounded text-center bg-slate-50 text-slate-500 text-sm font-semibold border border-slate-200">
-                            {isCurrentPlan ? 'Your current plan' : 'Free Forever'}
-                        </div>
-                    ) : isCurrentPlan ? (
-                        <div className="w-full py-2.5 rounded text-center text-sm bg-slate-50 text-slate-900 font-semibold border border-slate-200">
-                            Active Plan
+                    {isCurrentPlan ? (
+                        <div className={`w-full py-2.5 rounded text-center text-sm font-semibold border border-slate-200 bg-slate-50 ${isBasic ? 'text-slate-500' : 'text-slate-900'}`}>
+                            {isBasic ? 'Your current plan' : 'Active Plan'}
                         </div>
                     ) : isDowngrade ? (
                         <div className="w-full py-2.5 rounded text-center bg-slate-50 text-slate-400 text-sm font-semibold border border-slate-200 cursor-not-allowed">
@@ -170,11 +165,10 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
                             onClick={() => onUpgrade(plan.id)}
                             disabled={loading === plan.id}
                             id={`upgrade-btn-${plan.id}`}
-                            className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 ${
-                                plan.popular
-                                    ? 'bg-primary text-white hover:bg-primary/90 shadow-md shadow-primary/20'
-                                    : 'bg-white text-slate-800 border border-slate-200 hover:bg-slate-50'
-                            }`}
+                            className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 ${plan.popular
+                                ? 'bg-primary text-white hover:bg-primary/90 shadow-md shadow-primary/20'
+                                : 'bg-white text-slate-800 border border-slate-200 hover:bg-slate-50'
+                                }`}
                         >
                             {loading === plan.id ? (
                                 <>
@@ -321,11 +315,11 @@ const Pricing = () => {
             <main className="flex-grow pt-32 pb-24 px-6">
                 <div className="max-w-7xl mx-auto">
                     {/* Header */}
-                    <div className="max-w-3xl mb-16">
+                    <div className="max-w-3xl mb-16 mx-auto text-center">
                         <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
                             Pricing
                         </h1>
-                        <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-2xl">
+                        <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-2xl mx-auto">
                             Choose the plan that fits your study needs. Cancel anytime.
                         </p>
                     </div>
@@ -358,21 +352,13 @@ const Pricing = () => {
                                 <PlanCard
                                     key={plan.id}
                                     plan={plan}
-                                    isCurrentPlan={currentTier === plan.id}
+                                    isCurrentPlan={isAuthenticated && currentTier === plan.id}
                                     isDowngrade={isAuthenticated && planIndex < currentTierIndex}
                                     onUpgrade={handleUpgrade}
                                     loading={loadingPlan}
                                 />
                             );
                         })}
-                    </div>
-
-                    {/* Guarantee Strip */}
-                    <div className="mt-16 text-left">
-                        <div className="inline-flex items-center gap-3 p-4 rounded-lg bg-white border border-slate-200 shadow-sm text-slate-600 text-sm font-medium">
-                            <AlertCircle size={16} className="text-slate-400 shrink-0" />
-                            <span>Payments are securely processed by <strong className="text-slate-900 font-bold">Paystack</strong>. All prices are in Nigerian Naira (₦).</span>
-                        </div>
                     </div>
 
                     {/* FAQ */}
@@ -412,7 +398,7 @@ const Pricing = () => {
                     <div className="mt-16 border-t border-slate-200 pt-8">
                         <p className="text-slate-600 font-medium text-sm">
                             Have more questions?{' '}
-                            <a href="mailto:support@theworkshop.app" className="text-slate-900 font-bold hover:underline">
+                            <a href="mailto:contact@workshop.com.ng" className="text-slate-900 font-bold hover:underline">
                                 Contact our support team
                             </a>
                         </p>
