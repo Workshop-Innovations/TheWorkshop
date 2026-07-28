@@ -153,7 +153,7 @@ async def initialize_payment(
             "plan_id": plan,
             "cancel_action": f"{frontend_url}/pricing",
         },
-        "callback_url": f"{frontend_url}/pricing?status=success&ref={{reference}}",
+        "callback_url": f"{frontend_url}/pricing?status=success",
     }
 
     # If the user selects a recurring plan, attach the Paystack Plan code

@@ -247,8 +247,9 @@ const Pricing = () => {
 
     useEffect(() => {
         const status = searchParams.get('status');
-        const ref = searchParams.get('ref');
-        if (status === 'success' && ref) {
+        // Paystack appends 'reference' and 'trxref' automatically to the callback URL
+        const ref = searchParams.get('reference') || searchParams.get('trxref') || searchParams.get('ref');
+        if (status === 'success' && ref && ref !== '{reference}') {
             verifyPayment(ref);
         }
     }, [searchParams, verifyPayment]);
