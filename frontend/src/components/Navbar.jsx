@@ -74,6 +74,7 @@ const Navbar = () => {
                 </>
               ) : (
                 <>
+                  <NavLink to="/about" label="About" />
                   <NavLink to="/pricing" label="Pricing" />
                   <NavLink to="/login" label="Log In" />
                   <Link
@@ -149,6 +150,7 @@ const Navbar = () => {
                   </div>
                 ) : (
                   <div className="space-y-2">
+                    <MobileLink to="/about" label="About" icon={null} onClick={closeMobile} />
                     <MobileLink to="/pricing" label="Pricing" icon={null} onClick={closeMobile} />
                     <MobileLink to="/login" label="Log In" icon={null} onClick={closeMobile} />
                     

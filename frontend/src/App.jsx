@@ -28,6 +28,7 @@ import SubjectSummary from './pages/SubjectSummary';
 import Pricing from './pages/Pricing';
 import PaperViewer from './pages/PaperViewer';
 import NotFound from './pages/NotFound';
+import About from './pages/About';
 
 import ScrollToTop from './components/ScrollToTop';
 import CustomCursor from './components/CustomCursor';
@@ -45,6 +46,7 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/about" element={<About />} />
         <Route path="/rewards" element={<PrivateRoute><Store /></PrivateRoute>} />
         <Route path="/coming-soon" element={<ComingSoon />} />
 

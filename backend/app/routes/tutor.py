@@ -8,7 +8,7 @@ import io
 import pypdf
 from google import genai
 from uuid import uuid4
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from pydantic import BaseModel
 import shutil
 from pathlib import Path
@@ -222,6 +222,32 @@ async def chat_with_tutor(
             detail="AI Tutor is not configured. Please contact the administrator."
         )
 
+    # --- Subscription Limit Check ---
+    DAILY_LIMITS = {"basic": 5, "pro": 50, "premium": -1, "max": -1}
+    tier = current_user.subscription_tier or "basic"
+
+    # Check if subscription is expired (downgrade to basic)
+    if (
+        current_user.subscription_expiry
+        and current_user.subscription_expiry < datetime.now(timezone.utc)
+        and tier != "basic"
+    ):
+        tier = "basic"
+
+    daily_limit = DAILY_LIMITS.get(tier, 5)
+    today = date.today()
+
+    # Reset counter if it's a new day
+    if current_user.last_ai_query_date != today:
+        current_user.ai_queries_today = 0
+        current_user.last_ai_query_date = today
+
+    if daily_limit != -1 and current_user.ai_queries_today >= daily_limit:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Daily AI query limit reached ({daily_limit}/day on {tier.title()} plan). Upgrade your plan to get more queries."
+        )
+
     doc = session.exec(
         select(TutorDocument).where(
             TutorDocument.id == request.document_id,
@@ -250,6 +276,12 @@ async def chat_with_tutor(
     try:
         chat = client.chats.create(model='gemini-2.0-flash', history=formatted_history)
         response = chat.send_message(context_prompt + f"Question: {request.message}")
+
+        # Increment usage counter
+        current_user.ai_queries_today += 1
+        session.add(current_user)
+        session.commit()
+
         return TutorChatResponse(response=response.text)
     except Exception as e:
         print(f"Chat error: {e}")

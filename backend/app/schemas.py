@@ -21,6 +21,16 @@ class User(SQLModel, table=True):
     total_messages: int = Field(default=0)  # Total messages sent
     helpful_votes: int = Field(default=0)  # How many times user's content was upvoted
     
+    # Subscription and Payment Fields
+    subscription_tier: str = Field(default="basic") # "basic", "pro", "premium", "max"
+    subscription_expiry: Optional[datetime] = None
+    paystack_customer_id: Optional[str] = None
+    paystack_subscription_code: Optional[str] = None
+    
+    # Usage Limits
+    ai_queries_today: int = Field(default=0)
+    last_ai_query_date: Optional[date] = None
+
     # Relationships
     sessions: List["SessionLog"] = Relationship(back_populates="user")
     tasks: List["Task"] = Relationship(back_populates="owner")
@@ -61,6 +71,9 @@ class UserResponse(BaseModel): # Inherit from BaseModel for API response
     is_active: bool
     role: str = "user"
     profile_pic: Optional[str] = None
+    subscription_tier: str = "basic"
+    subscription_expiry: Optional[datetime] = None
+    ai_queries_today: int = 0
 
     model_config = {"from_attributes": True}
 

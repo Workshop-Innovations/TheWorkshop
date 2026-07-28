@@ -30,7 +30,7 @@ from .schemas import (
     DMConversationResponse, DMMessageCreate, DMMessageResponse,
 )
 
-from .routes import community, websocket, flashcards, tutor, notes, reviews, subjects, users, system
+from .routes import community, websocket, flashcards, tutor, notes, reviews, subjects, users, system, subscriptions
 from .dependencies import get_current_user, settings, create_access_token
 
 # --- Password Utility Functions ---
@@ -168,6 +168,7 @@ app.include_router(reviews.router)
 app.include_router(subjects.router)
 app.include_router(users.router)
 app.include_router(system.router)
+app.include_router(subscriptions.router)
 
 # --- Mount Static Files ---
 static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")

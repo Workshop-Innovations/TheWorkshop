@@ -45,7 +45,13 @@ const Register = () => {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response) {
-          setError(err.response.data.detail || 'Registration failed. Please try again.');
+          const detail = err.response.data.detail;
+          const message = Array.isArray(detail)
+            ? detail.map((d) => d.msg || JSON.stringify(d)).join(' | ')
+            : typeof detail === 'string'
+            ? detail
+            : 'Registration failed. Please try again.';
+          setError(message);
         } else if (err.request) {
           setError('No response from server. Please try again later.');
         } else {
