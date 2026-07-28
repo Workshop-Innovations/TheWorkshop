@@ -73,7 +73,7 @@ export default function Login() {
 
                         <View style={styles.footer}>
                             <Text style={styles.footerText}>Don't have an account? </Text>
-                            <Link href="/(auth)/register" style={styles.link}>Register now</Link>
+                            <Link href="/(auth)/onboarding" style={styles.link}>Register now</Link>
                         </View>
                     </View>
                 </KeyboardAvoidingView>
