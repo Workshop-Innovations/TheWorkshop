@@ -222,14 +222,12 @@ const Onboarding = () => {
 
                                     <form onSubmit={handleQuestionSubmit} className="space-y-3">
                                         {STUDY_GOALS.map((goal) => {
+                                            const Icon = goal.icon;
                                             const isSelected = studyGoal === goal.id;
                                             return (
                                                 <label key={goal.id} className={`flex items-center gap-4 p-4 border rounded-2xl cursor-pointer transition-all ${isSelected ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                                                     }`}>
                                                     <input type="radio" name="studyGoal" value={goal.id} checked={isSelected} onChange={(e) => setStudyGoal(e.target.value)} className="sr-only" />
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                                                        <Icon size={18} />
-                                                    </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className={`font-bold text-sm ${isSelected ? 'text-slate-900' : 'text-slate-700'}`}>{goal.label}</p>
                                                         <p className="text-xs text-slate-400 font-medium mt-0.5">{goal.description}</p>
