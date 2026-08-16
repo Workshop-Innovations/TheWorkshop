@@ -466,7 +466,7 @@ const PaperViewer = () => {
                                         padding: '2px 10px', fontSize: '0.75rem', fontWeight: 600, borderRadius: 6,
                                         background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd',
                                     }}>
-                                        ⏱ {paper.duration_minutes ?? 60} mins
+                                        {paper.duration_minutes ?? 60} mins
                                     </span>
                                 </div>
 
@@ -478,7 +478,7 @@ const PaperViewer = () => {
                                                 ? 'text-red-600 bg-red-50 border-red-200'
                                                 : 'text-indigo-600 bg-indigo-50 border-indigo-100'
                                         }`}>
-                                            ⏳ {formatTime(timeRemaining)}
+                                            {formatTime(timeRemaining)}
                                         </div>
                                     )}
                                     {mode === 'read' && (

@@ -742,6 +742,15 @@ const AdminDashboard = () => {
                                 <FileText className="mr-3" /> Past Papers
                             </button>
                             <button
+                                onClick={() => setActiveTab('diagrams')}
+                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'diagrams'
+                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
+                                    : 'text-slate-600 hover:bg-slate-50'
+                                    }`}
+                            >
+                                <ImageIcon className="mr-3" /> Diagrams
+                            </button>
+                            <button
                                 onClick={() => setActiveTab('admins')}
                                 className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'admins'
                                     ? 'bg-primary text-white shadow-md shadow-primary/30'
