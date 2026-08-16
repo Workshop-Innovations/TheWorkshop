@@ -3,6 +3,7 @@ import { useCommunity } from '../../context/CommunityContext';
 import SharedNotes from './SharedNotes';
 import PeerReview from './PeerReview';
 import { FileText, ClipboardList, Smile, MessageSquare, Send, X, CornerDownLeft, ChevronUp, ChevronDown } from 'lucide-react';
+import { resolveImageUrl } from '../../utils/imageUtils';
 
 const COMMON_EMOJIS = ['😀','😂','🥲','😍','🤔','😮','🥳','😎','🤯','👍','👎','❤️','🔥','✅','⭐','💡','📚','🎉','🙏','💪','🤝','💬','📝','🏆','⚡','🎯','🚀','✨','💯','🤖'];
 
@@ -209,7 +210,7 @@ const ChatArea = () => {
                 {showDivider && (
                     <div className="flex items-center gap-4 my-6 px-6">
                         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full border border-slate-200">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-sm border border-slate-200">
                             {getDateLabel(msg.timestamp)}
                         </span>
                         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
@@ -226,7 +227,7 @@ const ChatArea = () => {
                     {/* Avatar */}
                     <div className="w-11 h-11 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm shrink-0 shadow-lg overflow-hidden mt-1 transform group-hover:scale-105 transition-transform">
                         {msg.user_profile_pic ? (
-                            <img src={msg.user_profile_pic} alt={msg.user_email} className="w-full h-full object-cover" />
+                            <img src={resolveImageUrl(msg.user_profile_pic)} alt={msg.user_email} className="w-full h-full object-cover" />
                         ) : (
                             msg.user_email?.charAt(0).toUpperCase() || '?'
                         )}
@@ -334,7 +335,7 @@ const ChatArea = () => {
         if (!currentDM) {
             return (
                 <div className="flex-1 flex flex-col items-center justify-center h-full p-8 text-center bg-slate-50">
-                    <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full flex items-center justify-center mb-6 border border-primary/20 shadow-2xl">
+                    <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-accent/10 rounded-sm flex items-center justify-center mb-6 border border-primary/20 shadow-2xl">
                         <MessageSquare size={48} className="opacity-50 text-slate-400 mx-auto mb-4" />
                     </div>
                     <h2 className="text-2xl font-extrabold text-slate-800 mb-3 tracking-tight">Your Messages</h2>
@@ -349,7 +350,7 @@ const ChatArea = () => {
                 <div className="h-16 flex items-center px-6 border-b border-slate-200 shrink-0 bg-slate-50/80 backdrop-blur-xl shadow-sm z-10">
                     <div className="w-10 h-10 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm mr-4 overflow-hidden shrink-0 shadow-lg">
                         {currentDM.other_user_profile_pic ? (
-                            <img src={currentDM.other_user_profile_pic} alt={currentDM.other_user_email} className="w-full h-full object-cover" />
+                            <img src={resolveImageUrl(currentDM.other_user_profile_pic)} alt={currentDM.other_user_email} className="w-full h-full object-cover" />
                         ) : (
                             currentDM.other_user_email?.charAt(0).toUpperCase() || '?'
                         )}
@@ -367,7 +368,7 @@ const ChatArea = () => {
                             <div key={msg.id || index} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                                 <div className="w-9 h-9 rounded-md bg-slate-200 flex items-center justify-center text-slate-800 font-bold text-xs shrink-0 self-end overflow-hidden shadow-sm">
                                     {msg.sender_profile_pic ? (
-                                        <img src={msg.sender_profile_pic} alt={msg.sender_email} className="w-full h-full object-cover" />
+                                        <img src={resolveImageUrl(msg.sender_profile_pic)} alt={msg.sender_email} className="w-full h-full object-cover" />
                                     ) : (
                                         msg.sender_email?.charAt(0).toUpperCase() || '?'
                                     )}
@@ -418,7 +419,7 @@ const ChatArea = () => {
     if (!currentChannel) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center h-full p-8 text-center bg-slate-50">
-                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 border border-slate-200 shadow-2xl">
+                <div className="w-24 h-24 bg-white rounded-sm flex items-center justify-center mb-6 border border-slate-200 shadow-2xl">
                     <div className="text-5xl text-slate-600 font-light">#</div>
                 </div>
                 <h2 className="text-2xl font-extrabold text-slate-800 mb-3 tracking-tight">Select a channel</h2>
@@ -463,7 +464,7 @@ const ChatArea = () => {
                 <div className="flex-1 overflow-y-auto py-6 space-y-1 custom-scrollbar bg-gradient-to-b from-slate-50 to-slate-100/50" onClick={() => setShowEmojiPicker(false)}>
                     {parentMessages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center py-20 px-4">
-                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white to-slate-100 flex items-center justify-center mb-6 shadow-2xl border border-slate-200">
+                            <div className="w-24 h-24 rounded-sm bg-gradient-to-br from-white to-slate-100 flex items-center justify-center mb-6 shadow-2xl border border-slate-200">
                                 <span className="text-5xl text-slate-400 font-light">#</span>
                             </div>
                             <h3 className="text-2xl font-extrabold text-slate-800 mb-3 tracking-tight">Welcome to #{currentChannel.name}!</h3>
@@ -531,7 +532,7 @@ const ChatArea = () => {
                             <p className="text-[13px] font-medium text-slate-400">#{currentChannel.name}</p>
                         </div>
                         <button
-                            className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-colors"
+                            className="w-8 h-8 rounded-sm hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-800 transition-colors"
                             onClick={handleCloseThread}
                         >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
@@ -543,7 +544,7 @@ const ChatArea = () => {
                     <div className="flex-1 overflow-y-auto py-6 space-y-1 custom-scrollbar">
                         {loadingThread ? (
                             <div className="flex flex-col items-center justify-center h-40 text-slate-400">
-                                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-3"></div>
+                                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-sm animate-spin mb-3"></div>
                                 <span className="text-sm font-medium">Loading thread...</span>
                             </div>
                         ) : threadData ? (
@@ -554,7 +555,7 @@ const ChatArea = () => {
 
                                 <div className="flex items-center gap-4 py-2 mb-4 px-6">
                                     <div className="h-px bg-slate-200 flex-1"></div>
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-slate-200">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest bg-white px-3 py-1 rounded-sm border border-slate-200">
                                         {threadData.total_replies} {threadData.total_replies === 1 ? 'reply' : 'replies'}
                                     </span>
                                     <div className="h-px bg-slate-200 flex-1"></div>
@@ -593,7 +594,7 @@ const ChatArea = () => {
                 </div>
             )}
 
-            {/* Modals */}
+            {/* Side Panels */}
             {showNotes && <SharedNotes onClose={() => setShowNotes(false)} />}
             {showReviews && <PeerReview onClose={() => setShowReviews(false)} />}
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { Trophy, X, Medal, Crown } from 'lucide-react';
+import { resolveImageUrl } from '../../utils/imageUtils';
 
 const PERIODS = [
     { key: 'all_time', label: 'All Time' },
@@ -84,7 +85,7 @@ const Leaderboard = ({ onClose }) => {
                 <div className="bg-slate-50 px-6 py-5 shrink-0 border-b border-slate-200">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 shadow-sm">
+                            <div className="w-10 h-10 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-slate-700 shadow-sm">
                                 <Trophy className="w-5 h-5" />
                             </div>
                             <div>
@@ -94,7 +95,7 @@ const Leaderboard = ({ onClose }) => {
                         </div>
                         <button
                             onClick={onClose}
-                            className="w-8 h-8 rounded-full hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
+                            className="w-8 h-8 rounded-sm hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -122,7 +123,7 @@ const Leaderboard = ({ onClose }) => {
                 <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
-                            <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin"></div>
+                            <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-900 rounded-sm animate-spin"></div>
                             <p className="text-slate-500 font-medium text-sm">Loading leaderboard...</p>
                         </div>
                     ) : error ? (
@@ -161,12 +162,12 @@ const Leaderboard = ({ onClose }) => {
                                                         </div>
                                                     )}
 
-                                                    <div className={`${style.avatarSize} rounded-full overflow-hidden border-2 ${
+                                                    <div className={`${style.avatarSize} rounded-sm overflow-hidden border-2 ${
                                                         style.rank === 1 ? 'border-yellow-400' :
                                                         style.rank === 2 ? 'border-slate-300' : 'border-amber-400'
                                                     } shadow-sm flex-shrink-0 bg-slate-100 flex items-center justify-center text-slate-600 font-black ${isMe ? 'ring-2 ring-primary ring-offset-2 ring-offset-white' : ''}`}>
                                                         {entry.profile_pic ? (
-                                                            <img src={entry.profile_pic} alt={entry.email} className="w-full h-full object-cover" />
+                                                            <img src={resolveImageUrl(entry.profile_pic)} alt={entry.email} className="w-full h-full object-cover" />
                                                         ) : (
                                                             <span className="text-lg">{entry.email?.charAt(0).toUpperCase()}</span>
                                                         )}
@@ -195,9 +196,9 @@ const Leaderboard = ({ onClose }) => {
                             {/* My Position Banner (if not in top 3) */}
                             {myEntry && myEntry.rank > 3 && (
                                 <div className="mx-4 mt-4 mb-2 bg-primary/5 border border-primary/20 rounded-md px-4 py-3 flex items-center gap-3 shadow-sm">
-                                    <div className="w-9 h-9 rounded-full bg-white border border-primary/20 flex items-center justify-center text-primary font-black text-sm overflow-hidden shrink-0">
+                                    <div className="w-9 h-9 rounded-sm bg-white border border-primary/20 flex items-center justify-center text-primary font-black text-sm overflow-hidden shrink-0">
                                         {myEntry.profile_pic ? (
-                                            <img src={myEntry.profile_pic} alt={myEntry.email} className="w-full h-full object-cover" />
+                                            <img src={resolveImageUrl(myEntry.profile_pic)} alt={myEntry.email} className="w-full h-full object-cover" />
                                         ) : (
                                             myEntry.email?.charAt(0).toUpperCase()
                                         )}
@@ -226,7 +227,7 @@ const Leaderboard = ({ onClose }) => {
                                                     : 'hover:bg-white hover:border-slate-200 hover:shadow-sm'
                                             }`}
                                         >
-                                            <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${
+                                            <div className={`w-7 h-7 rounded-sm flex items-center justify-center font-black text-xs shrink-0 ${
                                                 tierStyle
                                                     ? `${tierStyle.bg} border ${tierStyle.border} ${tierStyle.text}`
                                                     : 'bg-slate-100 text-slate-500 border border-slate-200'
@@ -234,9 +235,9 @@ const Leaderboard = ({ onClose }) => {
                                                 {entry.rank}
                                             </div>
 
-                                            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
+                                            <div className="w-8 h-8 rounded-sm overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
                                                 {entry.profile_pic ? (
-                                                    <img src={entry.profile_pic} alt={entry.email} className="w-full h-full object-cover" />
+                                                    <img src={resolveImageUrl(entry.profile_pic)} alt={entry.email} className="w-full h-full object-cover" />
                                                 ) : (
                                                     entry.email?.charAt(0).toUpperCase()
                                                 )}

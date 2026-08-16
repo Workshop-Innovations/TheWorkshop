@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { Search, X, Users, MessageSquare } from 'lucide-react';
+import { resolveImageUrl } from '../../utils/imageUtils';
 
 const FindFriendsModal = ({ onClose }) => {
     const { searchUsers, startDM } = useCommunity();
@@ -70,7 +71,7 @@ const FindFriendsModal = ({ onClose }) => {
                             onChange={e => setQuery(e.target.value)}
                         />
                         {loading && (
-                            <div className="w-4 h-4 border-2 border-slate-300 border-t-primary rounded-full animate-spin shrink-0"></div>
+                            <div className="w-4 h-4 border-2 border-slate-300 border-t-primary rounded-sm animate-spin shrink-0"></div>
                         )}
                         {query && !loading && (
                             <button onClick={() => setQuery('')} className="text-slate-400 hover:text-slate-600 transition-colors">
@@ -84,7 +85,7 @@ const FindFriendsModal = ({ onClose }) => {
                 <div className="max-h-96 overflow-y-auto custom-scrollbar bg-white">
                     {!query.trim() && (
                         <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-                            <div className="w-16 h-16 bg-slate-50 border border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <div className="w-16 h-16 bg-slate-50 border border-slate-200 rounded-sm flex items-center justify-center mb-4 shadow-sm">
                                 <Users className="w-8 h-8 text-slate-300" />
                             </div>
                             <p className="text-slate-900 font-bold tracking-tight">Search for classmates</p>
@@ -94,7 +95,7 @@ const FindFriendsModal = ({ onClose }) => {
 
                     {query.trim() && !loading && results.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-                            <div className="w-16 h-16 bg-slate-50 border border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                            <div className="w-16 h-16 bg-slate-50 border border-slate-200 rounded-sm flex items-center justify-center mb-4 shadow-sm">
                                 <Search className="w-8 h-8 text-slate-300" />
                             </div>
                             <p className="text-slate-900 font-bold tracking-tight">No users found</p>
@@ -110,9 +111,9 @@ const FindFriendsModal = ({ onClose }) => {
                                 className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors group"
                             >
                                 {/* Avatar */}
-                                <div className="w-11 h-11 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-base shrink-0 overflow-hidden shadow-sm">
+                                <div className="w-11 h-11 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-base shrink-0 overflow-hidden shadow-sm">
                                     {u.profile_pic ? (
-                                        <img src={u.profile_pic} alt={u.username} className="w-full h-full object-cover" />
+                                        <img src={resolveImageUrl(u.profile_pic)} alt={u.username} className="w-full h-full object-cover" />
                                     ) : (
                                         u.username?.charAt(0).toUpperCase() || '?'
                                     )}
@@ -139,7 +140,7 @@ const FindFriendsModal = ({ onClose }) => {
                                 >
                                     {startingDM === u.id ? (
                                         <>
-                                            <div className="w-3 h-3 border-2 border-slate-300 border-t-primary rounded-full animate-spin"></div>
+                                            <div className="w-3 h-3 border-2 border-slate-300 border-t-primary rounded-sm animate-spin"></div>
                                             Opening
                                         </>
                                     ) : (

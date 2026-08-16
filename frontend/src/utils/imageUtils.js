@@ -102,3 +102,16 @@ export const compressImage = async (base64Str, maxSizeKB = 500) => {
 
     return resultStr;
 };
+
+/**
+ * Resolves a profile picture or uploaded image URL by prepending the backend API URL if it's a relative path.
+ * @param {string} src - The image source string.
+ * @returns {string|null} - The resolved absolute URL.
+ */
+export const resolveImageUrl = (src) => {
+    if (!src) return null;
+    if (src.startsWith('/')) {
+        return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${src}`;
+    }
+    return src;
+};

@@ -141,7 +141,7 @@ const PeerReview = ({ onClose }) => {
                 {/* Submission Info */}
                 <div className="px-8 py-6 bg-white border-b border-slate-200">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm overflow-hidden shrink-0">
+                        <div className="w-10 h-10 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm overflow-hidden shrink-0">
                             {selectedSubmission.author_email?.charAt(0).toUpperCase() || '?'}
                         </div>
                         <div>
@@ -211,7 +211,7 @@ const PeerReview = ({ onClose }) => {
                                     className="ml-auto px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     {submittingFeedback ? (
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-sm animate-spin"></div>
                                     ) : (
                                         <Send className="w-4 h-4" />
                                     )}
@@ -224,7 +224,7 @@ const PeerReview = ({ onClose }) => {
                     {/* Feedback List */}
                     {feedbackLoading ? (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-500 text-sm font-medium gap-3">
-                            <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                            <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-sm animate-spin"></div>
                             Loading feedback...
                         </div>
                     ) : feedbacks.length === 0 ? (
@@ -238,7 +238,7 @@ const PeerReview = ({ onClose }) => {
                                 <div key={fb.id} className="bg-white border border-slate-200 rounded-md p-5 shadow-sm">
                                     <div className="flex items-start justify-between gap-3 mb-3 border-b border-slate-100 pb-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
+                                            <div className="w-9 h-9 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
                                                 {fb.reviewer_email?.charAt(0).toUpperCase() || '?'}
                                             </div>
                                             <div>
@@ -319,7 +319,7 @@ const PeerReview = ({ onClose }) => {
                                 disabled={submitting || !newSubmission.title.trim()}
                                 className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                                {submitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                                {submitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-sm animate-spin"></div>}
                                 {submitting ? 'Posting...' : 'Post Submission'}
                             </button>
                         </div>
@@ -331,12 +331,12 @@ const PeerReview = ({ onClose }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4">
-                        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-sm animate-spin"></div>
                         <p className="text-slate-500 text-sm font-medium">Loading submissions...</p>
                     </div>
                 ) : submissions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center px-4 max-w-sm mx-auto">
-                        <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                        <div className="w-16 h-16 bg-white border border-slate-200 rounded-sm flex items-center justify-center mb-4 shadow-sm">
                             <ClipboardCheck className="w-8 h-8 text-slate-300" />
                         </div>
                         <h3 className="text-slate-900 font-bold text-lg mb-2 tracking-tight">No submissions yet</h3>
@@ -376,7 +376,7 @@ const PeerReview = ({ onClose }) => {
                                 )}
                                 <div className="flex items-center gap-3 text-xs font-bold text-slate-500 border-t border-slate-100 pt-3 mt-auto">
                                     <span className="flex items-center gap-1.5">
-                                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px]">
+                                        <div className="w-5 h-5 rounded-sm bg-slate-100 flex items-center justify-center text-[10px]">
                                             {sub.author_email?.charAt(0).toUpperCase()}
                                         </div>
                                         {sub.author_email?.split('@')[0]}
@@ -404,11 +404,7 @@ const PeerReview = ({ onClose }) => {
     );
 
     return (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
-            <div
-                className="bg-white rounded-md w-full max-w-4xl h-[85vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
-                onClick={e => e.stopPropagation()}
-            >
+        <div className="w-[450px] bg-white h-full flex flex-col border-l border-slate-200 shrink-0 shadow-sm z-10">
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
                     <div className="flex items-center gap-3">
@@ -430,7 +426,6 @@ const PeerReview = ({ onClose }) => {
                     {selectedSubmission ? renderDetail() : renderList()}
                 </div>
             </div>
-        </div>
     );
 };
 

@@ -106,7 +106,7 @@ const SharedNotes = ({ onClose }) => {
                     disabled={saving || !formData.title.trim()}
                     className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
                 >
-                    {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                    {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-sm animate-spin"></div>}
                     {saving ? 'Saving...' : selectedNote ? 'Save Changes' : 'Create Note'}
                 </button>
             </div>
@@ -213,12 +213,12 @@ const SharedNotes = ({ onClose }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center h-full gap-4">
-                        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-sm animate-spin"></div>
                         <p className="text-slate-500 text-sm font-medium">Loading notes...</p>
                     </div>
                 ) : notes.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-center px-4 max-w-sm mx-auto">
-                        <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                        <div className="w-16 h-16 bg-white border border-slate-200 rounded-sm flex items-center justify-center mb-4 shadow-sm">
                             <FileText className="w-8 h-8 text-slate-300" />
                         </div>
                         <h3 className="text-slate-900 font-bold text-lg mb-2 tracking-tight">No shared notes yet</h3>
@@ -255,7 +255,7 @@ const SharedNotes = ({ onClose }) => {
                                 
                                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-100">
                                     <div className="flex items-center gap-1.5">
-                                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">
+                                        <div className="w-5 h-5 rounded-sm bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-[10px]">
                                             {note.creator_email?.charAt(0).toUpperCase()}
                                         </div>
                                         <span className="text-xs font-bold text-slate-700">
@@ -275,11 +275,7 @@ const SharedNotes = ({ onClose }) => {
     );
 
     return (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
-            <div
-                className="bg-white rounded-md w-full max-w-4xl h-[85vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
-                onClick={e => e.stopPropagation()}
-            >
+        <div className="w-[450px] bg-white h-full flex flex-col border-l border-slate-200 shrink-0 shadow-sm z-10">
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
                     <div className="flex items-center gap-3">
@@ -317,7 +313,6 @@ const SharedNotes = ({ onClose }) => {
                     }
                 </div>
             </div>
-        </div>
     );
 };
 

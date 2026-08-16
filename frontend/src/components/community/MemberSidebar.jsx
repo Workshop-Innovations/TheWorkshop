@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import Leaderboard from './Leaderboard';
 import { Trophy } from 'lucide-react';
+import { resolveImageUrl } from '../../utils/imageUtils';
 
 const ProfileHoverCard = ({ member, onStartDM, isOwn, onClose }) => {
     const { fetchUserReputation } = useCommunity();
@@ -26,9 +27,9 @@ const ProfileHoverCard = ({ member, onStartDM, isOwn, onClose }) => {
             {/* Avatar */}
             <div className="px-4 pb-4">
                 <div className="-mt-8 mb-3 relative inline-block">
-                    <div className="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center text-white font-black text-2xl border-4 border-slate-900 overflow-hidden shadow-xl">
+                    <div className="w-16 h-16 rounded-sm bg-indigo-500 flex items-center justify-center text-white font-black text-2xl border-4 border-slate-900 overflow-hidden shadow-xl">
                         {member.user_profile_pic ? (
-                            <img src={member.user_profile_pic} alt={member.user_email} className="w-full h-full object-cover" />
+                            <img src={resolveImageUrl(member.user_profile_pic)} alt={member.user_email} className="w-full h-full object-cover" />
                         ) : (
                             member.user_email?.charAt(0).toUpperCase() || '?'
                         )}
@@ -41,7 +42,7 @@ const ProfileHoverCard = ({ member, onStartDM, isOwn, onClose }) => {
                     </h3>
                     <p className="text-slate-400 text-xs">{member.user_email}</p>
                     {member.role !== 'member' && (
-                        <span className={`inline-block mt-1 text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${
+                        <span className={`inline-block mt-1 text-[10px] uppercase font-black px-2 py-0.5 rounded-sm ${
                             member.role === 'owner' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'
                         }`}>
                             {member.role}
@@ -167,12 +168,12 @@ const MemberSidebar = () => {
             >
                 {/* Avatar with online indicator */}
                 <div className="relative shrink-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs overflow-hidden ${
+                    <div className={`w-8 h-8 rounded-sm flex items-center justify-center text-white font-bold text-xs overflow-hidden ${
                         isOnline ? 'bg-indigo-600' : 'bg-slate-600'
                     }`}>
                         {member.user_profile_pic ? (
                             <img
-                                src={member.user_profile_pic}
+                                src={resolveImageUrl(member.user_profile_pic)}
                                 alt={member.user_email}
                                 className={`w-full h-full object-cover ${!isOnline ? 'grayscale' : ''}`}
                             />
@@ -180,7 +181,7 @@ const MemberSidebar = () => {
                             member.user_email?.charAt(0).toUpperCase() || '?'
                         )}
                     </div>
-                    <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-800 ${
+                    <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-sm border-2 border-slate-800 ${
                         isOnline ? 'bg-emerald-500' : 'bg-slate-500'
                     }`}></span>
                 </div>

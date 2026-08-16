@@ -1012,6 +1012,7 @@ async def get_messages_by_slug(
             user_id=msg.user_id,
             channel_id=msg.channel_id,
             user_email=user.email if user else None,
+            user_profile_pic=user.profile_pic if user else None,
             score=score,
             user_vote=user_vote
         ))
@@ -1058,6 +1059,7 @@ async def create_message_by_slug(
         user_id=db_message.user_id,
         channel_id=db_message.channel_id,
         user_email=current_user.email,
+        user_profile_pic=current_user.profile_pic,
         score=0,
         user_vote=0
     )
@@ -1122,6 +1124,7 @@ async def vote_message_by_slug(
         user_id=message.user_id,
         channel_id=message.channel_id,
         user_email=user.email if user else None,
+        user_profile_pic=user.profile_pic if user else None,
         score=score,
         user_vote=vote_value
     )

@@ -4,6 +4,7 @@ import StudyGroups from './StudyGroups';
 import FindFriendsModal from './FindFriendsModal';
 import Leaderboard from './Leaderboard';
 import { Trophy, Wrench, Lock, Book } from 'lucide-react';
+import { resolveImageUrl } from '../../utils/imageUtils';
 
 const ChannelList = () => {
     const {
@@ -163,7 +164,7 @@ const ChannelList = () => {
                                 <span className={`text-lg opacity-50 shrink-0 ${isActive ? 'text-primary opacity-100' : hasUnread ? 'text-slate-700' : 'text-slate-400'}`}>#</span>
                                 <span className="text-[15px] truncate flex-1">{channel.name}</span>
                                 {hasUnread && !isActive && (
-                                    <span className="w-2 h-2 bg-accent rounded-full shrink-0"></span>
+                                    <span className="w-2 h-2 bg-accent rounded-sm shrink-0"></span>
                                 )}
                             </div>
                         );
@@ -196,7 +197,7 @@ const ChannelList = () => {
                                     <Lock size={14} className={`shrink-0 ${isActive ? 'opacity-100' : 'opacity-50'}`} />
                                     <span className="text-[15px] truncate flex-1">{channel.name}</span>
                                     {hasUnread && !isActive && (
-                                        <span className="w-2 h-2 bg-accent rounded-full shrink-0"></span>
+                                        <span className="w-2 h-2 bg-accent rounded-sm shrink-0"></span>
                                     )}
                                 </div>
                             );
@@ -235,15 +236,15 @@ const ChannelList = () => {
                                 onClick={() => handleDMClick(dm)}
                             >
                                 <div className="relative shrink-0">
-                                    <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs overflow-hidden">
+                                    <div className="w-8 h-8 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs overflow-hidden">
                                         {dm.other_user_profile_pic ? (
-                                            <img src={dm.other_user_profile_pic} alt={dm.other_user_email} className="w-full h-full object-cover" />
+                                            <img src={resolveImageUrl(dm.other_user_profile_pic)} alt={dm.other_user_email} className="w-full h-full object-cover" />
                                         ) : (
                                             dm.other_user_email?.charAt(0).toUpperCase() || '?'
                                         )}
                                     </div>
                                     {hasUnread && (
-                                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-accent rounded-full border-2 border-white"></span>
+                                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-accent rounded-sm border-2 border-white"></span>
                                     )}
                                 </div>
                                 <div className="min-w-0 flex-1">

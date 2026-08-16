@@ -143,7 +143,7 @@ const StudyGroups = ({ onClose }) => {
                     {selectedGroup.members?.filter(m => m.status === 'approved' || !m.status).map(member => (
                         <div key={member.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-md border border-slate-200 shadow-sm">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
+                                <div className="w-8 h-8 rounded-sm bg-white border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
                                     {member.user_email?.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="font-bold text-slate-900 tracking-tight">{member.user_email?.split('@')[0]}</span>
@@ -171,7 +171,7 @@ const StudyGroups = ({ onClose }) => {
                             {selectedGroup.members?.filter(m => m.status === 'pending').map(member => (
                                 <div key={member.id} className="flex items-center justify-between p-4 bg-white rounded-md border border-amber-200 shadow-sm mb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold text-xs shrink-0">
+                                        <div className="w-8 h-8 rounded-sm bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold text-xs shrink-0">
                                             {member.user_email?.charAt(0).toUpperCase()}
                                         </div>
                                         <span className="font-bold text-slate-900">{member.user_email?.split('@')[0]}</span>
@@ -308,12 +308,12 @@ const StudyGroups = ({ onClose }) => {
                         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                             {loading ? (
                                 <div className="text-center text-slate-500 py-16 flex flex-col items-center gap-4">
-                                    <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                                    <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-sm animate-spin"></div>
                                     <p className="font-medium">Loading groups...</p>
                                 </div>
                             ) : groups.length === 0 ? (
                                 <div className="text-center py-24 px-4 max-w-sm mx-auto">
-                                    <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-4 shadow-sm mx-auto">
+                                    <div className="w-16 h-16 bg-white border border-slate-200 rounded-sm flex items-center justify-center mb-4 shadow-sm mx-auto">
                                         <BookOpen className="w-8 h-8 text-slate-300" />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 mb-2 tracking-tight">No study groups yet</h3>
