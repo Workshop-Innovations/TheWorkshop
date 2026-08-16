@@ -1,7 +1,7 @@
 from typing import Optional, List
 from sqlmodel import Field, SQLModel, Relationship # Import Relationship
 from pydantic import EmailStr, BaseModel, field_validator
-from datetime import datetime, date, timezone
+from datetime import datetime, timezone, date
 from uuid import uuid4 # Import uuid4 for generating UUIDs
 
 # --- User Models ---
@@ -769,8 +769,18 @@ class PastPaper(SQLModel, table=True):
     exam_type: str # WAEC, JAMB, NECO
     file_path: Optional[str] = None # e.g. "mathematics_2023.pdf" - relative to static/papers folder
     content: Optional[str] = Field(default=None, sa_column=Column(String)) # Markdown content for text-based papers
+    duration_minutes: Optional[int] = Field(default=60) # Default to 60 mins if not provided
     
     subject: Optional[Subject] = Relationship(back_populates="papers")
+
+class TestAttempt(SQLModel, table=True):
+    id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="user.id", index=True)
+    paper_id: str = Field(foreign_key="pastpaper.id", index=True)
+    score: Optional[float] = None
+    answers_data: Optional[str] = Field(default=None, sa_column=Column(String)) # JSON string
+    feedback_data: Optional[str] = Field(default=None, sa_column=Column(String)) # JSON string
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # --- Past Paper Schemas ---
 
@@ -781,6 +791,7 @@ class PastPaperCreate(BaseModel):
     exam_type: str
     file_path: Optional[str] = None
     content: Optional[str] = None
+    duration_minutes: Optional[int] = 60
 
 class PastPaperUpdate(BaseModel):
     subject_id: Optional[str] = None
@@ -789,6 +800,7 @@ class PastPaperUpdate(BaseModel):
     exam_type: Optional[str] = None
     file_path: Optional[str] = None
     content: Optional[str] = None
+    duration_minutes: Optional[int] = None
 
 # --- Subject/Paper Pydantic Schemas ---
 
@@ -810,11 +822,28 @@ class TopicResponse(BaseModel):
 
 class PastPaperResponse(BaseModel):
     id: str
+    subject_id: str
     title: str
     year: str
     exam_type: str
     file_path: Optional[str] = None
     content: Optional[str] = None
+    duration_minutes: Optional[int] = 60
+    
+    model_config = {"from_attributes": True}
+
+class TestAttemptCreate(BaseModel):
+    paper_id: str
+    answers_data: Optional[str] = None
+
+class TestAttemptResponse(BaseModel):
+    id: str
+    user_id: str
+    paper_id: str
+    score: Optional[float] = None
+    answers_data: Optional[str] = None
+    feedback_data: Optional[str] = None
+    created_at: datetime
     
     model_config = {"from_attributes": True}
 

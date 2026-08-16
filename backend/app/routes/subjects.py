@@ -1,14 +1,17 @@
 from datetime import datetime
 from typing import List, Optional
-from uuid import uuid4
-
+import json
+import re
+import os
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlmodel import Session, select, desc
 from ..database import get_session
 from ..schemas import (
     Subject, SubjectResponse, Topic, TopicResponse, PastPaper, PastPaperResponse, 
     TopicSummaryResponse, User,
-    SubjectCreate, SubjectUpdate, TopicCreate, TopicUpdate, PastPaperCreate, PastPaperUpdate
+    SubjectCreate, SubjectUpdate, TopicCreate, TopicUpdate, PastPaperCreate, PastPaperUpdate,
+    TestAttempt, TestAttemptCreate, TestAttemptResponse
 )
 from ..dependencies import get_current_user, get_current_admin_user # Import admin dependency
 
@@ -218,3 +221,79 @@ async def delete_paper(
         raise HTTPException(status_code=404, detail="Paper not found")
     session.delete(paper)
     session.commit()
+
+# --- Test Attempts & Grading ---
+
+@router.get("/papers/{paper_id}/attempts", response_model=List[TestAttemptResponse], summary="Get user's attempts for a paper")
+async def get_test_attempts(
+    paper_id: str,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    attempts = session.exec(
+        select(TestAttempt).where(
+            TestAttempt.paper_id == paper_id,
+            TestAttempt.user_id == current_user.id
+        ).order_by(TestAttempt.created_at.desc())
+    ).all()
+    return attempts
+
+@router.post("/papers/{paper_id}/grade", response_model=TestAttemptResponse, summary="Grade paper using AI and save attempt")
+async def grade_paper(
+    paper_id: str,
+    attempt_data: TestAttemptCreate,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    paper = session.get(PastPaper, paper_id)
+    if not paper:
+        raise HTTPException(status_code=404, detail="Paper not found")
+        
+    answers_dict = {}
+    if attempt_data.answers_data:
+        try:
+            answers_dict = json.loads(attempt_data.answers_data)
+        except json.JSONDecodeError:
+            pass
+
+    # Extract marking scheme (everything after ## ANSWERS)
+    content = paper.content or ""
+    answer_split = re.split(r'\n#{1,3}\s*ANSWER(?:S|\s+BANK)?\s*\n', content, flags=re.IGNORECASE)
+    rubric = answer_split[1] if len(answer_split) > 1 else ""
+
+    # Call Modal AI grader endpoint
+    modal_url = os.getenv("MODAL_GRADER_URL", "")
+    feedback_data = {"overall_feedback": "AI grading unavailable — no MODAL_GRADER_URL configured."}
+    score = 0.0
+
+    if modal_url and rubric:
+        try:
+            async with httpx.AsyncClient() as client:
+                ai_response = await client.post(
+                    modal_url,
+                    json={"user_answers": answers_dict, "rubric": rubric},
+                    timeout=45.0
+                )
+                ai_response.raise_for_status()
+                ai_result = ai_response.json()
+                score = float(ai_result.get("total_score", 0.0))
+                feedback_data = ai_result.get("feedback", feedback_data)
+        except httpx.TimeoutException:
+            feedback_data = {"overall_feedback": "AI grader timed out. Your answers have been saved."}
+        except Exception as e:
+            print(f"[grade_paper] Modal call failed: {e}")
+            feedback_data = {"overall_feedback": f"AI grading failed: {str(e)}. Your answers have been saved."}
+    
+    db_attempt = TestAttempt(
+        user_id=current_user.id,
+        paper_id=paper_id,
+        score=score,
+        answers_data=attempt_data.answers_data,
+        feedback_data=json.dumps(feedback_data)
+    )
+    
+    session.add(db_attempt)
+    session.commit()
+    session.refresh(db_attempt)
+    
+    return db_attempt

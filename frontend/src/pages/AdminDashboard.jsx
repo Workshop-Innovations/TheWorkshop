@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import { Book, FileText, ShieldAlert, Plus, Edit, Trash, Layers, X } from 'lucide-react';
 import axios from 'axios';
 import ContentEditor from '../components/ContentEditor';
+import DiagramManagerModal from '../components/DiagramManagerModal';
+import { Image as ImageIcon } from 'lucide-react';
 
 const AdminDashboard = () => {
     const { user, accessToken } = useAuth();
@@ -39,6 +41,10 @@ const AdminDashboard = () => {
     // Form states for metadata
     const [formData, setFormData] = useState({});
     const [showContentEditor, setShowContentEditor] = useState(false);
+    
+    // Diagram Manager states
+    const [isDiagramManagerOpen, setIsDiagramManagerOpen] = useState(false);
+    const [selectedPaperForDiagrams, setSelectedPaperForDiagrams] = useState(null);
 
     const handleContentSave = (newContent) => {
         setFormData({ ...formData, content: newContent });
@@ -168,6 +174,27 @@ const AdminDashboard = () => {
         } catch (err) {
             console.error("Failed to update role:", err);
             alert("Failed to update user role.");
+        }
+    };
+
+    const handleManageDiagrams = (paper) => {
+        setSelectedPaperForDiagrams(paper);
+        setIsDiagramManagerOpen(true);
+    };
+
+    const handleDiagramUploaded = async () => {
+        // We need to fetch the specific paper's updated content, or refresh all
+        await fetchData();
+        // The modal will re-render automatically because `data` changes and we pass the updated paper down
+        // Wait, we need to update selectedPaperForDiagrams to the new paper data
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        try {
+            const response = await axios.get(`${baseUrl}/api/v1/papers/${selectedPaperForDiagrams.id}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            setSelectedPaperForDiagrams(response.data);
+        } catch (err) {
+            console.error("Failed to fetch updated paper:", err);
         }
     };
 
@@ -370,6 +397,16 @@ const AdminDashboard = () => {
                                     </select>
                                 </div>
                                 <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Duration (Minutes)</label>
+                                    <input
+                                        type="number"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        value={formData.duration_minutes || 60}
+                                        onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+                                <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Content</label>
                                     <div className="flex items-center space-x-4">
                                         <button
@@ -553,6 +590,13 @@ const AdminDashboard = () => {
                                             </td>
                                             <td className="px-6 py-4 text-right space-x-2">
                                                 <button
+                                                    onClick={() => handleManageDiagrams(paper)}
+                                                    className="text-green-600 hover:text-green-800"
+                                                    title="Manage Diagrams"
+                                                >
+                                                    <ImageIcon />
+                                                </button>
+                                                <button
                                                     onClick={() => handleEdit(paper, 'papers')}
                                                     className="text-blue-600 hover:text-blue-800"
                                                     title="Edit"
@@ -715,6 +759,14 @@ const AdminDashboard = () => {
                     />
                 </div>
             )}
+            
+            <DiagramManagerModal 
+                isOpen={isDiagramManagerOpen}
+                onClose={() => setIsDiagramManagerOpen(false)}
+                paper={selectedPaperForDiagrams}
+                accessToken={accessToken}
+                onDiagramUploaded={handleDiagramUploaded}
+            />
 
             <Footer />
         </div>
