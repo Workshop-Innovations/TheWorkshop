@@ -126,7 +126,7 @@ const Tasks = () => {
       }
 
       if (!currentCompletedStatus) {
-        toast.success('ðŸŽ‰ Task completed!', { position: 'top-right', autoClose: 3000 });
+        toast.success('Task completed!', { position: 'top-right', autoClose: 3000 });
       } else {
         toast.info('Task marked as pending.', { position: 'top-right', autoClose: 3000 });
       }

@@ -193,7 +193,7 @@ const PaperMarkdownComponents = {
                 return (
                     <input
                         type="radio"
-                        name={q_}
+                        name={`q_${q}`}
                         value={opt}
                         checked={userAnswers[q] === opt}
                         onChange={e => handleAnswerChange(q, e.target.value)}

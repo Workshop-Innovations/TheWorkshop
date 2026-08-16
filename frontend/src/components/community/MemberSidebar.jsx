@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import Leaderboard from './Leaderboard';
+import { Trophy } from 'lucide-react';
 
 const ProfileHoverCard = ({ member, onStartDM, isOwn, onClose }) => {
     const { fetchUserReputation } = useCommunity();
@@ -230,7 +231,7 @@ const MemberSidebar = () => {
                     className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-md shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
                     onClick={() => setShowLeaderboard(true)}
                 >
-                    <span>ðŸ†</span> Leaderboard
+                    <span><Trophy size={16} className="inline mr-1" /></span> Leaderboard
                 </button>
             </div>
 

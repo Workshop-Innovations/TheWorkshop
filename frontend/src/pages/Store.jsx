@@ -34,7 +34,7 @@ const Store = () => {
       setTimeLeft(prevTime => {
         if (prevTime <= 1) {
           clearInterval(interval);
-          toast.info(`ðŸŽ‰ Finished your break: ${activeReward.title}`);
+          toast.info(`Finished your break: ${activeReward.title}`);
           setActiveReward(null);
           return 0;
         }
@@ -85,7 +85,7 @@ const Store = () => {
     setCoins(updatedData.coins);
     setActiveReward(reward);
     setTimeLeft(reward.duration * 60);
-    toast.success('ðŸŽ‰ Reward redeemed! Enjoy your break!');
+    toast.success('Reward redeemed! Enjoy your break!');
   };
 
   return (

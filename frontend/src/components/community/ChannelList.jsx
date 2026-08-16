@@ -3,7 +3,7 @@ import { useCommunity } from '../../context/CommunityContext';
 import StudyGroups from './StudyGroups';
 import FindFriendsModal from './FindFriendsModal';
 import Leaderboard from './Leaderboard';
-import { Trophy } from 'lucide-react';
+import { Trophy, Wrench, Lock, Book } from 'lucide-react';
 
 const ChannelList = () => {
     const {
@@ -73,7 +73,7 @@ const ChannelList = () => {
             <div className="h-16 flex items-center justify-between px-5 border-b border-slate-200 shrink-0 bg-white">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-900 border border-slate-200">
-                        {currentCommunity.icon || 'ðŸ› ï¸'}
+                        {currentCommunity.icon || <Wrench size={16} className="opacity-80" />}
                     </div>
                     <h3 className="font-bold text-slate-900 text-base tracking-tight truncate">
                         {currentCommunity.name}
@@ -193,7 +193,7 @@ const ChannelList = () => {
                                     }`}
                                     onClick={() => handleChannelClick(channel)}
                                 >
-                                    <span className={`text-sm shrink-0 ${isActive ? 'opacity-100' : 'opacity-50'}`}>ðŸ”’</span>
+                                    <Lock size={14} className={`shrink-0 ${isActive ? 'opacity-100' : 'opacity-50'}`} />
                                     <span className="text-[15px] truncate flex-1">{channel.name}</span>
                                     {hasUnread && !isActive && (
                                         <span className="w-2 h-2 bg-accent rounded-full shrink-0"></span>
@@ -274,7 +274,7 @@ const ChannelList = () => {
                     className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors text-sm font-bold border border-primary/20"
                     onClick={() => setShowStudyGroups(true)}
                 >
-                    <span className="text-base">ðŸ“š</span>
+                    <Book size={20} className="mr-3 text-emerald-600" />
                     Browse Study Groups
                 </button>
             </div>
