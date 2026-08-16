@@ -167,89 +167,97 @@ const PaperMarkdownComponents = {
             }} />
         );
     },
-    a: ({ href, children }) => {
-        if (href && href.startsWith('input://')) {
-            const { mode, userAnswers, handleAnswerChange } = useContext(PaperContext);
-            const url = new URL(href);
-            const type = url.hostname;
-            const q    = url.searchParams.get('q');
+    a: PaperLink,
+};
 
-            if (mode !== 'practice' && type !== 'diagram') {
-                return null;
-            }
+// PaperLink MUST be a proper named React component (not an inline function in an
+// object literal) so that useContext() obeys the Rules of Hooks.
+// Putting useContext inside a plain object property caused React error #310.
+function PaperLink({ href, children }) {
+    // Always call the hook unconditionally at the top level.
+    const ctx = useContext(PaperContext);
+    const { mode, userAnswers, handleAnswerChange } = ctx || {};
 
-            if (type === 'diagram') {
-                const label = url.searchParams.get('label');
-                return (
-                    <div className="flex flex-col items-center justify-center p-6 my-4 border-2 border-dashed border-slate-300 rounded-md bg-slate-50 text-slate-500">
-                        <span className="text-sm font-semibold mb-1">Missing Diagram</span>
-                        <code className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-600">{label}</code>
-                    </div>
-                );
-            }
+    if (href && href.startsWith('input://')) {
+        const url = new URL(href);
+        const type = url.hostname;
+        const q    = url.searchParams.get('q');
 
-            if (type === 'mcq') {
-                const opt = url.searchParams.get('opt');
-                return (
-                    <input
-                        type="radio"
-                        name={`q_${q}`}
-                        value={opt}
-                        checked={userAnswers[q] === opt}
-                        onChange={e => handleAnswerChange(q, e.target.value)}
-                        className="mr-2 accent-indigo-600 w-4 h-4 cursor-pointer"
-                    />
-                );
-            }
+        if (mode !== 'practice' && type !== 'diagram') {
+            return null;
+        }
 
-            if (type === 'essay') {
-                return (
-                    <textarea
-                        className="w-full mt-2 p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-400 focus:border-transparent resize-y text-sm"
-                        rows={6}
-                        placeholder="Type your essay answer here..."
-                        value={userAnswers[q] || ''}
-                        onChange={e => handleAnswerChange(q, e.target.value)}
-                    />
-                );
-            }
+        if (type === 'diagram') {
+            const label = url.searchParams.get('label');
+            return (
+                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'1.5rem', margin:'1rem 0', border:'2px dashed #cbd5e1', background:'#f8fafc', color:'#64748b' }}>
+                    <span style={{ fontSize:'0.875rem', fontWeight:600, marginBottom:'0.25rem' }}>Missing Diagram</span>
+                    <code style={{ fontSize:'0.75rem', background:'#e2e8f0', padding:'2px 8px', color:'#475569' }}>{label}</code>
+                </div>
+            );
+        }
 
-            if (type === 'structured') {
-                return (
+        if (type === 'mcq') {
+            const opt = url.searchParams.get('opt');
+            return (
+                <input
+                    type="radio"
+                    name={`q_${q}`}
+                    value={opt}
+                    checked={(userAnswers || {})[q] === opt}
+                    onChange={e => handleAnswerChange && handleAnswerChange(q, e.target.value)}
+                    className="mr-2 accent-indigo-600 w-4 h-4 cursor-pointer"
+                />
+            );
+        }
+
+        if (type === 'essay') {
+            return (
+                <textarea
+                    className="w-full mt-2 p-3 border border-slate-300 rounded-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent resize-y text-sm"
+                    rows={6}
+                    placeholder="Type your essay answer here..."
+                    value={(userAnswers || {})[q] || ''}
+                    onChange={e => handleAnswerChange && handleAnswerChange(q, e.target.value)}
+                />
+            );
+        }
+
+        if (type === 'structured') {
+            return (
+                <input
+                    type="text"
+                    className="w-full mt-2 p-2 border border-slate-300 rounded-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm"
+                    placeholder="Type your short answer..."
+                    value={(userAnswers || {})[q] || ''}
+                    onChange={e => handleAnswerChange && handleAnswerChange(q, e.target.value)}
+                />
+            );
+        }
+
+        if (type === 'calc') {
+            return (
+                <div className="mt-2">
                     <input
                         type="text"
-                        className="w-full mt-2 p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm"
-                        placeholder="Type your short answer..."
-                        value={userAnswers[q] || ''}
-                        onChange={e => handleAnswerChange(q, e.target.value)}
+                        className="w-full p-2 border border-slate-300 rounded-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm font-mono"
+                        placeholder="Final answer"
+                        value={(userAnswers || {})[q] || ''}
+                        onChange={e => handleAnswerChange && handleAnswerChange(q, e.target.value)}
                     />
-                );
-            }
-
-            if (type === 'calc') {
-                return (
-                    <div className="mt-2">
-                        <input
-                            type="text"
-                            className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm font-mono"
-                            placeholder="Final answer"
-                            value={userAnswers[q] || ''}
-                            onChange={e => handleAnswerChange(q, e.target.value)}
-                        />
-                        <p className="text-xs text-slate-400 mt-1 italic">
-                            Note: In the real exam you must show all steps and working for full marks. For this practice, just enter your final answer.
-                        </p>
-                    </div>
-                );
-            }
+                    <p className="text-xs text-slate-400 mt-1 italic">
+                        Note: In the real exam you must show all steps and working for full marks. For this practice, just enter your final answer.
+                    </p>
+                </div>
+            );
         }
-        return (
-            <a href={href} className="text-indigo-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                {children}
-            </a>
-        );
-    },
-};
+    }
+    return (
+        <a href={href} className="text-indigo-600 hover:underline" target="_blank" rel="noopener noreferrer">
+            {children}
+        </a>
+    );
+}
 
 const PaperViewer = () => {
     const { paperId } = useParams();
