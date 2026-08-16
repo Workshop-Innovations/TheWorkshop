@@ -136,10 +136,6 @@ const PastPapers = () => {
                                 {filteredPapers.map((paper) => (
                                     <div key={paper.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center hover:shadow-md transition-shadow group">
                                         <div className="flex items-start gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold ${paper.exam_type === 'WAEC' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
-                                                }`}>
-                                                {paper.exam_type ? paper.exam_type[0] : '?'}
-                                            </div>
                                             <div>
                                                 <h3 className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">{paper.title}</h3>
                                                 <div className="flex gap-2 mt-2">

@@ -47,6 +47,7 @@ function injectInteractiveMarkers(text) {
         lines[i] = lines[i].replace(/\[ESSAY\]/g, `[__ESSAY__](input://essay?q=${currentQ})`);
         lines[i] = lines[i].replace(/\[STRUCTURED\]/g, `[__STRUCTURED__](input://structured?q=${currentQ})`);
         lines[i] = lines[i].replace(/\[CALC\]/g, `[__CALC__](input://calc?q=${currentQ})`);
+        lines[i] = lines[i].replace(/(^|[^\!])\[DIAGRAM:([^\]]+)\]/g, '$1[__DIAGRAM__](input://diagram?label=$2)');
     }
     return lines.join('\n');
 }
@@ -327,13 +328,20 @@ const PaperViewer = () => {
                 const type = url.hostname;
                 const q    = url.searchParams.get('q');
 
-                // In read mode, just show a badge label
-                if (mode !== 'practice') {
-                    if (type === 'mcq') return null;
+                // In read mode, hide all input markers except diagrams
+                if (mode !== 'practice' && type !== 'diagram') {
+                    return null;
+                }
+
+                if (type === 'diagram') {
+                    const label = url.searchParams.get('label');
                     return (
-                        <span className="inline-block px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded">
-                            [{type.toUpperCase()}]
-                        </span>
+                        <div className="flex flex-col items-center justify-center p-6 my-4 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 text-slate-500">
+                            <span className="text-sm font-semibold mb-1">📷 Missing Diagram</span>
+                            <code className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-600">
+                                {label}
+                            </code>
+                        </div>
                     );
                 }
 

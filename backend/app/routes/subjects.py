@@ -219,6 +219,12 @@ async def delete_paper(
     paper = session.get(PastPaper, paper_id)
     if not paper:
         raise HTTPException(status_code=404, detail="Paper not found")
+        
+    # Cascade delete associated test attempts
+    attempts = session.exec(select(TestAttempt).where(TestAttempt.paper_id == paper_id)).all()
+    for attempt in attempts:
+        session.delete(attempt)
+        
     session.delete(paper)
     session.commit()
 

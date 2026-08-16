@@ -23,7 +23,8 @@ const DiagramManagerModal = ({ isOpen, onClose, paper, accessToken, onDiagramUpl
         const content = paper.content;
         
         // Find missing placeholders: [DIAGRAM:label] NOT preceded by !
-        const missingRegex = /(?<!\!)\[DIAGRAM:([^\]]+)\]/g;
+        // We use a safer regex to avoid negative lookbehind `(?<!\!)` which crashes Safari < 16.4
+        const missingRegex = /(?:^|[^\!])\[DIAGRAM:([^\]]+)\]/g;
         const missing = [];
         let match;
         while ((match = missingRegex.exec(content)) !== null) {

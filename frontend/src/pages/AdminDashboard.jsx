@@ -3,34 +3,38 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { Book, FileText, ShieldAlert, Plus, Edit, Trash, Layers, X } from 'lucide-react';
+import { Book, FileText, ShieldAlert, Plus, Edit, Trash, Layers, X, CheckCircle, UploadCloud } from 'lucide-react';
 import axios from 'axios';
 import ContentEditor from '../components/ContentEditor';
 import DiagramManagerModal from '../components/DiagramManagerModal';
 import { Image as ImageIcon } from 'lucide-react';
+import GlobalDiagramManager from '../components/GlobalDiagramManager';
 
 const AdminDashboard = () => {
     const { user, accessToken } = useAuth();
-    const [activeTab, setActiveTab] = useState('subjects'); // subjects, topics, papers, admins
+    const [activeTab, setActiveTab] = useState('subjects'); // subjects, topics, papers, diagrams, admins
     const [data, setData] = useState([]);
     const [subjects, setSubjects] = useState([]); // Store subjects for dropdowns and lookups
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Fetch subjects on mount so they are available for dropdowns
+    // Fetch subjects to populate dropdowns and lookups
+    const fetchSubjects = async () => {
+        try {
+            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const response = await axios.get(`${baseUrl}/api/v1/subjects`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            setSubjects(response.data);
+        } catch (err) {
+            console.error("Failed to load subjects:", err);
+        }
+    };
+
     useEffect(() => {
-        const fetchSubjects = async () => {
-            try {
-                const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-                const response = await axios.get(`${baseUrl}/api/v1/subjects`, {
-                    headers: { Authorization: `Bearer ${accessToken}` }
-                });
-                setSubjects(response.data);
-            } catch (err) {
-                console.error("Failed to load subjects:", err);
-            }
-        };
-        fetchSubjects();
+        if (accessToken) {
+            fetchSubjects();
+        }
     }, [accessToken]);
 
     const [editingItem, setEditingItem] = useState(null);
@@ -46,11 +50,6 @@ const AdminDashboard = () => {
     const [isDiagramManagerOpen, setIsDiagramManagerOpen] = useState(false);
     const [selectedPaperForDiagrams, setSelectedPaperForDiagrams] = useState(null);
 
-    const handleContentSave = (newContent) => {
-        setFormData({ ...formData, content: newContent });
-        setShowContentEditor(false);
-    };
-
     // Fetch data based on active tab
     useEffect(() => {
         fetchData();
@@ -60,6 +59,8 @@ const AdminDashboard = () => {
         setLoading(true);
         setError(null);
         try {
+            if (accessToken) await fetchSubjects(); // Ensure subjects list is always fresh
+
             const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
             let url = '';
 
@@ -71,6 +72,7 @@ const AdminDashboard = () => {
                     url = `${baseUrl}/api/v1/topics`;
                     break;
                 case 'papers':
+                case 'diagrams':
                     url = `${baseUrl}/api/v1/papers`;
                     break;
                 case 'admins':
@@ -109,15 +111,23 @@ const AdminDashboard = () => {
 
         // Initialize with valid defaults to prevent validation errors
         if (type === 'papers') {
+            if (subjects.length === 0) {
+                alert("You must create at least one Subject before adding a Paper.");
+                return;
+            }
             setFormData({
                 exam_type: 'WAEC',
                 year: new Date().getFullYear().toString(),
-                subject_id: subjects.length > 0 ? subjects[0].id : '' // Select first subject by default if available
+                subject_id: subjects[0].id
             });
         } else if (type === 'topics') {
+            if (subjects.length === 0) {
+                alert("You must create at least one Subject before adding a Topic.");
+                return;
+            }
             setFormData({
                 order: 1,
-                subject_id: subjects.length > 0 ? subjects[0].id : ''
+                subject_id: subjects[0].id
             });
         } else if (type === 'users') {
             setFormData({ role: 'admin' });
@@ -617,6 +627,14 @@ const AdminDashboard = () => {
                             </table>
                         </div>
                     </div>
+                );
+            case 'diagrams':
+                return (
+                    <GlobalDiagramManager 
+                        papers={data} 
+                        accessToken={accessToken} 
+                        onUploadSuccess={fetchData} 
+                    />
                 );
             case 'admins':
                 return (

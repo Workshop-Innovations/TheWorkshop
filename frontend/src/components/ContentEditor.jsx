@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { Save, X, FileType2 } from 'lucide-react';
+import { Save, X, FileType2, Upload } from 'lucide-react';
 
 const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }) => {
     const [content, setContent] = useState(initialValue);
@@ -28,6 +28,20 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
         onSave(content);
     };
 
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            setContent(evt.target.result);
+        };
+        reader.readAsText(file);
+        
+        // Reset input so the same file can be uploaded again if needed
+        e.target.value = null;
+    };
+
     return (
         <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-[80vh] w-full max-w-5xl mx-auto">
             {/* Header */}
@@ -36,6 +50,15 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
                     <FileType2 className="mr-2 text-primary" /> {title}
                 </h3>
                 <div className="flex space-x-2">
+                    <label className="cursor-pointer px-3 py-1.5 text-sm font-medium bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 rounded-lg transition-colors flex items-center">
+                        <Upload className="w-4 h-4 mr-1" /> Upload .md
+                        <input 
+                            type="file" 
+                            accept=".md,.txt" 
+                            className="hidden" 
+                            onChange={handleFileUpload} 
+                        />
+                    </label>
                     <button
                         onClick={() => setIsPreview(!isPreview)}
                         className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${isPreview
