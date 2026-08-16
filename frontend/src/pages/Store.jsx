@@ -34,7 +34,7 @@ const Store = () => {
       setTimeLeft(prevTime => {
         if (prevTime <= 1) {
           clearInterval(interval);
-          toast.info(`🎉 Finished your break: ${activeReward.title}`);
+          toast.info(`ðŸŽ‰ Finished your break: ${activeReward.title}`);
           setActiveReward(null);
           return 0;
         }
@@ -64,7 +64,7 @@ const Store = () => {
       duration: '',
       category: 'break',
     });
-    toast.success('✨ New reward created!', {
+    toast.success('âœ¨ New reward created!', {
       position: 'top-right',
       autoClose: 3000,
     });
@@ -85,7 +85,7 @@ const Store = () => {
     setCoins(updatedData.coins);
     setActiveReward(reward);
     setTimeLeft(reward.duration * 60);
-    toast.success('🎉 Reward redeemed! Enjoy your break!');
+    toast.success('ðŸŽ‰ Reward redeemed! Enjoy your break!');
   };
 
   return (
@@ -98,7 +98,7 @@ const Store = () => {
           <div className="flex justify-between items-center mb-12">
             <div className="flex-1">
               <motion.div
-                className="flex items-center gap-4 bg-white px-6 py-4 rounded-2xl w-fit shadow-sm border border-slate-100"
+                className="flex items-center gap-4 bg-white px-6 py-4 rounded-md w-fit shadow-sm border border-slate-100"
                 whileHover={{ y: -2 }}
                 transition={{ duration: 0.2 }}
               >
@@ -118,7 +118,7 @@ const Store = () => {
             <div className="flex-1 flex justify-end">
               <motion.button
                 onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20"
+                className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-md font-bold shadow-lg shadow-primary/20"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -151,7 +151,7 @@ const Store = () => {
         {showModal && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
             <motion.div
-              className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl border border-slate-100"
+              className="bg-white p-6 rounded-md w-full max-w-md shadow-2xl border border-slate-100"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -176,7 +176,7 @@ const Store = () => {
                     required
                     value={newReward.title}
                     onChange={(e) => setNewReward({ ...newReward, title: e.target.value })}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                     placeholder="Enter reward title"
                   />
                 </div>
@@ -188,7 +188,7 @@ const Store = () => {
                   <textarea
                     value={newReward.description}
                     onChange={(e) => setNewReward({ ...newReward, description: e.target.value })}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[100px] text-slate-800"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[100px] text-slate-800"
                     placeholder="Enter reward description"
                   />
                 </div>
@@ -204,7 +204,7 @@ const Store = () => {
                       min="1"
                       value={newReward.cost}
                       onChange={(e) => setNewReward({ ...newReward, cost: e.target.value })}
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                     />
                   </div>
 
@@ -218,7 +218,7 @@ const Store = () => {
                       min="1"
                       value={newReward.duration}
                       onChange={(e) => setNewReward({ ...newReward, duration: e.target.value })}
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                     />
                   </div>
                 </div>
@@ -230,7 +230,7 @@ const Store = () => {
                   <select
                     value={newReward.category}
                     onChange={(e) => setNewReward({ ...newReward, category: e.target.value })}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                   >
                     <option value="break">Break Time</option>
                     <option value="entertainment">Entertainment</option>
@@ -243,13 +243,13 @@ const Store = () => {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all duration-300"
+                    className="px-4 py-2 rounded-md font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all duration-300"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/20"
+                    className="px-4 py-2 bg-primary text-white rounded-md font-bold hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/20"
                   >
                     Create
                   </button>
@@ -263,7 +263,7 @@ const Store = () => {
       <AnimatePresence>
         {activeReward && (
           <motion.div
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md bg-white text-slate-800 p-4 flex justify-between items-center shadow-xl rounded-2xl border border-slate-100"
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md bg-white text-slate-800 p-4 flex justify-between items-center shadow-xl rounded-md border border-slate-100"
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
@@ -305,7 +305,7 @@ const RewardCard = ({ reward, onRedeem, canAfford, isRewardActive }) => {
 
   return (
     <motion.div
-      className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300"
+      className="bg-white p-6 rounded-md shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5 }}
@@ -331,7 +331,7 @@ const RewardCard = ({ reward, onRedeem, canAfford, isRewardActive }) => {
       <motion.button
         onClick={() => onRedeem(reward)}
         disabled={cannotRedeem}
-        className={`w-full py-2 rounded-xl font-semibold transition-all duration-300 ${cannotRedeem
+        className={`w-full py-2 rounded-md font-semibold transition-all duration-300 ${cannotRedeem
             ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
             : 'bg-primary text-white shadow-lg shadow-primary/20'
           }`}

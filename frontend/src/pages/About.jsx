@@ -58,7 +58,7 @@ const About = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="p-6 bg-white rounded-xl border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-200 transition-all group flex flex-col items-center text-center card"
+                className="p-6 bg-white rounded-md border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-200 transition-all group flex flex-col items-center text-center card"
               >
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full mb-6 overflow-hidden bg-slate-100 flex-shrink-0 border-4 border-slate-50 group-hover:border-primary/10 transition-colors">
                   {member.image ? (

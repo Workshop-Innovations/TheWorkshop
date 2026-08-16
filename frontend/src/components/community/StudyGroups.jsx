@@ -111,7 +111,7 @@ const StudyGroups = ({ onClose }) => {
 
     const renderDetails = () => (
         <div className="flex-1 overflow-y-auto p-8 bg-white custom-scrollbar">
-            <button className="text-sm text-slate-500 hover:text-slate-900 mb-6 transition-colors font-bold flex items-center gap-1 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200" onClick={() => setViewMode('list')}>
+            <button className="text-sm text-slate-500 hover:text-slate-900 mb-6 transition-colors font-bold flex items-center gap-1 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200" onClick={() => setViewMode('list')}>
                 <ChevronLeft className="w-4 h-4" /> Back to Groups
             </button>
 
@@ -141,7 +141,7 @@ const StudyGroups = ({ onClose }) => {
                 <div className="flex flex-col gap-3">
                     {/* Active Members */}
                     {selectedGroup.members?.filter(m => m.status === 'approved' || !m.status).map(member => (
-                        <div key={member.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                        <div key={member.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-md border border-slate-200 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
                                     {member.user_email?.charAt(0).toUpperCase()}
@@ -151,7 +151,7 @@ const StudyGroups = ({ onClose }) => {
                             </div>
                             {selectedGroup.creator_id === user?.id && member.user_id !== user?.id && (
                                 <button
-                                    className="text-xs font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-rose-200 flex items-center gap-1.5"
+                                    className="text-xs font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-md transition-colors border border-transparent hover:border-rose-200 flex items-center gap-1.5"
                                     onClick={() => handleRemoveMember(member.user_id)}
                                     title="Remove member"
                                 >
@@ -165,11 +165,11 @@ const StudyGroups = ({ onClose }) => {
                     {/* Pending Requests (Leader Only) */}
                     {selectedGroup.creator_id === user?.id && selectedGroup.members?.some(m => m.status === 'pending') && (
                         <div className="mt-8">
-                            <h4 className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-4 flex items-center gap-2 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+                            <h4 className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-4 flex items-center gap-2 bg-amber-50 px-3 py-2 rounded-md border border-amber-200">
                                 <Clock className="w-4 h-4" /> Pending Requests
                             </h4>
                             {selectedGroup.members?.filter(m => m.status === 'pending').map(member => (
-                                <div key={member.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-amber-200 shadow-sm mb-3">
+                                <div key={member.id} className="flex items-center justify-between p-4 bg-white rounded-md border border-amber-200 shadow-sm mb-3">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold text-xs shrink-0">
                                             {member.user_email?.charAt(0).toUpperCase()}
@@ -178,13 +178,13 @@ const StudyGroups = ({ onClose }) => {
                                     </div>
                                     <div className="flex gap-2">
                                         <button
-                                            className="px-4 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                                            className="px-4 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold rounded-md transition-colors flex items-center gap-1.5"
                                             onClick={() => handleApproveMember(member.user_id)}
                                         >
                                             <ShieldCheck className="w-3.5 h-3.5" /> Approve
                                         </button>
                                         <button
-                                            className="px-4 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                                            className="px-4 py-1.5 bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold rounded-md transition-colors flex items-center gap-1.5"
                                             onClick={() => handleRejectMember(member.user_id)}
                                         >
                                             <ShieldAlert className="w-3.5 h-3.5" /> Reject
@@ -200,7 +200,7 @@ const StudyGroups = ({ onClose }) => {
             <div className="pt-6 border-t border-slate-200">
                 {!selectedGroup.is_member ? (
                     <button
-                        className="w-full py-3.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-[15px]"
+                        className="w-full py-3.5 bg-primary text-white rounded-md font-bold hover:bg-primary/90 transition-all shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-[15px]"
                         onClick={() => handleJoin(selectedGroup.id)}
                         disabled={selectedGroup.member_count >= selectedGroup.max_members}
                     >
@@ -210,11 +210,11 @@ const StudyGroups = ({ onClose }) => {
                     selectedGroup.creator_id !== user?.id && (
                         <div className="text-center">
                             {selectedGroup.members?.find(m => m.user_id === user?.id)?.status === 'pending' ? (
-                                <span className="flex items-center justify-center gap-2 w-full py-3 bg-amber-50 text-amber-700 rounded-xl font-bold border border-amber-200 shadow-sm">
+                                <span className="flex items-center justify-center gap-2 w-full py-3 bg-amber-50 text-amber-700 rounded-md font-bold border border-amber-200 shadow-sm">
                                     <Clock className="w-4 h-4" /> Request Pending...
                                 </span>
                             ) : (
-                                <button className="w-full py-3.5 bg-white text-rose-600 rounded-xl font-bold hover:bg-rose-50 transition-colors border border-rose-200 shadow-sm flex items-center justify-center gap-2 active:scale-[0.98]" onClick={() => handleLeave(selectedGroup.id)}>
+                                <button className="w-full py-3.5 bg-white text-rose-600 rounded-md font-bold hover:bg-rose-50 transition-colors border border-rose-200 shadow-sm flex items-center justify-center gap-2 active:scale-[0.98]" onClick={() => handleLeave(selectedGroup.id)}>
                                     <UserMinus className="w-4 h-4" /> Leave Group
                                 </button>
                             )}
@@ -227,15 +227,15 @@ const StudyGroups = ({ onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-[1000] backdrop-blur-sm p-4" onClick={onClose}>
-            <div className="bg-white w-full max-w-5xl max-h-[90vh] h-full rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-200" onClick={e => e.stopPropagation()}>
+            <div className="bg-white w-full max-w-5xl max-h-[90vh] h-full rounded-md flex flex-col overflow-hidden shadow-2xl border border-slate-200" onClick={e => e.stopPropagation()}>
                 <div className="px-6 py-4 bg-slate-50 flex justify-between items-center border-b border-slate-200 shrink-0">
                     <h2 className="text-lg font-bold text-slate-900 m-0 flex items-center gap-3 tracking-tight">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                        <div className="w-10 h-10 rounded-md bg-white border border-slate-200 flex items-center justify-center shadow-sm">
                             <BookOpen className="w-5 h-5 text-slate-700" />
                         </div>
                         Study Groups
                     </h2>
-                    <button className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors" onClick={onClose}>
+                    <button className="w-8 h-8 rounded-md hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors" onClick={onClose}>
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -244,7 +244,7 @@ const StudyGroups = ({ onClose }) => {
                     <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
                         <div className="px-6 py-4 shrink-0 bg-white border-b border-slate-200">
                             <button
-                                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95 ${showCreateForm ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200' : 'bg-primary text-white hover:bg-primary/90'}`}
+                                className={`px-6 py-2.5 rounded-md font-bold text-sm transition-all shadow-sm active:scale-95 ${showCreateForm ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200' : 'bg-primary text-white hover:bg-primary/90'}`}
                                 onClick={() => setShowCreateForm(!showCreateForm)}
                             >
                                 {showCreateForm ? 'Cancel' : '+ Create Group'}
@@ -259,20 +259,20 @@ const StudyGroups = ({ onClose }) => {
                                     <div className="space-y-4">
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
                                             placeholder="Group Name"
                                             value={newGroup.name}
                                             onChange={e => setNewGroup({ ...newGroup, name: e.target.value })}
                                             required
                                         />
                                         <textarea
-                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-none shadow-inner"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-none shadow-inner"
                                             placeholder="Description (optional)"
                                             rows="2"
                                             value={newGroup.description}
                                             onChange={e => setNewGroup({ ...newGroup, description: e.target.value })}
                                         />
-                                        <div className="flex flex-wrap gap-6 items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                        <div className="flex flex-wrap gap-6 items-center p-4 bg-slate-50 rounded-md border border-slate-200">
                                             <label className="flex items-center gap-2.5 text-sm font-bold text-slate-700 cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -286,7 +286,7 @@ const StudyGroups = ({ onClose }) => {
                                                 Max Members:
                                                 <input
                                                     type="number"
-                                                    className="w-20 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+                                                    className="w-20 px-3 py-1.5 bg-white border border-slate-300 rounded-md text-sm text-slate-900 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
                                                     min="2"
                                                     max="100"
                                                     value={newGroup.max_members}
@@ -295,7 +295,7 @@ const StudyGroups = ({ onClose }) => {
                                             </label>
                                         </div>
                                         <div className="flex justify-end pt-2">
-                                            <button type="submit" className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-sm active:scale-95 text-sm">
+                                            <button type="submit" className="px-6 py-2.5 bg-primary text-white rounded-md font-bold hover:bg-primary/90 transition-all shadow-sm active:scale-95 text-sm">
                                                 Create Study Group
                                             </button>
                                         </div>
@@ -324,7 +324,7 @@ const StudyGroups = ({ onClose }) => {
                                     {groups.map(group => (
                                         <div 
                                             key={group.id} 
-                                            className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group flex flex-col h-full ${group.is_member ? 'border-primary/40 shadow-sm bg-primary/5' : 'border-slate-200 shadow-sm hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5'}`} 
+                                            className={`bg-white p-5 rounded-md border transition-all cursor-pointer group flex flex-col h-full ${group.is_member ? 'border-primary/40 shadow-sm bg-primary/5' : 'border-slate-200 shadow-sm hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5'}`} 
                                             onClick={() => handleViewDetails(group)}
                                         >
                                             <div className="flex-1">

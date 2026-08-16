@@ -3,7 +3,7 @@ import { useCommunity } from '../../context/CommunityContext';
 import SharedNotes from './SharedNotes';
 import PeerReview from './PeerReview';
 
-const COMMON_EMOJIS = ['😀','😂','🥲','😍','🤔','😮','🥳','😎','🤯','👍','👎','❤️','🔥','✅','⭐','💡','📚','🎉','🙏','💪','🤝','💬','📝','🏆','⚡','🎯','🚀','✨','💯','🤖'];
+const COMMON_EMOJIS = ['ðŸ˜€','ðŸ˜‚','ðŸ¥²','ðŸ˜','ðŸ¤”','ðŸ˜®','ðŸ¥³','ðŸ˜Ž','ðŸ¤¯','ðŸ‘','ðŸ‘Ž','â¤ï¸','ðŸ”¥','âœ…','â­','ðŸ’¡','ðŸ“š','ðŸŽ‰','ðŸ™','ðŸ’ª','ðŸ¤','ðŸ’¬','ðŸ“','ðŸ†','âš¡','ðŸŽ¯','ðŸš€','âœ¨','ðŸ’¯','ðŸ¤–'];
 
 const ChatArea = () => {
     const {
@@ -223,7 +223,7 @@ const ChatArea = () => {
                     onMouseLeave={() => setHoveredMessageId(null)}
                 >
                     {/* Avatar */}
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm shrink-0 shadow-lg overflow-hidden mt-1 transform group-hover:scale-105 transition-transform">
+                    <div className="w-11 h-11 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm shrink-0 shadow-lg overflow-hidden mt-1 transform group-hover:scale-105 transition-transform">
                         {msg.user_profile_pic ? (
                             <img src={msg.user_profile_pic} alt={msg.user_email} className="w-full h-full object-cover" />
                         ) : (
@@ -246,27 +246,27 @@ const ChatArea = () => {
                             <div className="mt-2">
                                 <textarea
                                     ref={editInputRef}
-                                    className="w-full bg-slate-50 text-slate-700 text-sm rounded-xl px-4 py-3 border border-primary/30 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-primary resize-none shadow-inner"
+                                    className="w-full bg-slate-50 text-slate-700 text-sm rounded-md px-4 py-3 border border-primary/30 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-primary resize-none shadow-inner"
                                     value={editValue}
                                     onChange={e => setEditValue(e.target.value)}
                                     onKeyDown={e => handleEditKeyDown(e, msg.id)}
                                     rows={2}
                                 />
                                 <div className="flex items-center gap-2 mt-2">
-                                    <span className="text-xs text-slate-400 font-medium">esc to <button className="text-primary hover:text-primary transition-colors" onClick={handleCancelEdit}>cancel</button> • enter to <button className="text-primary hover:text-primary transition-colors font-bold" onClick={() => handleSaveEdit(msg.id)}>save</button></span>
+                                    <span className="text-xs text-slate-400 font-medium">esc to <button className="text-primary hover:text-primary transition-colors" onClick={handleCancelEdit}>cancel</button> â€¢ enter to <button className="text-primary hover:text-primary transition-colors font-bold" onClick={() => handleSaveEdit(msg.id)}>save</button></span>
                                 </div>
                             </div>
                         ) : isDeleting ? (
-                            <div className="mt-2 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
+                            <div className="mt-2 bg-rose-50 border border-rose-200 rounded-md px-4 py-3">
                                 <p className="text-sm text-slate-800 mb-3 font-medium">Are you sure you want to delete this message?</p>
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => handleDeleteConfirm(msg.id)}
-                                        className="px-4 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-500 transition-colors shadow-sm"
+                                        className="px-4 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-md hover:bg-rose-500 transition-colors shadow-sm"
                                     >Delete</button>
                                     <button
                                         onClick={() => setDeletingMessageId(null)}
-                                        className="px-4 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors"
+                                        className="px-4 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-md hover:bg-slate-50 transition-colors"
                                     >Cancel</button>
                                 </div>
                             </div>
@@ -280,7 +280,7 @@ const ChatArea = () => {
                         {!isEditing && !isDeleting && (
                             <div className={`flex items-center gap-3 mt-2 transition-all duration-200 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}>
                                 {/* Voting */}
-                                <div className="flex items-center bg-slate-50 rounded-lg px-2 py-1 border border-slate-200 gap-1.5 shadow-sm">
+                                <div className="flex items-center bg-slate-50 rounded-md px-2 py-1 border border-slate-200 gap-1.5 shadow-sm">
                                     <button
                                         className={`p-1 rounded-md transition-all ${userVote === 1 ? 'text-emerald-400 bg-emerald-400/10' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
                                         onClick={() => handleVote(msg.id, userVote, 1)}
@@ -299,7 +299,7 @@ const ChatArea = () => {
                                 {/* Thread Reply */}
                                 {!isThread && !msg.parent_id && (
                                     <button
-                                        className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-primary bg-slate-50 hover:bg-primary/10 border border-slate-200 hover:border-primary/20 px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                                        className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-primary bg-slate-50 hover:bg-primary/10 border border-slate-200 hover:border-primary/20 px-3 py-1.5 rounded-md transition-all shadow-sm"
                                         onClick={() => handleOpenThread(msg)}
                                     >
                                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z" /></svg>
@@ -311,11 +311,11 @@ const ChatArea = () => {
                                 {isOwn && (
                                     <>
                                         <button
-                                            className="text-xs font-semibold text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                                            className="text-xs font-semibold text-slate-400 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-md transition-all shadow-sm"
                                             onClick={() => handleStartEdit(msg)}
                                         >Edit</button>
                                         <button
-                                            className="text-xs font-semibold text-slate-400 hover:text-rose-400 bg-slate-50 hover:bg-rose-500/10 border border-slate-200 hover:border-rose-500/30 px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                                            className="text-xs font-semibold text-slate-400 hover:text-rose-400 bg-slate-50 hover:bg-rose-500/10 border border-slate-200 hover:border-rose-500/30 px-3 py-1.5 rounded-md transition-all shadow-sm"
                                             onClick={() => setDeletingMessageId(msg.id)}
                                         >Delete</button>
                                     </>
@@ -334,7 +334,7 @@ const ChatArea = () => {
             return (
                 <div className="flex-1 flex flex-col items-center justify-center h-full p-8 text-center bg-slate-50">
                     <div className="w-24 h-24 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full flex items-center justify-center mb-6 border border-primary/20 shadow-2xl">
-                        <div className="text-5xl opacity-80">💬</div>
+                        <div className="text-5xl opacity-80">ðŸ’¬</div>
                     </div>
                     <h2 className="text-2xl font-extrabold text-slate-800 mb-3 tracking-tight">Your Messages</h2>
                     <p className="text-slate-400 text-sm max-w-sm leading-relaxed">Select a conversation or find a new friend to start chatting privately.</p>
@@ -346,7 +346,7 @@ const ChatArea = () => {
             <div className="flex-1 flex flex-col h-full relative min-w-0 bg-slate-50">
                 {/* DM Header */}
                 <div className="h-16 flex items-center px-6 border-b border-slate-200 shrink-0 bg-slate-50/80 backdrop-blur-xl shadow-sm z-10">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm mr-4 overflow-hidden shrink-0 shadow-lg">
+                    <div className="w-10 h-10 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm mr-4 overflow-hidden shrink-0 shadow-lg">
                         {currentDM.other_user_profile_pic ? (
                             <img src={currentDM.other_user_profile_pic} alt={currentDM.other_user_email} className="w-full h-full object-cover" />
                         ) : (
@@ -364,7 +364,7 @@ const ChatArea = () => {
                         const isOwn = msg.sender_id === user?.id;
                         return (
                             <div key={msg.id || index} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-                                <div className="w-9 h-9 rounded-2xl bg-slate-200 flex items-center justify-center text-slate-800 font-bold text-xs shrink-0 self-end overflow-hidden shadow-sm">
+                                <div className="w-9 h-9 rounded-md bg-slate-200 flex items-center justify-center text-slate-800 font-bold text-xs shrink-0 self-end overflow-hidden shadow-sm">
                                     {msg.sender_profile_pic ? (
                                         <img src={msg.sender_profile_pic} alt={msg.sender_email} className="w-full h-full object-cover" />
                                     ) : (
@@ -374,8 +374,8 @@ const ChatArea = () => {
                                 <div className={`flex flex-col max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
                                     <div className={`py-3 px-5 text-[15px] leading-relaxed shadow-lg ${
                                         isOwn
-                                            ? 'bg-gradient-to-br from-primary to-primary text-slate-800 rounded-2xl rounded-br-sm'
-                                            : 'bg-white text-slate-700 border border-slate-200 rounded-2xl rounded-bl-sm'
+                                            ? 'bg-gradient-to-br from-primary to-primary text-slate-800 rounded-md rounded-br-sm'
+                                            : 'bg-white text-slate-700 border border-slate-200 rounded-md rounded-bl-sm'
                                     }`}>
                                         {msg.content}
                                     </div>
@@ -390,7 +390,7 @@ const ChatArea = () => {
                 {/* Input */}
                 <div className="px-6 pb-6 pt-4 shrink-0 bg-slate-50">
                     <form
-                        className="flex items-end gap-3 bg-white rounded-2xl px-5 py-3 border border-slate-200 focus-within:border-primary/30 focus-within:ring-1 focus-within:ring-primary/30 transition-all shadow-inner"
+                        className="flex items-end gap-3 bg-white rounded-md px-5 py-3 border border-slate-200 focus-within:border-primary/30 focus-within:ring-1 focus-within:ring-primary/30 transition-all shadow-inner"
                         onSubmit={handleSend}
                     >
                         <input
@@ -402,7 +402,7 @@ const ChatArea = () => {
                         />
                         <button
                             type="submit"
-                            className="p-2.5 text-primary bg-primary/10 rounded-xl hover:bg-primary hover:text-slate-800 transition-all disabled:opacity-30 disabled:hover:bg-primary/10 disabled:hover:text-primary disabled:cursor-not-allowed mb-0.5"
+                            className="p-2.5 text-primary bg-primary/10 rounded-md hover:bg-primary hover:text-slate-800 transition-all disabled:opacity-30 disabled:hover:bg-primary/10 disabled:hover:text-primary disabled:cursor-not-allowed mb-0.5"
                             disabled={!inputValue.trim() || sending}
                         >
                             <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
@@ -444,16 +444,16 @@ const ChatArea = () => {
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                         <button
-                            className="flex items-center gap-2 px-4 py-2 bg-white text-slate-600 hover:text-slate-800 rounded-xl border border-slate-200 hover:border-slate-600 transition-all text-sm font-bold shadow-sm"
+                            className="flex items-center gap-2 px-4 py-2 bg-white text-slate-600 hover:text-slate-800 rounded-md border border-slate-200 hover:border-slate-600 transition-all text-sm font-bold shadow-sm"
                             onClick={() => setShowReviews(true)}
                         >
-                            <span className="text-lg leading-none">📋</span><span className="hidden sm:inline">Reviews</span>
+                            <span className="text-lg leading-none">ðŸ“‹</span><span className="hidden sm:inline">Reviews</span>
                         </button>
                         <button
-                            className="flex items-center gap-2 px-4 py-2 bg-white text-slate-600 hover:text-slate-800 rounded-xl border border-slate-200 hover:border-slate-600 transition-all text-sm font-bold shadow-sm"
+                            className="flex items-center gap-2 px-4 py-2 bg-white text-slate-600 hover:text-slate-800 rounded-md border border-slate-200 hover:border-slate-600 transition-all text-sm font-bold shadow-sm"
                             onClick={() => setShowNotes(true)}
                         >
-                            <span className="text-lg leading-none">📝</span><span className="hidden sm:inline">Notes</span>
+                            <span className="text-lg leading-none">ðŸ“</span><span className="hidden sm:inline">Notes</span>
                         </button>
                     </div>
                 </div>
@@ -478,14 +478,14 @@ const ChatArea = () => {
 
                 {/* Message Input */}
                 <div className="px-6 pb-6 pt-2 shrink-0 bg-slate-50">
-                    <div className="bg-white rounded-2xl border border-slate-200 focus-within:border-primary/30 focus-within:ring-1 focus-within:ring-primary/30 transition-all shadow-inner overflow-hidden">
+                    <div className="bg-white rounded-md border border-slate-200 focus-within:border-primary/30 focus-within:ring-1 focus-within:ring-primary/30 transition-all shadow-inner overflow-hidden">
                         {/* Emoji Picker */}
                         {showEmojiPicker && (
                             <div className="p-4 border-b border-slate-200 flex flex-wrap gap-2 bg-slate-50/50" onClick={e => e.stopPropagation()}>
                                 {COMMON_EMOJIS.map(emoji => (
                                     <button
                                         key={emoji}
-                                        className="text-2xl hover:bg-slate-200 rounded-xl p-1.5 transition-colors transform hover:scale-110"
+                                        className="text-2xl hover:bg-slate-200 rounded-md p-1.5 transition-colors transform hover:scale-110"
                                         onClick={() => handleEmojiSelect(emoji)}
                                     >{emoji}</button>
                                 ))}
@@ -494,11 +494,11 @@ const ChatArea = () => {
                         <form className="flex items-end gap-3 px-5 py-3" onSubmit={handleSend}>
                             <button
                                 type="button"
-                                className="text-slate-400 hover:text-primary bg-slate-100/50 hover:bg-primary/10 transition-colors p-2 rounded-xl shrink-0 mb-1"
+                                className="text-slate-400 hover:text-primary bg-slate-100/50 hover:bg-primary/10 transition-colors p-2 rounded-md shrink-0 mb-1"
                                 onClick={e => { e.stopPropagation(); setShowEmojiPicker(prev => !prev); }}
                                 title="Emoji"
                             >
-                                <span className="text-xl leading-none">😊</span>
+                                <span className="text-xl leading-none">ðŸ˜Š</span>
                             </button>
                             <textarea
                                 ref={inputRef}
@@ -511,7 +511,7 @@ const ChatArea = () => {
                             />
                             <button
                                 type="submit"
-                                className="p-3 text-primary bg-primary/10 rounded-xl hover:bg-primary hover:text-slate-800 transition-all disabled:opacity-30 disabled:hover:bg-primary/10 disabled:hover:text-primary disabled:cursor-not-allowed mb-1 shrink-0"
+                                className="p-3 text-primary bg-primary/10 rounded-md hover:bg-primary hover:text-slate-800 transition-all disabled:opacity-30 disabled:hover:bg-primary/10 disabled:hover:text-primary disabled:cursor-not-allowed mb-1 shrink-0"
                                 disabled={!inputValue.trim() || sending}
                             >
                                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
@@ -570,7 +570,7 @@ const ChatArea = () => {
                     </div>
 
                     <div className="p-4 border-t border-slate-200 bg-slate-50 shrink-0">
-                        <form className="bg-white rounded-xl border border-slate-200 focus-within:border-primary/30 focus-within:ring-1 focus-within:ring-primary/30 overflow-hidden shadow-inner" onSubmit={handleSendReply}>
+                        <form className="bg-white rounded-md border border-slate-200 focus-within:border-primary/30 focus-within:ring-1 focus-within:ring-primary/30 overflow-hidden shadow-inner" onSubmit={handleSendReply}>
                             <input
                                 type="text"
                                 className="w-full px-4 py-3 text-[15px] focus:outline-none bg-transparent text-slate-700 placeholder-slate-500"
@@ -581,10 +581,10 @@ const ChatArea = () => {
                             <div className="bg-slate-50/50 px-3 py-2 flex justify-end border-t border-slate-200">
                                 <button
                                     type="submit"
-                                    className="px-5 py-1.5 bg-primary text-slate-800 text-xs font-bold rounded-lg hover:bg-primary transition-colors disabled:opacity-50 shadow-md shadow-primary/20"
+                                    className="px-5 py-1.5 bg-primary text-slate-800 text-xs font-bold rounded-md hover:bg-primary transition-colors disabled:opacity-50 shadow-md shadow-primary/20"
                                     disabled={!replyInputValue.trim()}
                                 >
-                                    Reply ↵
+                                    Reply â†µ
                                 </button>
                             </div>
                         </form>

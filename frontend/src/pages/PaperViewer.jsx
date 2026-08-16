@@ -10,24 +10,24 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
 /**
- * Step 1 — Normalises the raw markdown/LaTeX content from the database.
+ * Step 1 â€” Normalises the raw markdown/LaTeX content from the database.
  * NOTE: Does NOT inject interactive markers here.
  * That happens AFTER the answer-bank split so markers never pollute the rubric.
  */
 function preprocessContent(raw) {
     if (!raw) return '';
     let text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    // Ensure answer-option lines (A–F) start their own paragraph
+    // Ensure answer-option lines (Aâ€“F) start their own paragraph
     text = text.replace(/\n([A-F]\.[ \t])/g, '\n\n$1');
     // Ensure numbered question lines start a new paragraph
     text = text.replace(/\n(?!#)(\d{1,3})\.[ \t]/g, '\n\n$1. ');
-    // Collapse 3+ blank lines → 1 blank line
+    // Collapse 3+ blank lines â†’ 1 blank line
     text = text.replace(/\n{3,}/g, '\n\n');
     return text;
 }
 
 /**
- * Step 2 — Inject interactive input markers.
+ * Step 2 â€” Inject interactive input markers.
  * Called ONLY on the questions section (never on answer content).
  * BUG FIX: uses a function-form .replace() so `opt` is correctly captured,
  * not the literal string "$1".
@@ -52,7 +52,7 @@ function injectInteractiveMarkers(text) {
     return lines.join('\n');
 }
 
-/* ─── Custom renderers (defined outside component to prevent re-creation) ── */
+/* â”€â”€â”€ Custom renderers (defined outside component to prevent re-creation) â”€â”€ */
 
 const PaperParagraph = ({ children, ...props }) => {
     const text = React.Children.toArray(children)
@@ -96,7 +96,7 @@ const PaperTd = ({ children }) => (
     </td>
 );
 
-/* ─── Feedback Renderer ─────────────────────────────────────────────────── */
+/* â”€â”€â”€ Feedback Renderer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 const FeedbackView = ({ feedbackData, score }) => {
     let parsed = null;
@@ -115,7 +115,7 @@ const FeedbackView = ({ feedbackData, score }) => {
                 <span className="text-slate-500 text-sm font-medium">estimated marks</span>
             </div>
             {entries.map(([key, val]) => (
-                <div key={key} className="bg-white border border-slate-200 rounded-lg p-3">
+                <div key={key} className="bg-white border border-slate-200 rounded-md p-3">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                         Question {key}
                     </p>
@@ -126,7 +126,7 @@ const FeedbackView = ({ feedbackData, score }) => {
     );
 };
 
-/* ─── Main Component ────────────────────────────────────────────────────── */
+/* â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 const PaperViewer = () => {
     const { paperId } = useParams();
@@ -144,7 +144,7 @@ const PaperViewer = () => {
     // without a stale-closure dependency on userAnswers
     const submitRef = useRef(null);
 
-    // ── Fetch paper ──────────────────────────────────────────────────────
+    // â”€â”€ Fetch paper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     useEffect(() => {
         const fetchPaper = async () => {
             try {
@@ -164,12 +164,12 @@ const PaperViewer = () => {
         fetchPaper();
     }, [paperId]);
 
-    // ── Memoised content processing ──────────────────────────────────────
-    // Only re-runs when paper.content changes — NOT on every second tick
+    // â”€â”€ Memoised content processing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Only re-runs when paper.content changes â€” NOT on every second tick
     const { mainContent, answerContent } = useMemo(() => {
         if (!paper?.content) return { mainContent: '', answerContent: null };
         const base = preprocessContent(paper.content);
-        // Split first — THEN inject markers only into questions section
+        // Split first â€” THEN inject markers only into questions section
         const parts = base.split(/\n#{1,3}\s*ANSWER(?:S|\s+BANK)?\s*\n/i);
         const rawMain   = parts[0];
         const rawAnswer = parts.length > 1 ? '## Answer Bank\n\n' + parts.slice(1).join('') : null;
@@ -179,7 +179,7 @@ const PaperViewer = () => {
         };
     }, [paper?.content]);
 
-    // ── Handlers ──────────────────────────────────────────────────────────
+    // â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const handleAnswerChange = useCallback((q, val) => {
         setUserAnswers(prev => ({ ...prev, [q]: val }));
     }, []);
@@ -226,8 +226,8 @@ const PaperViewer = () => {
         submitRef.current = handleSubmitTest;
     }, [handleSubmitTest]);
 
-    // ── Timer ─────────────────────────────────────────────────────────────
-    // FIXED: does NOT list timeRemaining as a dependency — avoids the
+    // â”€â”€ Timer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // FIXED: does NOT list timeRemaining as a dependency â€” avoids the
     // interval-per-second bug and prevents stale-closure on handleSubmitTest
     useEffect(() => {
         if (mode !== 'practice' || isSubmitting) return;
@@ -244,7 +244,7 @@ const PaperViewer = () => {
         return () => clearInterval(interval);
     }, [mode, isSubmitting]);
 
-    // ── Mode transitions ──────────────────────────────────────────────────
+    // â”€â”€ Mode transitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const enterPractice = useCallback(() => {
         setUserAnswers({});
         setTestResult(null);
@@ -269,7 +269,7 @@ const PaperViewer = () => {
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
-    // ── Early returns ──────────────────────────────────────────────────────
+    // â”€â”€ Early returns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (loading) return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
             <div style={{ textAlign: 'center' }}>
@@ -278,7 +278,7 @@ const PaperViewer = () => {
                     borderTopColor: '#6366f1', borderRadius: '50%',
                     animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem',
                 }} />
-                <p style={{ color: '#64748b' }}>Loading paper…</p>
+                <p style={{ color: '#64748b' }}>Loading paperâ€¦</p>
             </div>
         </div>
     );
@@ -291,7 +291,7 @@ const PaperViewer = () => {
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">Paper not found</div>
     );
 
-    // ── Remark / Rehype plugins ────────────────────────────────────────────
+    // â”€â”€ Remark / Rehype plugins â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const remarkPlugins = [
         [remarkMath, { singleDollarTextMath: true }],
         remarkGfm,
@@ -300,7 +300,7 @@ const PaperViewer = () => {
         [rehypeKatex, { throwOnError: false, strict: false, trust: true }],
     ];
 
-    // ── Markdown component map ─────────────────────────────────────────────
+    // â”€â”€ Markdown component map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const components = {
         p:      PaperParagraph,
         table:  PaperTable,
@@ -336,8 +336,8 @@ const PaperViewer = () => {
                 if (type === 'diagram') {
                     const label = url.searchParams.get('label');
                     return (
-                        <div className="flex flex-col items-center justify-center p-6 my-4 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 text-slate-500">
-                            <span className="text-sm font-semibold mb-1">📷 Missing Diagram</span>
+                        <div className="flex flex-col items-center justify-center p-6 my-4 border-2 border-dashed border-slate-300 rounded-md bg-slate-50 text-slate-500">
+                            <span className="text-sm font-semibold mb-1">Missing Diagram</span>
                             <code className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-600">
                                 {label}
                             </code>
@@ -362,9 +362,9 @@ const PaperViewer = () => {
                 if (type === 'essay') {
                     return (
                         <textarea
-                            className="w-full mt-2 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-transparent resize-y text-sm"
+                            className="w-full mt-2 p-3 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-400 focus:border-transparent resize-y text-sm"
                             rows={6}
-                            placeholder="Type your essay answer here…"
+                            placeholder="Type your essay answer here..."
                             value={userAnswers[q] || ''}
                             onChange={e => handleAnswerChange(q, e.target.value)}
                         />
@@ -375,8 +375,8 @@ const PaperViewer = () => {
                     return (
                         <input
                             type="text"
-                            className="w-full mt-2 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm"
-                            placeholder="Type your short answer…"
+                            className="w-full mt-2 p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm"
+                            placeholder="Type your short answer..."
                             value={userAnswers[q] || ''}
                             onChange={e => handleAnswerChange(q, e.target.value)}
                         />
@@ -388,13 +388,13 @@ const PaperViewer = () => {
                         <div className="mt-2">
                             <input
                                 type="text"
-                                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm font-mono"
-                                placeholder="Final answer (e.g. 4 m/s²)"
+                                className="w-full p-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm font-mono"
+                                placeholder="Final answer"
                                 value={userAnswers[q] || ''}
                                 onChange={e => handleAnswerChange(q, e.target.value)}
                             />
                             <p className="text-xs text-slate-400 mt-1 italic">
-                                ℹ️ In the real exam you must show all steps and working for full marks. For this practice, just enter your final answer.
+                                Note: In the real exam you must show all steps and working for full marks. For this practice, just enter your final answer.
                             </p>
                         </div>
                     );
@@ -409,7 +409,7 @@ const PaperViewer = () => {
         },
     };
 
-    // ── Render ─────────────────────────────────────────────────────────────
+    // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <style>{`
@@ -436,7 +436,7 @@ const PaperViewer = () => {
                         border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', padding: '2rem',
                     }}>
 
-                        {/* ── Header ── */}
+                        {/* â”€â”€ Header â”€â”€ */}
                         <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                                 <BookOpen size={20} style={{ color: '#6366f1' }} />
@@ -473,7 +473,7 @@ const PaperViewer = () => {
                                 {/* Timer + Mode toggle */}
                                 <div className="flex items-center gap-3">
                                     {mode === 'practice' && (
-                                        <div className={`flex items-center gap-1.5 font-mono font-bold text-lg px-3 py-1 rounded-lg border ${
+                                        <div className={`flex items-center gap-1.5 font-mono font-bold text-lg px-3 py-1 rounded-md border ${
                                             timeRemaining <= 300
                                                 ? 'text-red-600 bg-red-50 border-red-200'
                                                 : 'text-indigo-600 bg-indigo-50 border-indigo-100'
@@ -484,7 +484,7 @@ const PaperViewer = () => {
                                     {mode === 'read' && (
                                         <button
                                             onClick={enterPractice}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm transition-colors shadow-sm"
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-bold text-sm transition-colors shadow-sm"
                                         >
                                             Start Practice Mode
                                         </button>
@@ -492,7 +492,7 @@ const PaperViewer = () => {
                                     {mode === 'practice' && (
                                         <button
                                             onClick={exitPractice}
-                                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-sm transition-colors"
+                                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-bold text-sm transition-colors"
                                         >
                                             End Practice
                                         </button>
@@ -500,7 +500,7 @@ const PaperViewer = () => {
                                     {mode === 'results' && (
                                         <button
                                             onClick={enterPractice}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm transition-colors"
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-bold text-sm transition-colors"
                                         >
                                             Retry
                                         </button>
@@ -509,9 +509,9 @@ const PaperViewer = () => {
                             </div>
                         </div>
 
-                        {/* ── Results View ── */}
+                        {/* â”€â”€ Results View â”€â”€ */}
                         {mode === 'results' && testResult && (
-                            <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-xl">
+                            <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-md">
                                 <h2 className="text-xl font-bold text-green-800 mb-5 flex items-center gap-2">
                                     <CheckCircle size={22} /> Test Submitted!
                                 </h2>
@@ -519,13 +519,13 @@ const PaperViewer = () => {
                                 <div className="mt-6 flex gap-3">
                                     <button
                                         onClick={() => { setMode('read'); setActiveTab('answers'); }}
-                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm transition-colors"
+                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-bold text-sm transition-colors"
                                     >
                                         Review Answer Bank
                                     </button>
                                     <button
                                         onClick={() => { setMode('read'); setActiveTab('questions'); }}
-                                        className="px-4 py-2 bg-white text-green-700 border border-green-300 hover:bg-green-50 rounded-lg font-bold text-sm transition-colors"
+                                        className="px-4 py-2 bg-white text-green-700 border border-green-300 hover:bg-green-50 rounded-md font-bold text-sm transition-colors"
                                     >
                                         View Questions
                                     </button>
@@ -533,7 +533,7 @@ const PaperViewer = () => {
                             </div>
                         )}
 
-                        {/* ── Tabs (only in read mode when answers exist) ── */}
+                        {/* â”€â”€ Tabs (only in read mode when answers exist) â”€â”€ */}
                         {answerContent && mode === 'read' && (
                             <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem', gap: '1rem' }}>
                                 {[
@@ -558,7 +558,7 @@ const PaperViewer = () => {
                             </div>
                         )}
 
-                        {/* ── Content Area ── */}
+                        {/* â”€â”€ Content Area â”€â”€ */}
                         {mode !== 'results' && (
                             (!answerContent || activeTab === 'questions') ? (
                                 <div className="paper-content" style={{ lineHeight: 1.75, fontSize: '0.97rem' }}>
@@ -576,9 +576,9 @@ const PaperViewer = () => {
                                             <button
                                                 onClick={handleSubmitTest}
                                                 disabled={isSubmitting}
-                                                className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl font-bold text-base transition-colors shadow-md"
+                                                className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-md font-bold text-base transition-colors shadow-md"
                                             >
-                                                {isSubmitting ? 'Submitting…' : 'Submit Test'}
+                                                {isSubmitting ? 'Submittingâ€¦' : 'Submit Test'}
                                             </button>
                                         </div>
                                     )}

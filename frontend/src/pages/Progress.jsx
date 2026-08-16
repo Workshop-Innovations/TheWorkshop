@@ -110,25 +110,25 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-bold mb-8">My Progress</h1>
 
-          <div className="bg-[#1A1A1A] p-6 rounded-lg mb-8">
+          <div className="bg-[#1A1A1A] p-6 rounded-md mb-8">
             <h2 className="text-2xl font-bold mb-4">Today's Stats</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-[#242424] p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105">
+              <div className="bg-[#242424] p-4 rounded-md flex flex-col items-center justify-center transition-transform hover:scale-105">
                 <Flame className="text-3xl text-red-500 mb-2" />
                 <span className="text-2xl font-bold">{todayStats.pomodoros}</span>
                 <span className="text-sm text-gray-400">Pomodoros</span>
               </div>
-              <div className="bg-[#242424] p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105">
+              <div className="bg-[#242424] p-4 rounded-md flex flex-col items-center justify-center transition-transform hover:scale-105">
                 <Clock className="text-3xl text-blue-500 mb-2" />
                 <span className="text-2xl font-bold">{todayStats.focusTime}</span>
                 <span className="text-sm text-gray-400">Focus Mins</span>
               </div>
-              <div className="bg-[#242424] p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105">
+              <div className="bg-[#242424] p-4 rounded-md flex flex-col items-center justify-center transition-transform hover:scale-105">
                 <Coffee className="text-3xl text-green-500 mb-2" />
                 <span className="text-2xl font-bold">{todayStats.breakTime}</span>
                 <span className="text-sm text-gray-400">Break Mins</span>
               </div>
-              <div className="bg-[#242424] p-4 rounded-lg flex flex-col items-center justify-center transition-transform hover:scale-105">
+              <div className="bg-[#242424] p-4 rounded-md flex flex-col items-center justify-center transition-transform hover:scale-105">
                 <CheckCircle2 className="text-3xl text-purple-500 mb-2" />
                 <span className="text-2xl font-bold">{todayStats.tasksCompleted}</span>
                 <span className="text-sm text-gray-400">Tasks Done</span>
@@ -137,7 +137,7 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-[#1A1A1A] p-6 rounded-lg">
+            <div className="bg-[#1A1A1A] p-6 rounded-md">
               <h2 className="text-2xl font-bold mb-4">Lifetime Stats</h2>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -166,7 +166,7 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
               </div>
             </div>
 
-            <div className="bg-[#1A1A1A] p-6 rounded-lg md:col-span-2">
+            <div className="bg-[#1A1A1A] p-6 rounded-md md:col-span-2">
               <h2 className="text-2xl font-bold mb-4">Redeemed Rewards</h2>
               {redeemedRewards.length > 0 ? (
                 <div className="space-y-4">

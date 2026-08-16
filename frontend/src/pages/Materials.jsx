@@ -58,7 +58,7 @@ function createDefaultLinks() {
 const LINKS = createDefaultLinks()
 
 const chipBase = "px-4 py-2 rounded-md border transition-colors duration-200"
-const cardBase = "bg-[#1A1A1A] hover:bg-[#242424] border border-white/10 rounded-lg"
+const cardBase = "bg-[#1A1A1A] hover:bg-[#242424] border border-white/10 rounded-md"
 
 function SelectorGroup({ title, items, selectedId, onSelect }) {
   return (
@@ -241,7 +241,7 @@ export default function Materials() {
                     >
                       <div>
                         <p className="font-semibold">Subject Resources</p>
-                        <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} · {subjectId} · resources</p>
+                        <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} Â· {subjectId} Â· resources</p>
                       </div>
                       <button
                         className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border ${resourceUrl ? 'bg-white text-black border-transparent hover:bg-gray-200' : 'bg-gray-700 text-gray-400 border-transparent cursor-not-allowed'}`}
@@ -269,7 +269,7 @@ export default function Materials() {
                       >
                         <div>
                           <p className="font-semibold">{f.name}</p>
-                          <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} · {subjectId} · {typeId.replace('_', ' ')} · {year}</p>
+                          <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} Â· {subjectId} Â· {typeId.replace('_', ' ')} Â· {year}</p>
                         </div>
                         <button
                           className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border ${f.url ? 'bg-white text-black border-transparent hover:bg-gray-200' : 'bg-gray-700 text-gray-400 border-transparent cursor-not-allowed'}`}

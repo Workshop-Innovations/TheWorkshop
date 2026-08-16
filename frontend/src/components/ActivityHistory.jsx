@@ -16,7 +16,7 @@ const ActivityHistory = ({ history }) => {
   const maxPomodoros = Math.max(1, ...data.map(d => d.pomodoros));
 
   return (
-    <div className="bg-[#1A1A1A] p-6 rounded-lg">
+    <div className="bg-[#1A1A1A] p-6 rounded-md">
       <h2 className="text-2xl font-bold mb-6">Last 7 Days Activity</h2>
       <div className="flex justify-between items-end gap-2 h-48">
         {data.map(({ date, pomodoros, tasksCompleted }) => (

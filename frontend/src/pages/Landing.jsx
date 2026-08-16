@@ -33,11 +33,11 @@ const Landing = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <Link to="/onboarding" className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white text-sm font-bold rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
+              <Link to="/onboarding" className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white text-sm font-bold rounded-md shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
                 Start Practicing
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/dashboard" className="w-full sm:w-auto px-8 py-3.5 bg-white text-slate-700 text-sm font-bold rounded-lg shadow-sm border border-slate-200 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center active:scale-95">
+              <Link to="/dashboard" className="w-full sm:w-auto px-8 py-3.5 bg-white text-slate-700 text-sm font-bold rounded-md shadow-sm border border-slate-200 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center active:scale-95">
                 View Features
               </Link>
             </div>
@@ -50,7 +50,7 @@ const Landing = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="w-full bg-white/80 backdrop-blur-xl border border-white/50 p-8 rounded-xl shadow-2xl shadow-slate-200/50">
+            <div className="w-full bg-white/80 backdrop-blur-xl border border-white/50 p-8 rounded-md shadow-2xl shadow-slate-200/50">
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
                 <div>
                   <h3 className="font-extrabold text-slate-800 tracking-tight text-lg">Recent Papers</h3>
@@ -63,7 +63,7 @@ const Landing = () => {
                   "UTME Physics 2022",
                   "NECO English Language 2021"
                 ].map((examStr, i) => (
-                  <Link to="/onboarding" key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group hover:shadow-sm">
+                  <Link to="/onboarding" key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-md border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group hover:shadow-sm">
                     <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{examStr}</span>
                     <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
                   </Link>
@@ -92,7 +92,7 @@ const Landing = () => {
               { title: "Direct Answers", icon: <Bot className="w-7 h-7" />, desc: "Get straight-to-the-point explanations for complex problems.", solve: "Study Suite", color: "text-accent", bg: "bg-accent/10" },
               { title: "No Distractions", icon: <Clock className="w-7 h-7" />, desc: "Built-in tools to manage your time and track actual progress.", solve: "Focus Timer", color: "text-slate-600", bg: "bg-slate-100" }
             ].map((item, i) => (
-              <div key={i} className="p-8 bg-slate-50 rounded-xl border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all card">
+              <div key={i} className="p-8 bg-slate-50 rounded-md border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all card">
                 <h3 className="text-xl font-extrabold text-slate-800 mb-3 tracking-tight">{item.title}</h3>
                 <p className="text-sm text-slate-500 font-medium mb-8 leading-relaxed">{item.desc}</p>
                 <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
@@ -123,14 +123,14 @@ const Landing = () => {
               ))}
             </ul>
           </div>
-          <div className="bg-white p-8 rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100">
+          <div className="bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 border border-slate-100">
             <div className="border-b border-slate-100 pb-5 mb-5 flex justify-between items-center">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Document Database</span>
               <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">v1.2.0</span>
             </div>
             <div className="space-y-3">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-14 bg-slate-50 rounded-xl border border-transparent flex items-center px-5">
+                <div key={i} className="h-14 bg-slate-50 rounded-md border border-transparent flex items-center px-5">
                   <div className="w-1/2 h-2 bg-slate-200 rounded-full"></div>
                 </div>
               ))}
@@ -154,7 +154,7 @@ const Landing = () => {
               { step: "02", title: "Configure", desc: "Set your specific examination boards and subjects." },
               { step: "03", title: "Execute", desc: "Begin accessing papers and utilizing the study suite." }
             ].map((item, i) => (
-              <div key={i} className="p-8 flex flex-col items-center text-center bg-slate-800/50 backdrop-blur-md rounded-xl border border-slate-700 hover:bg-slate-800 transition-colors">
+              <div key={i} className="p-8 flex flex-col items-center text-center bg-slate-800/50 backdrop-blur-md rounded-md border border-slate-700 hover:bg-slate-800 transition-colors">
                 <div className="text-[10px] font-bold text-primary mb-6 tracking-[0.2em] bg-primary/10 inline-block px-3 py-1.5 rounded-full">STEP {item.step}</div>
                 <h3 className="text-xl font-extrabold mb-3 tracking-tight text-white">{item.title}</h3>
                 <p className="text-slate-400 text-base font-medium leading-relaxed">{item.desc}</p>
@@ -185,7 +185,7 @@ const Landing = () => {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-slate-900">Begin Practice.</h2>
           <p className="text-lg text-slate-500 mb-10 font-medium tracking-tight">Join the standard platform for serious students.</p>
-          <Link to="/onboarding" className="inline-block px-8 py-4 bg-primary text-white text-base font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark hover:-translate-y-1 active:scale-95 transition-all">
+          <Link to="/onboarding" className="inline-block px-8 py-4 bg-primary text-white text-base font-bold rounded-md shadow-lg shadow-primary/20 hover:bg-primary-dark hover:-translate-y-1 active:scale-95 transition-all">
             Create Account
           </Link>
         </div>
@@ -200,7 +200,7 @@ const Landing = () => {
 const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="bg-slate-50 rounded-lg border border-slate-100 overflow-hidden">
+    <div className="bg-slate-50 rounded-md border border-slate-100 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full p-6 flex items-center justify-between text-left hover:bg-slate-100 transition-colors"

@@ -29,7 +29,7 @@ const GlobalDiagramManager = ({ papers, accessToken, onUploadSuccess }) => {
 
     if (missingDiagrams.length === 0) {
         return (
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 text-center">
+            <div className="bg-white p-8 rounded-md shadow-sm border border-slate-200 text-center">
                 <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
                 <h3 className="text-xl font-bold text-slate-800">All caught up!</h3>
                 <p className="text-slate-500">There are no missing diagrams in any of your past papers.</p>
@@ -39,7 +39,7 @@ const GlobalDiagramManager = ({ papers, accessToken, onUploadSuccess }) => {
 
     return (
         <div className="space-y-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex justify-between items-center">
+            <div className="bg-white p-4 rounded-md shadow-sm border border-slate-200 mb-6 flex justify-between items-center">
                 <div>
                     <h3 className="font-bold text-slate-800">Missing Diagrams ({missingDiagrams.length})</h3>
                     <p className="text-sm text-slate-500">Drag and drop, paste from clipboard, or click to upload.</p>
@@ -125,7 +125,7 @@ const DiagramDropzone = ({ diagram, accessToken, onSuccess }) => {
             onDrop={onDrop}
             onPaste={handlePaste}
             tabIndex={0} // Make focusable to capture paste events
-            className={`relative group border-2 border-dashed rounded-xl p-6 text-center outline-none transition-all cursor-pointer focus:border-primary focus:ring-4 focus:ring-primary/10 ${
+            className={`relative group border-2 border-dashed rounded-md p-6 text-center outline-none transition-all cursor-pointer focus:border-primary focus:ring-4 focus:ring-primary/10 ${
                 isDragging ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'
             } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
         >
@@ -154,7 +154,7 @@ const DiagramDropzone = ({ diagram, accessToken, onSuccess }) => {
             </div>
 
             {uploading && (
-                <div className="absolute inset-0 bg-white/80 rounded-xl flex items-center justify-center z-20 backdrop-blur-sm">
+                <div className="absolute inset-0 bg-white/80 rounded-md flex items-center justify-center z-20 backdrop-blur-sm">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>
             )}

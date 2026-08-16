@@ -73,7 +73,7 @@ const ChannelList = () => {
             <div className="h-16 flex items-center justify-between px-5 border-b border-slate-200 shrink-0 bg-white">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-slate-900 border border-slate-200">
-                        {currentCommunity.icon || '🛠️'}
+                        {currentCommunity.icon || 'ðŸ› ï¸'}
                     </div>
                     <h3 className="font-bold text-slate-900 text-base tracking-tight truncate">
                         {currentCommunity.name}
@@ -90,7 +90,7 @@ const ChannelList = () => {
 
             {/* Search */}
             <div className="px-4 pt-4 pb-2">
-                <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-200 shadow-inner">
+                <div className="flex items-center gap-2 bg-slate-50 rounded-md px-3 py-2 border border-slate-200 shadow-inner">
                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-slate-400 shrink-0">
                         <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                     </svg>
@@ -125,10 +125,10 @@ const ChannelList = () => {
                     </div>
 
                     {showCreateChannel && (
-                        <div className="mb-3 p-2 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="mb-3 p-2 bg-slate-50 rounded-md border border-slate-200">
                             <input
                                 type="text"
-                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary transition-all"
+                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary transition-all"
                                 placeholder="new-channel"
                                 value={newChannelName}
                                 onChange={e => setNewChannelName(e.target.value)}
@@ -151,7 +151,7 @@ const ChannelList = () => {
                         return (
                             <div
                                 key={channel.id}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all group ${
+                                className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-all group ${
                                     isActive
                                         ? 'bg-primary/10 text-primary font-bold'
                                         : hasUnread
@@ -184,7 +184,7 @@ const ChannelList = () => {
                             return (
                                 <div
                                     key={channel.id}
-                                    className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all ${
+                                    className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-all ${
                                         isActive
                                             ? 'bg-primary/10 text-primary font-bold'
                                             : hasUnread
@@ -193,7 +193,7 @@ const ChannelList = () => {
                                     }`}
                                     onClick={() => handleChannelClick(channel)}
                                 >
-                                    <span className={`text-sm shrink-0 ${isActive ? 'opacity-100' : 'opacity-50'}`}>🔒</span>
+                                    <span className={`text-sm shrink-0 ${isActive ? 'opacity-100' : 'opacity-50'}`}>ðŸ”’</span>
                                     <span className="text-[15px] truncate flex-1">{channel.name}</span>
                                     {hasUnread && !isActive && (
                                         <span className="w-2 h-2 bg-accent rounded-full shrink-0"></span>
@@ -227,7 +227,7 @@ const ChannelList = () => {
                         return (
                             <div
                                 key={dm.id}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all group ${
+                                className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-all group ${
                                     isActive 
                                         ? 'bg-primary/10 text-primary font-bold' 
                                         : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
@@ -258,7 +258,7 @@ const ChannelList = () => {
                     {dmConversations.length === 0 && (
                         <div className="px-2 py-3">
                             <button
-                                className="w-full py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 text-sm rounded-lg transition-colors flex items-center justify-center gap-2 border border-slate-200 border-dashed"
+                                className="w-full py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 text-sm rounded-md transition-colors flex items-center justify-center gap-2 border border-slate-200 border-dashed"
                                 onClick={() => setShowFindFriends(true)}
                             >
                                 <span className="text-lg leading-none">+</span> Find Friends
@@ -271,10 +271,10 @@ const ChannelList = () => {
             {/* Footer Actions */}
             <div className="p-4 bg-white border-t border-slate-200 backdrop-blur-md">
                 <button
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors text-sm font-bold border border-primary/20"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors text-sm font-bold border border-primary/20"
                     onClick={() => setShowStudyGroups(true)}
                 >
-                    <span className="text-base">📚</span>
+                    <span className="text-base">ðŸ“š</span>
                     Browse Study Groups
                 </button>
             </div>

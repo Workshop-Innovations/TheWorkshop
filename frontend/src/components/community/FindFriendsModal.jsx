@@ -48,7 +48,7 @@ const FindFriendsModal = ({ onClose }) => {
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-start justify-center pt-[10vh] px-4" onClick={onClose}>
             <div
-                className="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-slate-200 overflow-hidden"
+                className="bg-white rounded-md w-full max-w-lg shadow-2xl border border-slate-200 overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -59,7 +59,7 @@ const FindFriendsModal = ({ onClose }) => {
                             <X className="w-5 h-5" />
                         </button>
                     </div>
-                    <div className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 border border-slate-200 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
+                    <div className="flex items-center gap-3 bg-white rounded-md px-4 py-3 border border-slate-200 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
                         <Search className="w-5 h-5 text-slate-400 shrink-0" />
                         <input
                             ref={inputRef}
@@ -124,7 +124,7 @@ const FindFriendsModal = ({ onClose }) => {
                                     <p className="text-slate-500 text-xs truncate font-medium">{u.email}</p>
                                     <div className="flex items-center gap-1 mt-1">
                                         <span className="text-xs font-bold text-slate-600">{u.reputation_points} pts</span>
-                                        <span className="text-slate-300">•</span>
+                                        <span className="text-slate-300">â€¢</span>
                                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${rep.color} ${rep.bg}`}>
                                             {rep.label}
                                         </span>
@@ -133,7 +133,7 @@ const FindFriendsModal = ({ onClose }) => {
 
                                 {/* Action */}
                                 <button
-                                    className="shrink-0 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 hover:text-primary hover:border-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
+                                    className="shrink-0 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-md hover:bg-slate-50 hover:text-primary hover:border-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
                                     onClick={() => handleStartDM(u.id)}
                                     disabled={startingDM === u.id}
                                 >

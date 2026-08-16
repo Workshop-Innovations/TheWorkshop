@@ -40,7 +40,7 @@ const MinimizedPomodoro = () => {
         damping: 20,
         scale: { repeat: Infinity, duration: 1.5, ease: 'easeInOut' }
       }}
-      className={`fixed bottom-8 right-8 bg-white p-5 rounded-2xl shadow-2xl z-50 cursor-grab w-72 border-2 ${modeDetails[mode].color}`}
+      className={`fixed bottom-8 right-8 bg-white p-5 rounded-md shadow-2xl z-50 cursor-grab w-72 border-2 ${modeDetails[mode].color}`}
       whileDrag={{ cursor: 'grabbing' }}
     >
       <div className="flex justify-between items-center">
@@ -49,13 +49,13 @@ const MinimizedPomodoro = () => {
           <p className="text-5xl font-extrabold tracking-tighter text-slate-800">{formatTime(time)}</p>
         </div>
         <div className="flex flex-col gap-2 text-slate-400">
-          <motion.button whileHover={{ scale: 1.1, color: '#154c79' }} whileTap={{ scale: 0.9 }} onClick={handleExpand} className="p-2 rounded-xl hover:bg-slate-100 transition-colors"><Maximize className="w-5 h-5" /></motion.button>
+          <motion.button whileHover={{ scale: 1.1, color: '#154c79' }} whileTap={{ scale: 0.9 }} onClick={handleExpand} className="p-2 rounded-md hover:bg-slate-100 transition-colors"><Maximize className="w-5 h-5" /></motion.button>
           {isRunning ? (
-            <motion.button whileHover={{ scale: 1.1, color: '#154c79' }} whileTap={{ scale: 0.9 }} onClick={handlePause} className="p-2 rounded-xl hover:bg-slate-100 transition-colors"><Pause className="w-5 h-5" fill="currentColor" /></motion.button>
+            <motion.button whileHover={{ scale: 1.1, color: '#154c79' }} whileTap={{ scale: 0.9 }} onClick={handlePause} className="p-2 rounded-md hover:bg-slate-100 transition-colors"><Pause className="w-5 h-5" fill="currentColor" /></motion.button>
           ) : (
-            <motion.button whileHover={{ scale: 1.1, color: '#154c79' }} whileTap={{ scale: 0.9 }} onClick={handleStart} className="p-2 rounded-xl hover:bg-slate-100 transition-colors"><Play className="w-5 h-5" fill="currentColor" /></motion.button>
+            <motion.button whileHover={{ scale: 1.1, color: '#154c79' }} whileTap={{ scale: 0.9 }} onClick={handleStart} className="p-2 rounded-md hover:bg-slate-100 transition-colors"><Play className="w-5 h-5" fill="currentColor" /></motion.button>
           )}
-          <motion.button whileHover={{ scale: 1.1, color: '#154c79' }} whileTap={{ scale: 0.9 }} onClick={handleSkip} className="p-2 rounded-xl hover:bg-slate-100 transition-colors"><Forward className="w-5 h-5" /></motion.button>
+          <motion.button whileHover={{ scale: 1.1, color: '#154c79' }} whileTap={{ scale: 0.9 }} onClick={handleSkip} className="p-2 rounded-md hover:bg-slate-100 transition-colors"><Forward className="w-5 h-5" /></motion.button>
         </div>
       </div>
     </motion.div>

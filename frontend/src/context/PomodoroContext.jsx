@@ -52,7 +52,7 @@ export const PomodoroProvider = ({ children }) => {
             if (!isSkip) {
                 // 1. Log Pomodoro
                 logPomodoro(settings.pomodoro, settings.coinsPerPomodoro, pomodoroCount);
-                toast.success(`🎉 Well done! You've earned ${settings.coinsPerPomodoro} coins!`);
+                toast.success(` Well done! You've earned ${settings.coinsPerPomodoro} coins!`);
 
                 newPomodoroCount++;
 

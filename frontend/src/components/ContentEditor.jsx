@@ -43,14 +43,14 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-lg border border-slate-200 flex flex-col h-[80vh] w-full max-w-5xl mx-auto">
+        <div className="bg-white rounded-md shadow-lg border border-slate-200 flex flex-col h-[80vh] w-full max-w-5xl mx-auto">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
                 <h3 className="font-bold text-slate-700 flex items-center">
                     <FileType2 className="mr-2 text-primary" /> {title}
                 </h3>
                 <div className="flex space-x-2">
-                    <label className="cursor-pointer px-3 py-1.5 text-sm font-medium bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 rounded-lg transition-colors flex items-center">
+                    <label className="cursor-pointer px-3 py-1.5 text-sm font-medium bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 rounded-md transition-colors flex items-center">
                         <Upload className="w-4 h-4 mr-1" /> Upload .md
                         <input 
                             type="file" 
@@ -61,7 +61,7 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
                     </label>
                     <button
                         onClick={() => setIsPreview(!isPreview)}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${isPreview
+                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${isPreview
                             ? 'bg-slate-200 text-slate-700'
                             : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'
                             }`}
@@ -70,13 +70,13 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
                     </button>
                     <button
                         onClick={onCancel}
-                        className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-4 py-1.5 text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-lg shadow-md shadow-primary/20 transition-colors flex items-center"
+                        className="px-4 py-1.5 text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-md shadow-md shadow-primary/20 transition-colors flex items-center"
                     >
                         <Save className="mr-2" /> Save
                     </button>

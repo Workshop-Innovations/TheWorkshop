@@ -23,7 +23,7 @@ const Profile = () => {
           <p className="text-slate-500 mt-2 text-lg">Manage your account details and preferences.</p>
         </header>
 
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 mb-8 text-center border border-slate-100">
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 mb-8 text-center border border-slate-100">
           <div className="flex flex-col items-center gap-4">
             <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center border-4 border-blue-100 overflow-hidden relative">
               {profilePic ? (
@@ -47,11 +47,11 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 border border-slate-100">
           <h2 className="text-2xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">Personal Information</h2>
           <div className="space-y-6">
-            <div className="flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
+            <div className="flex items-center gap-5 p-4 rounded-md hover:bg-slate-50 transition-colors">
+              <div className="w-12 h-12 rounded-md bg-slate-100 flex items-center justify-center text-slate-500">
                 <User className="text-xl" />
               </div>
               <div>
@@ -59,8 +59,8 @@ const Profile = () => {
                 <p className="text-lg font-semibold text-slate-700">{displayUser.username}</p>
               </div>
             </div>
-            <div className="flex items-center gap-5 p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-              <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
+            <div className="flex items-center gap-5 p-4 rounded-md hover:bg-slate-50 transition-colors">
+              <div className="w-12 h-12 rounded-md bg-slate-100 flex items-center justify-center text-slate-500">
                 <Mail className="text-xl" />
               </div>
               <div>
@@ -69,19 +69,19 @@ const Profile = () => {
               </div>
             </div>
           </div>
-          <button disabled className="mt-8 w-full py-4 bg-slate-200 text-slate-400 rounded-xl font-bold cursor-not-allowed">
+          <button disabled className="mt-8 w-full py-4 bg-slate-200 text-slate-400 rounded-md font-bold cursor-not-allowed">
             Edit Profile (Coming Soon)
           </button>
         </div>
 
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-xl shadow-slate-200/50 mt-8 border border-slate-100">
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 mt-8 border border-slate-100">
           <h2 className="text-2xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">Account Actions</h2>
           <div className="space-y-4">
-            <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 text-slate-400 rounded-xl font-bold cursor-not-allowed">
+            <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 text-slate-400 rounded-md font-bold cursor-not-allowed">
               <Globe className="text-slate-400" />
               <span>Sync with Google (Coming Soon)</span>
             </button>
-            <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-red-50/50 text-red-300 rounded-xl font-bold cursor-not-allowed mt-4">
+            <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-red-50/50 text-red-300 rounded-md font-bold cursor-not-allowed mt-4">
               <Trash />
               <span>Delete Account (Coming Soon)</span>
             </button>

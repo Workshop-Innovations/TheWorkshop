@@ -18,7 +18,7 @@ const ProfileHoverCard = ({ member, onStartDM, isOwn, onClose }) => {
     };
 
     return (
-        <div className="absolute right-64 top-0 z-50 w-72 bg-slate-900 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden">
+        <div className="absolute right-64 top-0 z-50 w-72 bg-slate-900 rounded-md shadow-2xl border border-slate-700 overflow-hidden">
             {/* Banner */}
             <div className="h-16 bg-gradient-to-r from-indigo-600 to-purple-600"></div>
 
@@ -50,7 +50,7 @@ const ProfileHoverCard = ({ member, onStartDM, isOwn, onClose }) => {
 
                 {/* Stats */}
                 {rep ? (
-                    <div className="bg-slate-800 rounded-xl p-3 mb-3">
+                    <div className="bg-slate-800 rounded-md p-3 mb-3">
                         <div className="grid grid-cols-3 gap-2 text-center">
                             <div>
                                 <p className="text-white font-black text-sm">{rep.reputation_points}</p>
@@ -83,12 +83,12 @@ const ProfileHoverCard = ({ member, onStartDM, isOwn, onClose }) => {
                         )}
                     </div>
                 ) : (
-                    <div className="bg-slate-800 rounded-xl p-3 mb-3 animate-pulse h-16"></div>
+                    <div className="bg-slate-800 rounded-md p-3 mb-3 animate-pulse h-16"></div>
                 )}
 
                 {!isOwn && (
                     <button
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl transition-colors"
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-md transition-colors"
                         onClick={() => { onStartDM(); onClose(); }}
                     >
                         Send Message
@@ -156,7 +156,7 @@ const MemberSidebar = () => {
         return (
             <div
                 key={member.id}
-                className={`relative flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all group ${
+                className={`relative flex items-center gap-2.5 px-2 py-1.5 rounded-md cursor-pointer transition-all group ${
                     isOnline ? '' : 'opacity-50 hover:opacity-100'
                 } hover:bg-slate-700/60`}
                 onClick={() => !isOwn && handleStartDM(member)}
@@ -227,16 +227,16 @@ const MemberSidebar = () => {
             {/* Leaderboard Button */}
             <div className="p-3 border-b border-slate-700/50 shrink-0">
                 <button
-                    className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-xl shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+                    className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-md shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
                     onClick={() => setShowLeaderboard(true)}
                 >
-                    <span>🏆</span> Leaderboard
+                    <span>ðŸ†</span> Leaderboard
                 </button>
             </div>
 
             {/* Member Search */}
             <div className="px-3 py-2 shrink-0">
-                <div className="flex items-center gap-2 bg-slate-900/60 rounded-lg px-2.5 py-1.5">
+                <div className="flex items-center gap-2 bg-slate-900/60 rounded-md px-2.5 py-1.5">
                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-slate-600 shrink-0">
                         <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
                     </svg>
@@ -257,7 +257,7 @@ const MemberSidebar = () => {
                     <div className="mb-4">
                         <div className="px-2 py-1.5 mb-1">
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                Online — {onlineMembers.length}
+                                Online â€” {onlineMembers.length}
                             </span>
                         </div>
                         <div className="space-y-0.5">
@@ -271,7 +271,7 @@ const MemberSidebar = () => {
                     <div>
                         <div className="px-2 py-1.5 mb-1">
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                Offline — {offlineMembers.length}
+                                Offline â€” {offlineMembers.length}
                             </span>
                         </div>
                         <div className="space-y-0.5">

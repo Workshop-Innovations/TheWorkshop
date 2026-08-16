@@ -108,7 +108,7 @@ const SubjectSummary = () => {
                     <div className="flex flex-col md:flex-row gap-8">
                         {/* Sidebar - Topics List */}
                         <div className="w-full md:w-1/4">
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-24">
+                            <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden sticky top-24">
                                 {/* Course Topics Section */}
                                 <div className="p-4 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 flex items-center">
                                     <BookOpen className="mr-2" /> Course Topics
@@ -135,7 +135,7 @@ const SubjectSummary = () => {
 
                         {/* Main Content - Topic Summary */}
                         <div className="w-full md:w-3/4">
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 min-h-[500px]">
+                            <div className="bg-white rounded-md shadow-sm border border-slate-100 p-8 min-h-[500px]">
                                 {activeTopic ? (
                                     <article className="prose prose-slate max-w-none prose-headings:text-slate-800 prose-p:text-slate-600 prose-a:text-primary prose-code:text-pink-600">
                                         <h2 className="text-3xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">{activeTopic.title}</h2>

@@ -214,7 +214,7 @@ const AdminDashboard = () => {
 
         return (
             <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 animate-fade-in relative">
+                <div className="bg-white rounded-md shadow-2xl w-full max-w-lg p-6 animate-fade-in relative">
                     <button
                         onClick={() => setIsEditorOpen(false)}
                         className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
@@ -232,7 +232,7 @@ const AdminDashboard = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.name || ''}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         required
@@ -241,7 +241,7 @@ const AdminDashboard = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
                                     <textarea
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.description || ''}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         rows="3"
@@ -256,7 +256,7 @@ const AdminDashboard = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.title || ''}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="e.g. Intro to Algebra"
@@ -267,7 +267,7 @@ const AdminDashboard = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
                                         <select
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
                                             value={formData.subject_id || ''}
                                             onChange={(e) => setFormData({ ...formData, subject_id: e.target.value })}
                                             required
@@ -282,7 +282,7 @@ const AdminDashboard = () => {
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Order</label>
                                         <input
                                             type="number"
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                             value={formData.order || 1}
                                             onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
                                             required
@@ -295,7 +295,7 @@ const AdminDashboard = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowContentEditor(true)}
-                                            className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-sm font-medium flex items-center border border-slate-300"
+                                            className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md text-sm font-medium flex items-center border border-slate-300"
                                         >
                                             <Edit className="mr-2" /> Open Content Editor
                                         </button>
@@ -312,7 +312,7 @@ const AdminDashboard = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.username || ''}
                                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                         placeholder="unique_username"
@@ -323,7 +323,7 @@ const AdminDashboard = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
                                     <input
                                         type="email"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.email || ''}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         placeholder="user@example.com"
@@ -334,7 +334,7 @@ const AdminDashboard = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
                                     <input
                                         type="password"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.password || ''}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         placeholder="******"
@@ -344,7 +344,7 @@ const AdminDashboard = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
                                     <select
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.role || 'admin'}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                     >
@@ -361,7 +361,7 @@ const AdminDashboard = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.title || ''}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="e.g. Mathematics 2024"
@@ -373,7 +373,7 @@ const AdminDashboard = () => {
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Year</label>
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                             value={formData.year || ''}
                                             onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                                             required
@@ -382,7 +382,7 @@ const AdminDashboard = () => {
                                     <div>
                                         <label className="block text-sm font-medium text-slate-700 mb-1">Exam Type</label>
                                         <select
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                             value={formData.exam_type || 'WAEC'}
                                             onChange={(e) => setFormData({ ...formData, exam_type: e.target.value })}
                                         >
@@ -395,7 +395,7 @@ const AdminDashboard = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
                                     <select
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
                                         value={formData.subject_id || ''}
                                         onChange={(e) => setFormData({ ...formData, subject_id: e.target.value })}
                                         required
@@ -410,7 +410,7 @@ const AdminDashboard = () => {
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Duration (Minutes)</label>
                                     <input
                                         type="number"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                                         value={formData.duration_minutes || 60}
                                         onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
                                         required
@@ -422,7 +422,7 @@ const AdminDashboard = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowContentEditor(true)}
-                                            className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-sm font-medium flex items-center border border-slate-300"
+                                            className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md text-sm font-medium flex items-center border border-slate-300"
                                         >
                                             <Edit className="mr-2" /> Open Content Editor
                                         </button>
@@ -438,13 +438,13 @@ const AdminDashboard = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsEditorOpen(false)}
-                                className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors font-medium"
+                                className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors font-medium"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg shadow-md transition-colors font-bold"
+                                className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-md shadow-md transition-colors font-bold"
                             >
                                 {editorMode === 'create' ? 'Create' : 'Save Changes'}
                             </button>
@@ -467,12 +467,12 @@ const AdminDashboard = () => {
                             <h2 className="text-xl font-bold text-slate-800">Subjects</h2>
                             <button
                                 onClick={() => handleCreate('subjects')}
-                                className="px-4 py-2 bg-primary text-white rounded-lg flex items-center text-sm hover:bg-primary-dark"
+                                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
                             >
                                 <Plus className="mr-2" /> Add Subject
                             </button>
                         </div>
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
                             <table className="w-full text-left text-sm text-slate-600">
                                 <thead className="bg-slate-50 border-b border-slate-100">
                                     <tr>
@@ -518,12 +518,12 @@ const AdminDashboard = () => {
                             <h2 className="text-xl font-bold text-slate-800">Topics (Modules)</h2>
                             <button
                                 onClick={() => handleCreate('topics')}
-                                className="px-4 py-2 bg-primary text-white rounded-lg flex items-center text-sm hover:bg-primary-dark"
+                                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
                             >
                                 <Plus className="mr-2" /> Add Topic
                             </button>
                         </div>
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
                             {/* Group topics by subject or show flat list with subject column */}
                             <table className="w-full text-left text-sm text-slate-600">
                                 <thead className="bg-slate-50 border-b border-slate-100">
@@ -572,12 +572,12 @@ const AdminDashboard = () => {
                             <h2 className="text-xl font-bold text-slate-800">Past Papers</h2>
                             <button
                                 onClick={() => handleCreate('papers')}
-                                className="px-4 py-2 bg-primary text-white rounded-lg flex items-center text-sm hover:bg-primary-dark"
+                                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
                             >
                                 <Plus className="mr-2" /> Add Paper
                             </button>
                         </div>
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
                             <table className="w-full text-left text-sm text-slate-600">
                                 <thead className="bg-slate-50 border-b border-slate-100">
                                     <tr>
@@ -643,12 +643,12 @@ const AdminDashboard = () => {
                             <h2 className="text-xl font-bold text-slate-800">Administrators & Users</h2>
                             <button
                                 onClick={() => handleCreate('users')} // Reuse handleCreate with 'users' type
-                                className="px-4 py-2 bg-primary text-white rounded-lg flex items-center text-sm hover:bg-primary-dark"
+                                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
                             >
                                 <Plus className="mr-2" /> Add Administrator
                             </button>
                         </div>
-                        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
                             <table className="w-full text-left text-sm text-slate-600">
                                 <thead className="bg-slate-50 border-b border-slate-100">
                                     <tr>
@@ -707,7 +707,7 @@ const AdminDashboard = () => {
             <div className="container mx-auto px-4 py-24 flex-grow flex gap-8">
                 {/* Sidebar */}
                 <div className="w-64 flex-shrink-0">
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sticky top-24">
+                    <div className="bg-white rounded-md shadow-sm border border-slate-100 p-4 sticky top-24">
                         <div className="mb-6 px-2">
                             <h1 className="text-xl font-bold text-slate-900">Admin Panel</h1>
                             <p className="text-sm text-slate-500">Manage your content</p>
@@ -716,7 +716,7 @@ const AdminDashboard = () => {
                         <nav className="space-y-1">
                             <button
                                 onClick={() => setActiveTab('subjects')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'subjects'
+                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'subjects'
                                     ? 'bg-primary text-white shadow-md shadow-primary/30'
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
@@ -725,7 +725,7 @@ const AdminDashboard = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('topics')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'topics'
+                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'topics'
                                     ? 'bg-primary text-white shadow-md shadow-primary/30'
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
@@ -734,7 +734,7 @@ const AdminDashboard = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('papers')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'papers'
+                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'papers'
                                     ? 'bg-primary text-white shadow-md shadow-primary/30'
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
@@ -743,7 +743,7 @@ const AdminDashboard = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('diagrams')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'diagrams'
+                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'diagrams'
                                     ? 'bg-primary text-white shadow-md shadow-primary/30'
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}
@@ -752,7 +752,7 @@ const AdminDashboard = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('admins')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === 'admins'
+                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'admins'
                                     ? 'bg-primary text-white shadow-md shadow-primary/30'
                                     : 'text-slate-600 hover:bg-slate-50'
                                     }`}

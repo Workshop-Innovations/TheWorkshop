@@ -32,7 +32,6 @@ import NotFound from './pages/NotFound';
 import About from './pages/About';
 
 import ScrollToTop from './components/ScrollToTop';
-import CustomCursor from './components/CustomCursor';
 import TopProgressBar from './components/TopProgressBar';
 
 const AppContent = () => {
@@ -170,7 +169,6 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
-      <CustomCursor />
       <AuthProvider>
         <PomodoroProvider>
           <CommunityProvider>

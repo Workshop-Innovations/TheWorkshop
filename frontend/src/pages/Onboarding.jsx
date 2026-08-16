@@ -54,7 +54,7 @@ const InputField = ({ label, type = 'text', value, onChange, placeholder, requir
             onChange={onChange}
             placeholder={placeholder}
             required={required}
-            className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 transition-all"
+            className="w-full px-4 py-3 border border-slate-200 rounded-md bg-white text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 transition-all"
         />
     </div>
 );
@@ -62,7 +62,7 @@ const InputField = ({ label, type = 'text', value, onChange, placeholder, requir
 const OnboardingPlanCard = ({ plan, onSelect, loading }) => {
     const isBasic = plan.id === 'basic';
     return (
-        <div className={`relative flex flex-col rounded-2xl border bg-white p-6 transition-all ${plan.popular
+        <div className={`relative flex flex-col rounded-md border bg-white p-6 transition-all ${plan.popular
                 ? 'border-primary shadow-lg shadow-primary/10'
                 : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
             }`}>
@@ -101,7 +101,7 @@ const OnboardingPlanCard = ({ plan, onSelect, loading }) => {
             <button
                 onClick={() => onSelect(plan.id)}
                 disabled={loading === plan.id}
-                className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 ${plan.popular
+                className={`w-full py-3 rounded-md text-sm font-bold transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60 ${plan.popular
                         ? 'bg-primary text-white hover:bg-primary/90 shadow-md shadow-primary/20'
                         : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
                     }`}
@@ -225,7 +225,7 @@ const Onboarding = () => {
                                             const Icon = goal.icon;
                                             const isSelected = studyGoal === goal.id;
                                             return (
-                                                <label key={goal.id} className={`flex items-center gap-4 p-4 border rounded-2xl cursor-pointer transition-all ${isSelected ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                                                <label key={goal.id} className={`flex items-center gap-4 p-4 border rounded-md cursor-pointer transition-all ${isSelected ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                                                     }`}>
                                                     <input type="radio" name="studyGoal" value={goal.id} checked={isSelected} onChange={(e) => setStudyGoal(e.target.value)} className="sr-only" />
                                                     <div className="flex-1 min-w-0">
@@ -240,7 +240,7 @@ const Onboarding = () => {
                                         })}
 
                                         <div className="pt-4">
-                                            <button type="submit" className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 active:scale-95">
+                                            <button type="submit" className="w-full py-3.5 bg-slate-900 text-white rounded-md font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 active:scale-95">
                                                 Continue <ArrowRight size={18} />
                                             </button>
                                         </div>
@@ -260,7 +260,7 @@ const Onboarding = () => {
                                         <InputField label="Confirm Password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat your password" required />
 
                                         <div className="pt-2 space-y-3">
-                                            <button type="submit" disabled={loading} className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95">
+                                            <button type="submit" disabled={loading} className="w-full py-3.5 bg-slate-900 text-white rounded-md font-bold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95">
                                                 {loading ? <Loader2 size={18} className="animate-spin" /> : 'Create Account'}
                                             </button>
                                             <button type="button" onClick={() => setStep(1)} className="w-full py-3 text-slate-500 text-sm font-semibold hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5">

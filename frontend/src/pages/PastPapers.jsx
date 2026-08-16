@@ -82,7 +82,7 @@ const PastPapers = () => {
                                 <Link
                                     key={subject.id}
                                     to={`/subjects/${subject.id}`}
-                                    className="p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md hover:border-primary transition-all text-center"
+                                    className="p-4 bg-white border border-slate-200 rounded-md hover:shadow-md hover:border-primary transition-all text-center"
                                 >
                                     <h3 className="font-bold text-slate-700">{subject.name}</h3>
                                     <span className="text-xs text-slate-500">View Topics</span>
@@ -95,7 +95,7 @@ const PastPapers = () => {
                     </div>
 
                     {/* Search and Filter Section */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
+                    <div className="bg-white p-6 rounded-md shadow-sm border border-slate-100 mb-8">
                         {/* Tabs */}
                         <div className="flex gap-4 mb-6 border-b border-slate-100 pb-4">
                             {['ALL', 'WAEC', 'JAMB'].map((tab) => (
@@ -114,7 +114,7 @@ const PastPapers = () => {
 
                         {/* Search Bar */}
                         <div className="flex gap-4">
-                            <div className="flex-grow flex items-center bg-slate-50 rounded-xl px-4 border border-slate-200">
+                            <div className="flex-grow flex items-center bg-slate-50 rounded-md px-4 border border-slate-200">
                                 <Search className="text-slate-400" />
                                 <input
                                     type="text"
@@ -134,7 +134,7 @@ const PastPapers = () => {
                         ) : (
                             <>
                                 {filteredPapers.map((paper) => (
-                                    <div key={paper.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center hover:shadow-md transition-shadow group">
+                                    <div key={paper.id} className="bg-white p-6 rounded-md shadow-sm border border-slate-100 flex justify-between items-center hover:shadow-md transition-shadow group">
                                         <div className="flex items-start gap-4">
                                             <div>
                                                 <h3 className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">{paper.title}</h3>
@@ -151,7 +151,7 @@ const PastPapers = () => {
                                         {paper.content ? (
                                             <Link
                                                 to={`/papers/${paper.id}`}
-                                                className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition-all transform hover:scale-105 flex items-center"
+                                                className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary-dark transition-all transform hover:scale-105 flex items-center"
                                             >
                                                 <BookOpen className="mr-2" /> View Now
                                             </Link>
@@ -160,7 +160,7 @@ const PastPapers = () => {
                                                 href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/static/papers/${paper.file_path}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-primary hover:text-white transition-all transform hover:scale-110"
+                                                className="p-3 bg-slate-50 text-slate-400 rounded-md hover:bg-primary hover:text-white transition-all transform hover:scale-110"
                                             >
                                                 <Download />
                                             </a>

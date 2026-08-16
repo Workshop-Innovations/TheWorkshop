@@ -54,7 +54,7 @@ const ImageUploaderModal = ({ isOpen, onClose, onSave }) => {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        className="bg-white rounded-md w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                     >
                         {/* Header */}
                         <div className="flex justify-between items-center p-4 border-b border-slate-100">
@@ -67,7 +67,7 @@ const ImageUploaderModal = ({ isOpen, onClose, onSave }) => {
                         {/* Content */}
                         <div className="p-6 flex-grow flex flex-col items-center justify-center bg-slate-50 relative min-h-[300px]">
                             {imageSrc ? (
-                                <div className="relative w-full h-64 sm:h-80 bg-slate-900 rounded-lg overflow-hidden shadow-inner">
+                                <div className="relative w-full h-64 sm:h-80 bg-slate-900 rounded-md overflow-hidden shadow-inner">
                                     <Cropper
                                         image={imageSrc}
                                         crop={crop}
@@ -86,7 +86,7 @@ const ImageUploaderModal = ({ isOpen, onClose, onSave }) => {
                                     <p className="text-slate-600 font-medium mb-2">Select an image to upload</p>
                                     <p className="text-xs text-slate-400">JPG, PNG supported.</p>
                                     <label className="mt-6 inline-block cursor-pointer">
-                                        <span className="px-6 py-2 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-900 transition-colors shadow-lg shadow-slate-200">
+                                        <span className="px-6 py-2 bg-slate-800 text-white rounded-md font-bold hover:bg-slate-900 transition-colors shadow-lg shadow-slate-200">
                                             Choose File
                                         </span>
                                         <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
@@ -106,7 +106,7 @@ const ImageUploaderModal = ({ isOpen, onClose, onSave }) => {
                                             step={0.1}
                                             aria-labelledby="Zoom"
                                             onChange={(e) => setZoom(e.target.value)}
-                                            className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"
+                                            className="w-full h-1 bg-slate-200 rounded-md appearance-none cursor-pointer accent-primary"
                                         />
                                         <Plus className="text-xs" />
                                     </div>
@@ -119,7 +119,7 @@ const ImageUploaderModal = ({ isOpen, onClose, onSave }) => {
                         <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
                             <button
                                 onClick={onClose}
-                                className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-lg transition-colors"
+                                className="px-4 py-2 text-slate-600 font-bold hover:bg-slate-50 rounded-md transition-colors"
                             >
                                 Cancel
                             </button>
@@ -127,7 +127,7 @@ const ImageUploaderModal = ({ isOpen, onClose, onSave }) => {
                                 <button
                                     onClick={handleSave}
                                     disabled={loading}
-                                    className="px-6 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 flex items-center gap-2"
+                                    className="px-6 py-2 bg-primary text-white font-bold rounded-md hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 flex items-center gap-2"
                                 >
                                     {loading ? 'Processing...' : <><Save /> Save Picture</>}
                                 </button>

@@ -22,7 +22,7 @@ class ErrorBoundary extends React.Component {
             // You can render any custom fallback UI
             return (
                 <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
-                    <div className="bg-white p-8 rounded-lg shadow-xl max-w-4xl w-full border border-red-200">
+                    <div className="bg-white p-8 rounded-md shadow-xl max-w-4xl w-full border border-red-200">
                         <h1 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h1>
                         <p className="text-slate-600 mb-4">The application crashed. Here is the error details:</p>
                         <div className="bg-slate-900 text-red-300 p-4 rounded overflow-auto max-h-[60vh] font-mono text-sm">

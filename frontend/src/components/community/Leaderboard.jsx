@@ -77,7 +77,7 @@ const Leaderboard = ({ onClose }) => {
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
+                className="bg-white rounded-md w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -101,11 +101,11 @@ const Leaderboard = ({ onClose }) => {
                     </div>
 
                     {/* Period tabs */}
-                    <div className="flex bg-slate-200/50 rounded-xl p-1 mt-6 gap-1">
+                    <div className="flex bg-slate-200/50 rounded-md p-1 mt-6 gap-1">
                         {PERIODS.map(p => (
                             <button
                                 key={p.key}
-                                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all ${
                                     activePeriod === p.key
                                         ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
                                         : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
@@ -127,12 +127,12 @@ const Leaderboard = ({ onClose }) => {
                         </div>
                     ) : error ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-                            <span className="text-5xl mb-4">⚠️</span>
+                            <span className="text-5xl mb-4">âš ï¸</span>
                             <p className="text-slate-900 font-bold mb-1">Failed to load</p>
                             <p className="text-slate-500 text-sm mb-4">{error}</p>
                             <button
                                 onClick={() => loadLeaderboard(activePeriod)}
-                                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-sm"
+                                className="px-4 py-2 bg-slate-900 text-white rounded-md text-sm font-bold hover:bg-slate-800 transition-colors shadow-sm"
                             >
                                 Try Again
                             </button>
@@ -194,7 +194,7 @@ const Leaderboard = ({ onClose }) => {
 
                             {/* My Position Banner (if not in top 3) */}
                             {myEntry && myEntry.rank > 3 && (
-                                <div className="mx-4 mt-4 mb-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
+                                <div className="mx-4 mt-4 mb-2 bg-primary/5 border border-primary/20 rounded-md px-4 py-3 flex items-center gap-3 shadow-sm">
                                     <div className="w-9 h-9 rounded-full bg-white border border-primary/20 flex items-center justify-center text-primary font-black text-sm overflow-hidden shrink-0">
                                         {myEntry.profile_pic ? (
                                             <img src={myEntry.profile_pic} alt={myEntry.email} className="w-full h-full object-cover" />
@@ -204,7 +204,7 @@ const Leaderboard = ({ onClose }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-slate-900 font-bold text-sm truncate tracking-tight">Your Position</p>
-                                        <p className="text-slate-600 font-medium text-xs">{myEntry.reputation_points} pts · #{myEntry.rank}</p>
+                                        <p className="text-slate-600 font-medium text-xs">{myEntry.reputation_points} pts Â· #{myEntry.rank}</p>
                                     </div>
                                     <span className="text-primary font-black text-lg">#{myEntry.rank}</span>
                                 </div>
@@ -220,7 +220,7 @@ const Leaderboard = ({ onClose }) => {
                                     return (
                                         <div
                                             key={entry.user_id}
-                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all border border-transparent ${
+                                            className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all border border-transparent ${
                                                 isMe
                                                     ? 'bg-primary/5 border-primary/20 shadow-sm'
                                                     : 'hover:bg-white hover:border-slate-200 hover:shadow-sm'
@@ -248,7 +248,7 @@ const Leaderboard = ({ onClose }) => {
                                                     {isMe && <span className="text-xs font-medium text-slate-500 ml-1">(you)</span>}
                                                 </p>
                                                 <p className="text-xs text-slate-500 font-medium">
-                                                    {entry.total_messages} msgs · {entry.helpful_votes} upvotes
+                                                    {entry.total_messages} msgs Â· {entry.helpful_votes} upvotes
                                                 </p>
                                             </div>
 

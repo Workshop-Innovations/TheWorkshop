@@ -92,7 +92,7 @@ const DiagramManagerModal = ({ isOpen, onClose, paper, accessToken, onDiagramUpl
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col animate-fade-in relative">
+            <div className="bg-white rounded-md shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col animate-fade-in relative">
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                     <div>
                         <h3 className="text-xl font-bold text-slate-900">Manage Diagrams</h3>
@@ -115,13 +115,13 @@ const DiagramManagerModal = ({ isOpen, onClose, paper, accessToken, onDiagramUpl
                         </h4>
                         
                         {missingDiagrams.length === 0 ? (
-                            <p className="text-sm text-slate-500 italic bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <p className="text-sm text-slate-500 italic bg-slate-50 p-4 rounded-md border border-slate-100">
                                 No missing diagrams found in the markdown.
                             </p>
                         ) : (
                             <div className="grid gap-3">
                                 {missingDiagrams.map((placeholder) => (
-                                    <div key={placeholder} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                                    <div key={placeholder} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-md shadow-sm">
                                         <div className="flex items-center">
                                             <ImageIcon className="text-slate-400 mr-3" />
                                             <span className="font-mono text-sm text-slate-700 bg-slate-100 px-2 py-1 rounded">
@@ -129,7 +129,7 @@ const DiagramManagerModal = ({ isOpen, onClose, paper, accessToken, onDiagramUpl
                                             </span>
                                         </div>
                                         <div>
-                                            <label className={`cursor-pointer px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                            <label className={`cursor-pointer px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-dark transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                                 <UploadCloud className="inline w-4 h-4 mr-1" />
                                                 Upload
                                                 <input 
@@ -155,13 +155,13 @@ const DiagramManagerModal = ({ isOpen, onClose, paper, accessToken, onDiagramUpl
                         </h4>
                         
                         {uploadedDiagrams.length === 0 ? (
-                            <p className="text-sm text-slate-500 italic bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <p className="text-sm text-slate-500 italic bg-slate-50 p-4 rounded-md border border-slate-100">
                                 No diagrams have been uploaded yet.
                             </p>
                         ) : (
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {uploadedDiagrams.map((item) => (
-                                    <div key={item.label} className="border border-slate-200 rounded-lg overflow-hidden flex flex-col">
+                                    <div key={item.label} className="border border-slate-200 rounded-md overflow-hidden flex flex-col">
                                         <div className="bg-slate-100 p-2 border-b border-slate-200 flex justify-between items-center">
                                             <span className="font-mono text-xs text-slate-600 truncate mr-2">
                                                 {item.label}

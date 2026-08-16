@@ -89,7 +89,7 @@ const Tasks = () => {
         throw new Error(errorData.detail || 'Failed to create task');
       }
 
-      toast.success('✨ Task created!', {
+      toast.success('âœ¨ Task created!', {
         position: 'top-right',
         autoClose: 3000,
       });
@@ -126,7 +126,7 @@ const Tasks = () => {
       }
 
       if (!currentCompletedStatus) {
-        toast.success('🎉 Task completed!', { position: 'top-right', autoClose: 3000 });
+        toast.success('ðŸŽ‰ Task completed!', { position: 'top-right', autoClose: 3000 });
       } else {
         toast.info('Task marked as pending.', { position: 'top-right', autoClose: 3000 });
       }
@@ -174,7 +174,7 @@ const Tasks = () => {
             <h1 className="text-4xl font-bold text-slate-900">My Tasks</h1>
             <motion.button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20"
+              className="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded-md font-bold shadow-lg shadow-primary/20"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -229,7 +229,7 @@ const Tasks = () => {
         {showModal && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
             <motion.div
-              className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl border border-slate-100"
+              className="bg-white p-6 rounded-md w-full max-w-md shadow-2xl border border-slate-100"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -249,7 +249,7 @@ const Tasks = () => {
                     required
                     value={newTask.title}
                     onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                     placeholder="Enter task title"
                   />
                 </div>
@@ -258,7 +258,7 @@ const Tasks = () => {
                   <textarea
                     value={newTask.description}
                     onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[100px] text-slate-800"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[100px] text-slate-800"
                     placeholder="Enter task description"
                   />
                 </div>
@@ -269,7 +269,7 @@ const Tasks = () => {
                       <select
                         value={newTask.priority}
                         onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary appearance-none text-slate-800"
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary appearance-none text-slate-800"
                       >
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
@@ -284,7 +284,7 @@ const Tasks = () => {
                       <DatePicker
                         selected={newTask.dueDate ? new Date(newTask.dueDate) : null}
                         onChange={(date) => setNewTask({ ...newTask, dueDate: date ? date.toISOString().split('T')[0] : '' })}
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
+                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                         dateFormat="MMMM d"
                         placeholderText="Select a due date"
                         isClearable
@@ -297,13 +297,13 @@ const Tasks = () => {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all duration-300"
+                    className="px-4 py-2 rounded-md font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all duration-300"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/20"
+                    className="px-4 py-2 bg-primary text-white rounded-md font-bold hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/20"
                   >
                     Create
                   </button>
@@ -323,7 +323,7 @@ const Tasks = () => {
 const TaskCard = ({ task, onComplete, onDelete }) => {
   return (
     <motion.div
-      className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300 ${task.completed ? 'opacity-75' : ''}`}
+      className={`bg-white p-4 rounded-md shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300 ${task.completed ? 'opacity-75' : ''}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}

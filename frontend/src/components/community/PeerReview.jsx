@@ -121,7 +121,7 @@ const PeerReview = ({ onClose }) => {
             {/* Detail Header */}
             <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200 shrink-0">
                 <button
-                    className="text-slate-400 hover:text-slate-900 transition-colors p-1.5 rounded-lg hover:bg-slate-100"
+                    className="text-slate-400 hover:text-slate-900 transition-colors p-1.5 rounded-md hover:bg-slate-100"
                     onClick={() => { setSelectedSubmission(null); setFeedbacks([]); setError(null); }}
                 >
                     <ChevronLeft className="w-5 h-5" />
@@ -130,7 +130,7 @@ const PeerReview = ({ onClose }) => {
                     <h2 className="text-slate-900 font-bold text-lg truncate tracking-tight">{selectedSubmission.title}</h2>
                 </div>
                 {selectedSubmission.average_rating && (
-                    <div className="flex items-center gap-2 shrink-0 bg-yellow-50 px-3 py-1.5 rounded-lg border border-yellow-100">
+                    <div className="flex items-center gap-2 shrink-0 bg-yellow-50 px-3 py-1.5 rounded-md border border-yellow-100">
                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                         <span className="text-yellow-700 text-sm font-bold">{selectedSubmission.average_rating.toFixed(1)}</span>
                     </div>
@@ -150,7 +150,7 @@ const PeerReview = ({ onClose }) => {
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+                    <div className="bg-slate-50 rounded-md p-5 border border-slate-200">
                         <p className="text-slate-700 text-[15px] leading-relaxed whitespace-pre-wrap font-medium">
                             {selectedSubmission.content || <span className="text-slate-400 italic">No description provided.</span>}
                         </p>
@@ -159,7 +159,7 @@ const PeerReview = ({ onClose }) => {
                                 href={selectedSubmission.file_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-4 inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-bold transition-colors bg-primary/5 px-4 py-2 rounded-xl border border-primary/20"
+                                className="mt-4 inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-bold transition-colors bg-primary/5 px-4 py-2 rounded-md border border-primary/20"
                             >
                                 <ExternalLink className="w-4 h-4" />
                                 View Attached File
@@ -180,10 +180,10 @@ const PeerReview = ({ onClose }) => {
 
                     {/* Add Feedback Form (not own submission) */}
                     {user?.id !== selectedSubmission.author_id && (
-                        <form className="mb-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm" onSubmit={handleSubmitFeedback}>
+                        <form className="mb-8 bg-white border border-slate-200 rounded-md p-6 shadow-sm" onSubmit={handleSubmitFeedback}>
                             <h4 className="text-slate-900 font-bold text-sm uppercase tracking-wider mb-4">Add Your Review</h4>
 
-                            <div className="flex items-center gap-4 mb-4 bg-slate-50 w-fit px-4 py-2 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-4 mb-4 bg-slate-50 w-fit px-4 py-2 rounded-md border border-slate-200">
                                 <label className="text-slate-600 text-sm font-bold">Rating:</label>
                                 <StarRating
                                     value={newFeedback.rating}
@@ -193,7 +193,7 @@ const PeerReview = ({ onClose }) => {
                             </div>
 
                             <textarea
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 text-[15px] font-medium focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 resize-none transition-all shadow-inner"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-md px-4 py-3 text-slate-900 placeholder-slate-400 text-[15px] font-medium focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 resize-none transition-all shadow-inner"
                                 placeholder="Write constructive, helpful feedback..."
                                 value={newFeedback.comments}
                                 onChange={e => setNewFeedback({ ...newFeedback, comments: e.target.value })}
@@ -208,7 +208,7 @@ const PeerReview = ({ onClose }) => {
                                 <button
                                     type="submit"
                                     disabled={submittingFeedback || !newFeedback.comments.trim()}
-                                    className="ml-auto px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="ml-auto px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     {submittingFeedback ? (
                                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -228,14 +228,14 @@ const PeerReview = ({ onClose }) => {
                             Loading feedback...
                         </div>
                     ) : feedbacks.length === 0 ? (
-                        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 border-dashed">
+                        <div className="text-center py-12 bg-white rounded-md border border-slate-200 border-dashed">
                             <MessageCircle className="w-12 h-12 text-slate-200 mx-auto mb-3" />
                             <p className="text-slate-500 text-sm font-medium">No feedback yet. Be the first to review!</p>
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {feedbacks.map(fb => (
-                                <div key={fb.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                                <div key={fb.id} className="bg-white border border-slate-200 rounded-md p-5 shadow-sm">
                                     <div className="flex items-start justify-between gap-3 mb-3 border-b border-slate-100 pb-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-xs font-bold shrink-0">
@@ -246,7 +246,7 @@ const PeerReview = ({ onClose }) => {
                                                 <p className="text-slate-500 font-medium text-xs">{formatDate(fb.created_at)}</p>
                                             </div>
                                         </div>
-                                        <div className="bg-yellow-50 px-2.5 py-1 rounded-lg border border-yellow-100">
+                                        <div className="bg-yellow-50 px-2.5 py-1 rounded-md border border-yellow-100">
                                             <StarRating value={fb.rating} readonly />
                                         </div>
                                     </div>
@@ -265,7 +265,7 @@ const PeerReview = ({ onClose }) => {
             {/* Toolbar */}
             <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center gap-4 shrink-0">
                 <button
-                    className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95 ${
+                    className={`flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-md transition-all shadow-sm active:scale-95 ${
                         showCreateForm
                             ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                             : 'bg-primary text-white hover:bg-primary/90'
@@ -278,7 +278,7 @@ const PeerReview = ({ onClose }) => {
                         <><Plus className="w-4 h-4" />Submit Work</>
                     )}
                 </button>
-                <span className="text-xs font-bold text-slate-500 ml-auto bg-slate-100 px-3 py-1.5 rounded-lg">{submissions.length} submission{submissions.length !== 1 ? 's' : ''}</span>
+                <span className="text-xs font-bold text-slate-500 ml-auto bg-slate-100 px-3 py-1.5 rounded-md">{submissions.length} submission{submissions.length !== 1 ? 's' : ''}</span>
             </div>
 
             {/* Create form (collapsed) */}
@@ -287,7 +287,7 @@ const PeerReview = ({ onClose }) => {
                     <form onSubmit={handleCreate} className="space-y-4 max-w-3xl mx-auto">
                         <input
                             type="text"
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
                             placeholder="Title (e.g., Essay Draft 1, My Project)"
                             value={newSubmission.title}
                             onChange={e => setNewSubmission({ ...newSubmission, title: e.target.value })}
@@ -295,7 +295,7 @@ const PeerReview = ({ onClose }) => {
                             autoFocus
                         />
                         <textarea
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner resize-none"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner resize-none"
                             placeholder="Describe your work, add text content, or paste code..."
                             value={newSubmission.content}
                             onChange={e => setNewSubmission({ ...newSubmission, content: e.target.value })}
@@ -303,13 +303,13 @@ const PeerReview = ({ onClose }) => {
                         />
                         <input
                             type="url"
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
-                            placeholder="External link (Google Doc, GitHub, etc.) — optional"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
+                            placeholder="External link (Google Doc, GitHub, etc.) Ã¢â‚¬â€ optional"
                             value={newSubmission.file_url}
                             onChange={e => setNewSubmission({ ...newSubmission, file_url: e.target.value })}
                         />
                         {error && (
-                            <p className="text-rose-500 text-sm font-medium flex items-center gap-2 bg-rose-50 p-3 rounded-xl border border-rose-100">
+                            <p className="text-rose-500 text-sm font-medium flex items-center gap-2 bg-rose-50 p-3 rounded-md border border-rose-100">
                                 <AlertCircle className="w-4 h-4" />{error}
                             </p>
                         )}
@@ -317,7 +317,7 @@ const PeerReview = ({ onClose }) => {
                             <button
                                 type="submit"
                                 disabled={submitting || !newSubmission.title.trim()}
-                                className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {submitting && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
                                 {submitting ? 'Posting...' : 'Post Submission'}
@@ -342,7 +342,7 @@ const PeerReview = ({ onClose }) => {
                         <h3 className="text-slate-900 font-bold text-lg mb-2 tracking-tight">No submissions yet</h3>
                         <p className="text-slate-500 text-sm mb-6 font-medium leading-relaxed">Submit your work to get constructive peer feedback from the community</p>
                         <button
-                            className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95"
+                            className="px-6 py-3 bg-primary text-white font-bold rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95"
                             onClick={() => setShowCreateForm(true)}
                         >
                             Submit Your Work
@@ -353,7 +353,7 @@ const PeerReview = ({ onClose }) => {
                         {submissions.map(sub => (
                             <div
                                 key={sub.id}
-                                className="bg-white hover:bg-slate-50/80 border border-slate-200 hover:border-primary/40 rounded-2xl p-5 cursor-pointer transition-all group shadow-sm hover:shadow-md"
+                                className="bg-white hover:bg-slate-50/80 border border-slate-200 hover:border-primary/40 rounded-md p-5 cursor-pointer transition-all group shadow-sm hover:shadow-md"
                                 onClick={() => setSelectedSubmission(sub)}
                             >
                                 <div className="flex items-start justify-between gap-4 mb-3">
@@ -381,14 +381,14 @@ const PeerReview = ({ onClose }) => {
                                         </div>
                                         {sub.author_email?.split('@')[0]}
                                     </span>
-                                    <span className="text-slate-300">•</span>
+                                    <span className="text-slate-300">Ã¢â‚¬Â¢</span>
                                     <span className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md text-slate-600">
                                         <MessageCircle className="w-3.5 h-3.5" />
                                         {sub.feedback_count || 0} review{(sub.feedback_count || 0) !== 1 ? 's' : ''}
                                     </span>
                                     {sub.file_url && (
                                         <>
-                                            <span className="text-slate-300">•</span>
+                                            <span className="text-slate-300">Ã¢â‚¬Â¢</span>
                                             <span className="flex items-center gap-1 text-primary bg-primary/10 px-2 py-1 rounded-md">
                                                 <ExternalLink className="w-3 h-3" /> Link
                                             </span>
@@ -406,13 +406,13 @@ const PeerReview = ({ onClose }) => {
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
             <div
-                className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
+                className="bg-white rounded-md w-full max-w-4xl h-[85vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                        <div className="w-10 h-10 rounded-md bg-white border border-slate-200 flex items-center justify-center shadow-sm">
                             <ClipboardCheck className="w-5 h-5 text-slate-700" />
                         </div>
                         <div>
@@ -420,7 +420,7 @@ const PeerReview = ({ onClose }) => {
                             <p className="text-slate-500 font-medium text-xs">#{currentChannel?.name}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+                    <button onClick={onClose} className="w-8 h-8 rounded-md hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>

@@ -15,7 +15,7 @@ export const PLANS = [
         name: 'Basic',
         price: 0,
         period: '/mo',
-        description: 'Entry — free forever',
+        description: 'Entry â€” free forever',
         badge: null,
         features: [
             '5 AI Tutor queries per day',
@@ -102,7 +102,7 @@ const TIER_ORDER = ['basic', 'pro', 'premium', 'max'];
 
 export const formatPrice = (price) => {
     if (price === 0) return 'Free';
-    return `₦${price.toLocaleString()}`;
+    return `â‚¦${price.toLocaleString()}`;
 };
 
 const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
@@ -113,7 +113,7 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className={`relative flex flex-col rounded-2xl border bg-white transition-all overflow-hidden ${plan.popular ? 'border-primary shadow-xl shadow-primary/5' : 'border-slate-200 shadow-sm'
+            className={`relative flex flex-col rounded-md border bg-white transition-all overflow-hidden ${plan.popular ? 'border-primary shadow-xl shadow-primary/5' : 'border-slate-200 shadow-sm'
                 }`}
         >
             <div className="p-8 flex-grow flex flex-col">
@@ -165,7 +165,7 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
                             onClick={() => onUpgrade(plan.id)}
                             disabled={loading === plan.id}
                             id={`upgrade-btn-${plan.id}`}
-                            className={`w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 ${plan.popular
+                            className={`w-full py-3 rounded-md text-sm font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95 ${plan.popular
                                 ? 'bg-primary text-white hover:bg-primary/90 shadow-md shadow-primary/20'
                                 : 'bg-white text-slate-800 border border-slate-200 hover:bg-slate-50'
                                 }`}
@@ -326,14 +326,14 @@ const Pricing = () => {
 
                     {/* Current plan banner */}
                     {isAuthenticated && currentTier !== 'basic' && (
-                        <div className="max-w-3xl mb-12 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-start gap-4">
+                        <div className="max-w-3xl mb-12 p-6 rounded-md bg-white border border-slate-200 shadow-sm flex items-start gap-4">
                             <Check className="text-primary shrink-0 mt-0.5" size={20} />
                             <div>
                                 <p className="font-bold text-slate-900">
                                     You're on the <span className="capitalize">{currentTier}</span> plan
                                     {user?.subscription_expiry && (
                                         <span className="font-medium text-slate-500">
-                                            {' '}· Renews {new Date(user.subscription_expiry).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            {' '}Â· Renews {new Date(user.subscription_expiry).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         </span>
                                     )}
                                 </p>
@@ -386,7 +386,7 @@ const Pricing = () => {
                                     a: 'Absolutely. All payments are processed through Paystack, a PCI DSS compliant payment processor trusted across Africa.'
                                 },
                             ].map((faq, i) => (
-                                <div key={i} className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+                                <div key={i} className="bg-white rounded-md border border-slate-200 p-8 shadow-sm">
                                     <h3 className="font-bold text-slate-900 mb-3 text-base">{faq.q}</h3>
                                     <p className="text-slate-500 text-sm leading-relaxed font-medium">{faq.a}</p>
                                 </div>

@@ -123,7 +123,7 @@ const Dashboard = () => {
                 <div className="text-red-500 text-5xl mb-6 flex justify-center"><X /></div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-3">Connection Lost</h2>
                 <p className="text-slate-500 mb-8">{error}</p>
-                <button onClick={() => window.location.reload()} className="px-8 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors font-bold">
+                <button onClick={() => window.location.reload()} className="px-8 py-3 bg-slate-900 text-white rounded-md hover:bg-slate-800 transition-colors font-bold">
                     Retry Connection
                 </button>
             </div>
@@ -183,7 +183,7 @@ const Dashboard = () => {
                                 <div>
                                     <button
                                         onClick={() => setIsSettingsOpen(true)}
-                                        className="px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-95"
+                                        className="px-8 py-4 bg-slate-900 text-white font-bold rounded-md hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-95"
                                     >
                                         Edit Profile
                                     </button>
@@ -203,7 +203,7 @@ const Dashboard = () => {
                             <div className="text-7xl font-black tracking-tighter mb-2">{focusHours}<span className="text-3xl text-white/50 font-bold ml-1">h</span> {focusMinutes}<span className="text-3xl text-white/50 font-bold ml-1">m</span></div>
                             <p className="text-white/60 text-lg font-medium">Total deep work accumulated</p>
                         </div>
-                        <Link to="/pomodoro" className="w-full py-5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center gap-3 font-bold transition-all group">
+                        <Link to="/pomodoro" className="w-full py-5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-md flex items-center justify-center gap-3 font-bold transition-all group">
                             <Play className="w-5 h-5 fill-current" />
                             Start Session
                         </Link>
@@ -211,7 +211,7 @@ const Dashboard = () => {
 
                     {/* STATS ROW (Spans 12 columns, split into 2 blocks) */}
                     <div className="md:col-span-6 bg-white p-8 rounded-[32px] shadow-sm border border-slate-100/50 flex items-center gap-6 card hover:shadow-md">
-                        <div className="w-20 h-20 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <div className="w-20 h-20 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
                             <Crown className="w-10 h-10" />
                         </div>
                         <div>
@@ -221,7 +221,7 @@ const Dashboard = () => {
                     </div>
 
                     <div className="md:col-span-6 bg-white p-8 rounded-[32px] shadow-sm border border-slate-100/50 flex items-center gap-6 card hover:shadow-md">
-                        <div className="w-20 h-20 rounded-2xl bg-accent/10 text-accent flex items-center justify-center shrink-0">
+                        <div className="w-20 h-20 rounded-md bg-accent/10 text-accent flex items-center justify-center shrink-0">
                             <Brain className="w-10 h-10" />
                         </div>
                         <div>
@@ -282,14 +282,14 @@ const Dashboard = () => {
                                                 <div className="flex flex-col sm:flex-row gap-3">
                                                     <button
                                                         onClick={() => setIsUploaderOpen(true)}
-                                                        className="px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 text-sm"
+                                                        className="px-6 py-3 bg-primary text-white rounded-md font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 text-sm"
                                                     >
                                                         Upload Picture
                                                     </button>
                                                     <button
                                                         onClick={handleRemoveProfilePic}
                                                         disabled={!selectedProfilePic}
-                                                        className={`px-6 py-3 rounded-xl font-bold transition-colors text-sm ${!selectedProfilePic ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
+                                                        className={`px-6 py-3 rounded-md font-bold transition-colors text-sm ${!selectedProfilePic ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
                                                     >
                                                         Remove
                                                     </button>
@@ -351,7 +351,7 @@ const Dashboard = () => {
                                 <div className="p-8 bg-white border-t border-slate-100 flex justify-end">
                                     <button
                                         onClick={() => setIsSettingsOpen(false)}
-                                        className="px-10 py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95"
+                                        className="px-10 py-4 bg-primary text-white font-bold rounded-md hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 active:scale-95"
                                     >
                                         Save & Close
                                     </button>
@@ -369,7 +369,7 @@ const Dashboard = () => {
 const QuickLink = ({ to, icon, title, desc }) => (
     <Link to={to} className="group block">
         <div className="bg-white p-8 rounded-[24px] shadow-sm border border-slate-100/50 card hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 h-full flex flex-col">
-            <div className="w-14 h-14 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+            <div className="w-14 h-14 bg-slate-50 text-slate-400 rounded-md flex items-center justify-center mb-8 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                 {icon}
             </div>
             <h3 className="text-xl font-extrabold text-slate-800 mb-2 tracking-tight group-hover:text-primary transition-colors">{title}</h3>

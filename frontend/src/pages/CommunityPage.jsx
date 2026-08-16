@@ -16,13 +16,13 @@ const CommunityPage = () => {
     if (error) {
         return (
             <div className="h-screen w-screen flex items-center justify-center bg-slate-50 fixed inset-0 z-[9999]">
-                <div className="bg-white p-8 rounded-3xl shadow-xl border border-red-100 max-w-md w-full text-center">
-                    <div className="text-5xl mb-6">⚠️</div>
+                <div className="bg-white p-8 rounded-md shadow-xl border border-red-100 max-w-md w-full text-center">
+                    <div className="text-5xl mb-6">âš ï¸</div>
                     <p className="text-slate-800 font-bold text-xl mb-3">Connection Lost</p>
                     <p className="text-slate-500 text-sm mb-8 leading-relaxed">{error}</p>
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="px-8 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95"
+                        className="px-8 py-3 bg-primary text-white rounded-md font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95"
                     >
                         Return to Dashboard
                     </button>

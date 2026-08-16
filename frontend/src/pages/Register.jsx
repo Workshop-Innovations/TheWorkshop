@@ -71,7 +71,7 @@ const Register = () => {
       <Navbar />
 
       <div className="flex-grow flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md space-y-8 bg-white p-10 rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100">
+        <div className="w-full max-w-md space-y-8 bg-white p-10 rounded-md shadow-xl shadow-slate-200/60 border border-slate-100">
           <div>
             <h2 className="mt-2 text-center text-3xl font-extrabold text-slate-900 tracking-tight">
               Create Account
@@ -81,8 +81,8 @@ const Register = () => {
             </p>
           </div>
 
-          {error && <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">{error}</div>}
-          {success && <div className="p-3 rounded-lg bg-green-50 text-green-600 text-sm font-medium text-center border border-green-100">{success}</div>}
+          {error && <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">{error}</div>}
+          {success && <div className="p-3 rounded-md bg-green-50 text-green-600 text-sm font-medium text-center border border-green-100">{success}</div>}
 
           <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             <div>
@@ -92,7 +92,7 @@ const Register = () => {
               <input
                 type="text"
                 id="username"
-                className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
+                className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
                 placeholder="Choose a username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -107,7 +107,7 @@ const Register = () => {
               <input
                 type="email"
                 id="email"
-                className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
+                className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -123,7 +123,7 @@ const Register = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
+                  className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
                   placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -147,7 +147,7 @@ const Register = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="confirmPassword"
-                  className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
+                  className="appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent sm:text-sm bg-slate-50 transition-all"
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -160,7 +160,7 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-primary hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm transition-all transform hover:-translate-y-0.5 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-white bg-primary hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm transition-all transform hover:-translate-y-0.5 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">

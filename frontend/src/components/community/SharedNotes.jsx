@@ -69,7 +69,7 @@ const SharedNotes = ({ onClose }) => {
             setIsEditing(false);
             setError(null);
         } else {
-            setError('Failed to save — the note may have been edited by someone else. Refreshing...');
+            setError('Failed to save Ã¢â‚¬â€ the note may have been edited by someone else. Refreshing...');
             loadNotes();
         }
     };
@@ -94,7 +94,7 @@ const SharedNotes = ({ onClose }) => {
             <div className="flex items-center gap-2 px-6 py-3 border-b border-slate-200 shrink-0 bg-white">
                 <button
                     type="button"
-                    className="text-slate-500 hover:text-slate-900 transition-colors p-1.5 rounded-lg hover:bg-slate-100 mr-2"
+                    className="text-slate-500 hover:text-slate-900 transition-colors p-1.5 rounded-md hover:bg-slate-100 mr-2"
                     onClick={() => setIsEditing(false)}
                 >
                     <ChevronLeft className="w-5 h-5" />
@@ -104,7 +104,7 @@ const SharedNotes = ({ onClose }) => {
                 <button
                     type="submit"
                     disabled={saving || !formData.title.trim()}
-                    className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
+                    className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-2"
                 >
                     {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
                     {saving ? 'Saving...' : selectedNote ? 'Save Changes' : 'Create Note'}
@@ -135,7 +135,7 @@ const SharedNotes = ({ onClose }) => {
         <div className="h-full flex flex-col bg-white">
             <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200 shrink-0">
                 <button
-                    className="text-slate-400 hover:text-slate-900 transition-colors p-1.5 rounded-lg hover:bg-slate-100"
+                    className="text-slate-400 hover:text-slate-900 transition-colors p-1.5 rounded-md hover:bg-slate-100"
                     onClick={() => setSelectedNote(null)}
                 >
                     <ChevronLeft className="w-5 h-5" />
@@ -144,7 +144,7 @@ const SharedNotes = ({ onClose }) => {
                     <h2 className="text-slate-900 font-bold text-xl truncate tracking-tight">{selectedNote.title}</h2>
                 </div>
                 <button
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-md transition-colors flex items-center gap-2 shadow-sm"
                     onClick={() => startEditing(selectedNote)}
                 >
                     <Edit2 className="w-4 h-4" />
@@ -156,7 +156,7 @@ const SharedNotes = ({ onClose }) => {
                 <span className="text-xs text-slate-500 font-medium">
                     By <span className="text-slate-700 font-bold">{selectedNote.creator_email?.split('@')[0]}</span>
                 </span>
-                <span className="text-slate-300">•</span>
+                <span className="text-slate-300">Ã¢â‚¬Â¢</span>
                 <span className="text-xs text-slate-500 font-medium">
                     Updated {formatDate(selectedNote.updated_at)}
                 </span>
@@ -200,13 +200,13 @@ const SharedNotes = ({ onClose }) => {
             {/* Toolbar */}
             <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center gap-4 shrink-0">
                 <button
-                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95"
                     onClick={() => startEditing(null)}
                 >
                     <Plus className="w-4 h-4" />
                     New Note
                 </button>
-                <span className="text-xs font-bold text-slate-500 ml-auto bg-slate-100 px-3 py-1.5 rounded-lg">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
+                <span className="text-xs font-bold text-slate-500 ml-auto bg-slate-100 px-3 py-1.5 rounded-md">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
             </div>
 
             {/* List */}
@@ -224,7 +224,7 @@ const SharedNotes = ({ onClose }) => {
                         <h3 className="text-slate-900 font-bold text-lg mb-2 tracking-tight">No shared notes yet</h3>
                         <p className="text-slate-500 text-sm mb-6 font-medium leading-relaxed">Create a note to share knowledge, summaries, or study plans with your community.</p>
                         <button
-                            className="px-6 py-3 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm active:scale-95"
+                            className="px-6 py-3 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary/90 transition-all shadow-sm active:scale-95"
                             onClick={() => startEditing(null)}
                         >
                             Create First Note
@@ -235,11 +235,11 @@ const SharedNotes = ({ onClose }) => {
                         {notes.map(note => (
                             <div
                                 key={note.id}
-                                className="bg-white border border-slate-200 hover:border-primary/40 rounded-2xl p-5 cursor-pointer transition-all group shadow-sm hover:shadow-md"
+                                className="bg-white border border-slate-200 hover:border-primary/40 rounded-md p-5 cursor-pointer transition-all group shadow-sm hover:shadow-md"
                                 onClick={() => { setSelectedNote(note); setIsEditing(false); }}
                             >
                                 <div className="flex items-start gap-3 mb-2">
-                                    <div className="mt-0.5 w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                                    <div className="mt-0.5 w-8 h-8 rounded-md bg-primary/5 flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
                                         <FileText className="w-4 h-4" />
                                     </div>
                                     <h3 className="text-slate-900 font-bold text-[15px] leading-snug tracking-tight group-hover:text-primary transition-colors line-clamp-2">
@@ -277,13 +277,13 @@ const SharedNotes = ({ onClose }) => {
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
             <div
-                className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
+                className="bg-white rounded-md w-full max-w-4xl h-[85vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                        <div className="w-10 h-10 rounded-md bg-white border border-slate-200 flex items-center justify-center shadow-sm">
                             <FileText className="w-5 h-5 text-slate-700" />
                         </div>
                         <div>
@@ -293,14 +293,14 @@ const SharedNotes = ({ onClose }) => {
                             </p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+                    <button onClick={onClose} className="w-8 h-8 rounded-md hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Error Banner */}
                 {error && (
-                    <div className="mx-6 mt-4 px-4 py-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm font-medium flex items-center gap-3 shrink-0">
+                    <div className="mx-6 mt-4 px-4 py-3 bg-rose-50 border border-rose-200 rounded-md text-rose-700 text-sm font-medium flex items-center gap-3 shrink-0">
                         <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
                         {error}
                         <button className="ml-auto text-rose-600 hover:text-rose-800 text-xs font-bold bg-white px-2 py-1 rounded shadow-sm" onClick={() => setError(null)}>Dismiss</button>

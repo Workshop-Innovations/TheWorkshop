@@ -61,7 +61,7 @@ const Navbar = () => {
 
                   <div className="h-6 w-px bg-slate-200 mx-2"></div>
 
-                  <button onClick={handleLogout} className="text-sm font-bold text-slate-500 hover:text-slate-900 px-4 py-2 rounded-full hover:bg-slate-50 transition-colors">
+                  <button onClick={handleLogout} className="text-sm font-bold text-slate-500 hover:text-slate-900 px-4 py-2 rounded-md hover:bg-slate-50 transition-colors">
                     Sign Out
                   </button>
                   <Link to="/profile" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-primary text-xs font-bold overflow-hidden hover:shadow-md hover:border-primary/50 transition-all ml-2">
@@ -120,7 +120,7 @@ const Navbar = () => {
               {/* Mobile Menu Header */}
               <div className="flex items-center justify-between p-8 border-b border-slate-100 bg-slate-50">
                 <span className="text-xl font-black text-slate-900 tracking-tight">Navigation</span>
-                <button onClick={closeMobile} className="p-3 hover:bg-slate-200 rounded-full transition-colors bg-white shadow-sm">
+                <button onClick={closeMobile} className="p-3 hover:bg-slate-200 rounded-md transition-colors bg-white shadow-sm">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
@@ -143,7 +143,7 @@ const Navbar = () => {
                     
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-6 py-4 rounded-2xl text-red-600 font-bold hover:bg-red-50 transition-colors flex items-center gap-4"
+                      className="w-full text-left px-6 py-4 rounded-md text-red-600 font-bold hover:bg-red-50 transition-colors flex items-center gap-4"
                     >
                       Sign Out
                     </button>
@@ -158,7 +158,7 @@ const Navbar = () => {
                       <Link
                         to="/onboarding"
                         onClick={closeMobile}
-                        className="block w-full text-center px-8 py-4 bg-primary text-white font-bold rounded-2xl shadow-xl shadow-primary/20 hover:-translate-y-1 active:scale-95 transition-all"
+                        className="block w-full text-center px-8 py-4 bg-primary text-white font-bold rounded-md shadow-xl shadow-primary/20 hover:-translate-y-1 active:scale-95 transition-all"
                       >
                         Get Started
                       </Link>
@@ -187,9 +187,9 @@ const MobileLink = ({ to, label, icon, onClick }) => (
   <Link
     to={to}
     onClick={onClick}
-    className="flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-700 font-bold hover:bg-slate-50 hover:text-primary transition-all active:scale-95"
+    className="flex items-center gap-4 px-6 py-4 rounded-md text-slate-700 font-bold hover:bg-slate-50 hover:text-primary transition-all active:scale-95"
   >
-    {icon && <span className="text-slate-400 w-6 h-6 flex items-center justify-center bg-white shadow-sm rounded-lg">{icon}</span>}
+    {icon && <span className="text-slate-400 w-6 h-6 flex items-center justify-center bg-white shadow-sm rounded-md">{icon}</span>}
     {label}
   </Link>
 );
