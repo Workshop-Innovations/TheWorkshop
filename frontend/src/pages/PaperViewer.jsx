@@ -409,8 +409,8 @@ const PaperViewer = () => {
                 .paper-content .katex { font-size: 1em !important; }
                 .paper-content .katex-display { margin: 1rem 0; overflow-x: auto; }
                 .paper-content p   { margin-bottom: 0.75rem; }
-                .paper-content ul,
-                .paper-content ol  { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+                .paper-content ul  { padding-left: 1.5rem; margin-bottom: 0.75rem; list-style-type: disc; }
+                .paper-content ol  { padding-left: 1.5rem; margin-bottom: 0.75rem; list-style-type: decimal; }
                 .paper-content pre { overflow-x: auto; }
             `}</style>
 
@@ -554,7 +554,12 @@ const PaperViewer = () => {
                         {mode !== 'results' && (
                             (!answerContent || activeTab === 'questions') ? (
                                 <div className="paper-content" style={{ lineHeight: 1.75, fontSize: '0.97rem' }}>
-                                    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={components}>
+                                    <ReactMarkdown 
+                                        remarkPlugins={remarkPlugins} 
+                                        rehypePlugins={rehypePlugins} 
+                                        components={components}
+                                        urlTransform={(value) => value}
+                                    >
                                         {mainContent}
                                     </ReactMarkdown>
 
@@ -576,7 +581,12 @@ const PaperViewer = () => {
                                     background: '#f8fafc', border: '1px solid #e2e8f0',
                                     borderRadius: '0.5rem', padding: '1.5rem',
                                 }}>
-                                    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={components}>
+                                    <ReactMarkdown 
+                                        remarkPlugins={remarkPlugins} 
+                                        rehypePlugins={rehypePlugins} 
+                                        components={components}
+                                        urlTransform={(value) => value}
+                                    >
                                         {answerContent}
                                     </ReactMarkdown>
                                 </div>
