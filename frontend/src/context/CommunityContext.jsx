@@ -164,11 +164,9 @@ export const CommunityProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 setChannels(data);
-                if (data.length > 0) {
-                    setCurrentChannel(data[0]);
-                } else {
-                    setCurrentChannel(null);
-                }
+                // Only auto-select the first channel if no channel is already selected.
+                // Prevents losing your place whenever the community refreshes.
+                setCurrentChannel(prev => prev ?? (data.length > 0 ? data[0] : null));
             }
         } catch (error) {
             console.error("Failed to fetch channels", error);
@@ -223,7 +221,11 @@ export const CommunityProvider = ({ children }) => {
         if (!currentChannel || !content.trim()) return;
 
         try {
-            const response = await fetch(`${API_BASE}/channels/${currentChannel.id}/messages`, {
+            // We deliberately do NOT add the message to state here.
+            // The backend broadcasts via WebSocket to all clients including the sender,
+            // and the WS onmessage handler handles deduplication.
+            // Adding it locally first creates a race-condition that causes duplicates.
+            await fetch(`${API_BASE}/channels/${currentChannel.id}/messages`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -231,12 +233,6 @@ export const CommunityProvider = ({ children }) => {
                 },
                 body: JSON.stringify({ content })
             });
-            if (response.ok) {
-                const newMessage = await response.json();
-                setMessages(prev => [...prev, newMessage]);
-            } else {
-                console.error("Failed to send message, status:", response.status);
-            }
         } catch (error) {
             console.error("Failed to send message", error);
         }
@@ -482,7 +478,7 @@ export const CommunityProvider = ({ children }) => {
 
         ws.onopen = () => {
             setIsConnected(true);
-            console.log(`[WS] Connected to channel: ${currentChannel.slug}`);
+            console.log(`[WS] Connected (current channel: ${currentChannelRef.current?.slug ?? 'none'})`);
         };
 
         ws.onmessage = (event) => {
@@ -745,6 +741,7 @@ export const CommunityProvider = ({ children }) => {
         } catch (error) {
             console.error("Failed to leave study group", error);
         }
+        return false;
     };
 
     const fetchStudyGroupDetails = async (groupId) => {

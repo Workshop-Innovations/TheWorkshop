@@ -1134,7 +1134,7 @@ async def get_online_users(
     current_user: User = Depends(get_current_user)
 ):
     """Get list of online users."""
-    return list(manager.online_users.keys())
+    return manager.online_users_list
 
 # ==================== GAMIFICATION HELPER FUNCTIONS ====================
 
