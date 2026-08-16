@@ -102,7 +102,7 @@ const PastPapers = () => {
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
-                                    className={`px-6 py-2 rounded-full font-bold transition-all ${activeTab === tab
+                                    className={`px-6 py-2 rounded-md font-bold transition-all ${activeTab === tab
                                         ? 'bg-slate-900 text-white shadow-md'
                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                         }`}

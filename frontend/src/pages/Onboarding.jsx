@@ -68,7 +68,7 @@ const OnboardingPlanCard = ({ plan, onSelect, loading }) => {
             }`}>
             {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                    <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-md whitespace-nowrap">
                         {plan.badge}
                     </span>
                 </div>

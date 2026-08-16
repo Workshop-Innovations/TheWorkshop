@@ -32,7 +32,7 @@ const Navbar = () => {
           animate={{ y: 0 }}
           className={`pointer-events-auto transition-all duration-500 ease-[0.16,1,0.3,1] w-full max-w-7xl mx-auto
             ${isScrolled
-              ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-slate-200/50 border border-slate-100/50 rounded-full px-8 py-3'
+              ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-slate-200/50 border border-slate-100/50 rounded-md px-8 py-3'
               : 'bg-transparent border-transparent rounded-none px-6 py-6'
             }`}
         >
@@ -51,7 +51,7 @@ const Navbar = () => {
                 <>
                   <NavLink to="/dashboard" label="Dashboard" />
                   {user?.role === 'admin' && (
-                    <Link to="/admin" className="flex items-center gap-2 text-sm font-bold text-slate-700 bg-slate-100 px-4 py-2 rounded-full hover:bg-slate-200 transition-colors">
+                    <Link to="/admin" className="flex items-center gap-2 text-sm font-bold text-slate-700 bg-slate-100 px-4 py-2 rounded-md hover:bg-slate-200 transition-colors">
                       <Shield className="w-4 h-4" />
                       Admin
                     </Link>
@@ -79,7 +79,7 @@ const Navbar = () => {
                   <NavLink to="/login" label="Log In" />
                   <Link
                     to="/onboarding"
-                    className="ml-4 px-8 py-3 bg-slate-900 text-white text-sm font-bold rounded-full shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 transition-all"
+                    className="ml-4 px-8 py-3 bg-slate-900 text-white text-sm font-bold rounded-md shadow-lg shadow-slate-900/20 hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95 transition-all"
                   >
                     Get Started
                   </Link>
@@ -90,7 +90,7 @@ const Navbar = () => {
             {/* MOBILE HAMBURGER BUTTON */}
             <button 
               onClick={() => setIsMobileOpen(!isMobileOpen)}
-              className="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+              className="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
               aria-label="Toggle menu"
             >
               {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -115,7 +115,7 @@ const Navbar = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.3, ease: 'anticipate' }}
-              className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-white shadow-2xl z-[60] flex flex-col rounded-l-[32px] overflow-hidden border-l border-slate-100"
+              className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-white shadow-2xl z-[60] flex flex-col overflow-hidden border-l border-slate-100"
             >
               {/* Mobile Menu Header */}
               <div className="flex items-center justify-between p-8 border-b border-slate-100 bg-slate-50">
@@ -177,7 +177,7 @@ const Navbar = () => {
 const NavLink = ({ to, label, className }) => (
   <Link
     to={to}
-    className={`px-5 py-2.5 rounded-full text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors ${className || ''}`}
+    className={`px-5 py-2.5 rounded-md text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors ${className || ''}`}
   >
     {label}
   </Link>
