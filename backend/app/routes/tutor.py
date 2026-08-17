@@ -30,9 +30,7 @@ if GEMINI_API_KEY:
 else:
     print("WARNING: GEMINI_API_KEY not set. AI Tutor features will not work.")
 
-# Create uploads directory
-UPLOAD_DIR = Path("uploads/tutor_documents")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+# Removed local uploads directory creation
 
 # --- Request/Response Schemas for Generation ---
 class GenerateRequest(BaseModel):
@@ -80,12 +78,22 @@ async def upload_document(
         
         if filename.endswith(".pdf"):
             file_type = "pdf"
-            # Save the PDF file
+            # Save the PDF file to Supabase
             doc_id = str(uuid4())
-            file_path = f"uploads/tutor_documents/{doc_id}_{file.filename}"
+            file_path = f"{doc_id}_{file.filename}"
             
-            with open(file_path, "wb") as f:
-                f.write(content_bytes)
+            from supabase import create_client, Client
+            url = os.getenv("SUPABASE_URL")
+            key = os.getenv("SUPABASE_KEY")
+            if url and key:
+                supabase: Client = create_client(url, key)
+                supabase.storage.from_("tutor_documents").upload(
+                    file_path,
+                    content_bytes,
+                    file_options={"cache-control": "3600", "upsert": "true"}
+                )
+            else:
+                print("WARNING: Supabase not configured. Tutor docs won't be saved.")
             
             # Extract text for AI processing
             try:
@@ -97,8 +105,8 @@ async def upload_document(
             except Exception as e:
                 print(f"PDF Extraction Error: {e}")
                 # Delete the saved file if extraction fails
-                if os.path.exists(file_path):
-                    os.remove(file_path)
+                if url and key:
+                    supabase.storage.from_("tutor_documents").remove([file_path])
                 raise HTTPException(status_code=400, detail="Could not extract text from PDF.")
         else:
             # Assume text/markdown
@@ -200,14 +208,34 @@ async def serve_document_file(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
     
-    if not doc.file_path or not os.path.exists(doc.file_path):
-        raise HTTPException(status_code=404, detail="File not found on server.")
+    if not doc.file_path:
+        raise HTTPException(status_code=404, detail="File path not found for document.")
     
-    return FileResponse(
-        path=doc.file_path,
-        media_type="application/pdf",
-        filename=doc.filename
-    )
+    from supabase import create_client, Client
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_KEY")
+    
+    if not url or not key:
+        raise HTTPException(status_code=500, detail="Supabase not configured.")
+        
+    supabase: Client = create_client(url, key)
+    
+    # Generate signed url valid for 60 seconds
+    res = supabase.storage.from_("tutor_documents").create_signed_url(doc.file_path, 60)
+    
+    # create_signed_url returns a dict like {'signedURL': '...'} or {'error': '...'} in python client
+    if isinstance(res, dict) and "signedURL" in res:
+        signed_url = res["signedURL"]
+    elif hasattr(res, "signed_url"):
+         signed_url = res.signed_url
+    else:
+         signed_url = str(res) # Fallback if it returns the url directly
+         
+    if not signed_url or "error" in signed_url.lower():
+        raise HTTPException(status_code=404, detail="Could not generate signed URL.")
+        
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=signed_url)
 
 @router.post("/chat", response_model=TutorChatResponse)
 async def chat_with_tutor(
