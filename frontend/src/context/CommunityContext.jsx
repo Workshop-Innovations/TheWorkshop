@@ -55,6 +55,8 @@ export const CommunityProvider = ({ children }) => {
 
     // WebSocket ref
     const wsRef = useRef(null);
+    const wsReconnectTimeout = useRef(null);
+    const wsReconnectDelay = useRef(1000); // Start at 1s, cap at 30s
     const [isConnected, setIsConnected] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -405,8 +407,10 @@ export const CommunityProvider = ({ children }) => {
                 body: JSON.stringify({ content })
             });
             if (response.ok) {
-                const newMsg = await response.json();
-                setDmMessages(prev => [...prev, newMsg]);
+                // Do NOT add the message to local state here.
+                // The backend sends it back via WebSocket (dm_message event),
+                // and the WS handler deduplicates by ID to prevent doubles.
+                await response.json();
             }
         } catch (error) {
             console.error("Failed to send DM", error);
@@ -461,7 +465,7 @@ export const CommunityProvider = ({ children }) => {
     }, [currentChannel, token]);
 
     // WebSocket connection for real-time messaging
-    useEffect(() => {
+    const connectWebSocket = useCallback(() => {
         if (!token) return;
 
         const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -469,7 +473,7 @@ export const CommunityProvider = ({ children }) => {
         const wsUrl = `${wsBase}/ws/community/global?token=${token}`;
 
         if (wsRef.current) {
-            wsRef.current.close();
+            wsRef.current.close(1000, 'Reconnecting');
             wsRef.current = null;
         }
 
@@ -478,7 +482,8 @@ export const CommunityProvider = ({ children }) => {
 
         ws.onopen = () => {
             setIsConnected(true);
-            console.log(`[WS] Connected (current channel: ${currentChannelRef.current?.slug ?? 'none'})`);
+            wsReconnectDelay.current = 1000; // Reset backoff on success
+            console.log('[WS] Connected');
         };
 
         ws.onmessage = (event) => {
@@ -486,10 +491,8 @@ export const CommunityProvider = ({ children }) => {
                 const data = JSON.parse(event.data);
 
                 if (data.type === 'message' || data.type === 'reply') {
-                    // Deduplicate: the sender already added the message via HTTP response
                     setMessages(prev => {
                         if (prev.some(m => m.id === data.id)) return prev;
-                        // If we're in a different channel or view, mark as unread and DO NOT append
                         if (data.channel_id !== currentChannelRef.current?.id || viewModeRef.current !== 'community') {
                             setUnreadChannels(p => new Set([...p, data.channel_id]));
                             return prev;
@@ -522,7 +525,7 @@ export const CommunityProvider = ({ children }) => {
                 } else if (data.type === 'user_offline') {
                     setOnlineUsers(prev => prev.filter(id => id !== data.user_id));
                 } else if (data.type === 'dm_message') {
-                    // If it's for a DM conversation we have open, add it
+                    // Always deduplicate by ID — sender no longer adds to state locally
                     if (data.conversation_id === currentDMRef.current?.id && viewModeRef.current === 'dms') {
                         setDmMessages(prev => {
                             if (prev.some(m => m.id === data.id)) return prev;
@@ -552,19 +555,32 @@ export const CommunityProvider = ({ children }) => {
 
         ws.onclose = (event) => {
             setIsConnected(false);
-            console.log(`[WS] Disconnected from global websocket`, event.code);
+            // Reconnect with exponential backoff — skip on intentional close (1000)
+            if (event.code !== 1000 && token) {
+                const delay = wsReconnectDelay.current;
+                console.log(`[WS] Disconnected (code ${event.code}). Reconnecting in ${delay}ms...`);
+                wsReconnectTimeout.current = setTimeout(() => {
+                    wsReconnectDelay.current = Math.min(delay * 2, 30000);
+                    connectWebSocket();
+                }, delay);
+            } else {
+                console.log(`[WS] Closed cleanly (code ${event.code})`);
+            }
         };
+    }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        if (!token) return;
+        connectWebSocket();
         return () => {
+            // Intentional teardown — signal onclose not to reconnect
+            if (wsReconnectTimeout.current) clearTimeout(wsReconnectTimeout.current);
             if (wsRef.current) {
-                wsRef.current.close();
+                wsRef.current.close(1000, 'Unmounting');
                 wsRef.current = null;
             }
         };
-    // Include currentChannel.id and currentDM.id so that the closures in onmessage get the latest values.
-    // However, recreating the websocket on every channel switch defeats the purpose of a global WS.
-    // We should use a ref for currentChannel and currentDM to avoid reconnecting.
-    }, [token]);
+    }, [token, connectWebSocket]);
 
     // When DM changes, fetch DM messages
     useEffect(() => {
@@ -771,6 +787,75 @@ export const CommunityProvider = ({ children }) => {
         return false;
     };
 
+    const updateStudyGroup = async (groupId, groupData) => {
+        try {
+            const response = await fetch(`${API_BASE}/groups/${groupId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(groupData)
+            });
+            if (response.ok) return await response.json();
+        } catch (error) {
+            console.error("Failed to update study group", error);
+        }
+        return null;
+    };
+
+    const deleteStudyGroup = async (groupId) => {
+        try {
+            const response = await fetch(`${API_BASE}/groups/${groupId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.ok;
+        } catch (error) {
+            console.error("Failed to delete study group", error);
+        }
+        return false;
+    };
+
+    const updateChannel = async (channelId, channelData) => {
+        try {
+            const response = await fetch(`${API_BASE}/channels/${channelId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(channelData)
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                setChannels(prev => prev.map(ch => ch.id === channelId ? updated : ch));
+                if (currentChannel?.id === channelId) setCurrentChannel(updated);
+                return updated;
+            }
+        } catch (error) {
+            console.error("Failed to update channel", error);
+        }
+        return null;
+    };
+
+    const deleteChannel = async (channelId) => {
+        try {
+            const response = await fetch(`${API_BASE}/channels/${channelId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                setChannels(prev => prev.filter(ch => ch.id !== channelId));
+                if (currentChannel?.id === channelId) setCurrentChannel(null);
+                return true;
+            }
+        } catch (error) {
+            console.error("Failed to delete channel", error);
+        }
+        return false;
+    };
+
     // --- Shared Notes ---
     const fetchChannelNotes = async (channelId) => {
         try {
@@ -895,6 +980,8 @@ export const CommunityProvider = ({ children }) => {
         currentChannel,
         setCurrentChannel,
         createChannel,
+        updateChannel,
+        deleteChannel,
 
         // Study Groups
         fetchStudyGroups,
@@ -903,6 +990,8 @@ export const CommunityProvider = ({ children }) => {
         leaveStudyGroup,
         fetchStudyGroupDetails,
         removeGroupMember,
+        updateStudyGroup,
+        deleteStudyGroup,
 
         // Notes
         fetchChannelNotes,

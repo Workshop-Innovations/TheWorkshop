@@ -255,8 +255,8 @@ const Leaderboard = ({ onClose }) => {
 
                                             {entry.top_badges?.length > 0 && (
                                                 <div className="flex gap-1 shrink-0">
-                                                    {entry.top_badges.slice(0, 3).map((badge, i) => (
-                                                        <span key={i} className="text-base" title={badge.name}>{badge.icon}</span>
+                                                    {entry.top_badges.slice(0, 3).map((badge) => (
+                                                        <span key={badge.id} className="text-base" title={badge.name}>{badge.icon}</span>
                                                     ))}
                                                 </div>
                                             )}

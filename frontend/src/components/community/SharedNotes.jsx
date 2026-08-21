@@ -1,6 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { FileText, Plus, X, Edit2, AlertCircle, ChevronLeft } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+
+const remarkPlugins = [
+    [remarkMath, { singleDollarTextMath: true }],
+    remarkGfm,
+];
+
+const rehypePlugins = [
+    [rehypeKatex, { throwOnError: false, strict: false, trust: true }],
+];
 
 const SharedNotes = ({ onClose }) => {
     const { currentChannel, fetchChannelNotes, createNote, updateNote, user } = useCommunity();
@@ -20,6 +34,23 @@ const SharedNotes = ({ onClose }) => {
     useEffect(() => {
         if (isEditing) titleInputRef.current?.focus();
     }, [isEditing]);
+
+    // Load TikZJax script dynamically
+    useEffect(() => {
+        if (!document.getElementById('tikzjax-script')) {
+            const script = document.createElement('script');
+            script.id = 'tikzjax-script';
+            script.src = 'https://tikzjax.com/v1/tikzjax.js';
+            script.async = true;
+            document.head.appendChild(script);
+
+            const link = document.createElement('link');
+            link.id = 'tikzjax-css';
+            link.rel = 'stylesheet';
+            link.href = 'https://tikzjax.com/v1/fonts.css';
+            document.head.appendChild(link);
+        }
+    }, []);
 
     const loadNotes = async () => {
         setLoading(true);
@@ -169,15 +200,33 @@ const SharedNotes = ({ onClose }) => {
 
             <div className="flex-1 overflow-y-auto px-8 py-6 custom-scrollbar bg-white">
                 {selectedNote.content ? (
-                    <div className="prose prose-slate max-w-none prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:text-slate-600 prose-li:text-slate-600">
-                        {selectedNote.content.split('\n').map((line, i) => (
-                            line.trim() === '' ? <br key={i} /> :
-                            line.startsWith('# ') ? <h1 key={i} className="text-2xl font-bold mt-6 mb-4">{line.replace(/^#+ /, '')}</h1> :
-                            line.startsWith('## ') ? <h2 key={i} className="text-xl font-bold mt-5 mb-3">{line.replace(/^#+ /, '')}</h2> :
-                            line.startsWith('### ') ? <h3 key={i} className="text-lg font-bold mt-4 mb-2">{line.replace(/^#+ /, '')}</h3> :
-                            line.startsWith('- ') || line.startsWith('* ') ? <li key={i} className="ml-4 list-disc">{line.replace(/^[-*] /, '')}</li> :
-                            <p key={i} className="mb-2 leading-relaxed">{line}</p>
-                        ))}
+                    <div className="prose prose-slate max-w-none prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:text-slate-600 prose-li:text-slate-600 paper-content">
+                        <style>{`
+                            .paper-content .katex { font-size: 1em !important; }
+                            .paper-content .katex-display { margin: 1rem 0; overflow-x: auto; }
+                        `}</style>
+                        <ReactMarkdown
+                            remarkPlugins={remarkPlugins}
+                            rehypePlugins={rehypePlugins}
+                            components={{
+                                code({node, inline, className, children, ...props}) {
+                                    const match = /language-(\w+)/.exec(className || '')
+                                    if (!inline && match && match[1] === 'tikz') {
+                                        return (
+                                            <div 
+                                                className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-slate-50 p-4 rounded-md border border-slate-100" 
+                                                dangerouslySetInnerHTML={{ 
+                                                    __html: `<script type="text/tikz">${String(children).replace(/</g, '\\<')}</script>` 
+                                                }} 
+                                            />
+                                        );
+                                    }
+                                    return <code className={className} {...props}>{children}</code>
+                                }
+                            }}
+                        >
+                            {selectedNote.content}
+                        </ReactMarkdown>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-center">

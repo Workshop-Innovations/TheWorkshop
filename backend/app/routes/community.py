@@ -1,6 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlmodel import Session, select, or_, and_, desc
+from sqlmodel import Session, select, or_, and_, desc, func
 from ..database import get_session
 from ..dependencies import get_current_user
 from ..schemas import (
@@ -14,7 +14,11 @@ from ..schemas import (
     Badge, UserBadge, BadgeResponse,
     UserReputationResponse, LeaderboardEntryResponse, LeaderboardResponse,
     StudyGroup, StudyGroupMember, StudyGroupCreate, 
-    StudyGroupResponse, StudyGroupMemberResponse, StudyGroupDetailResponse
+    StudyGroupResponse, StudyGroupMemberResponse, StudyGroupDetailResponse,
+    SharedNote, SharedNoteCreate, SharedNoteUpdate, SharedNoteResponse,
+    PeerReviewSubmission, PeerReviewFeedback,
+    PeerReviewSubmissionCreate, PeerReviewFeedbackCreate,
+    PeerReviewSubmissionResponse, PeerReviewFeedbackResponse,
 )
 from ..websocket_manager import manager
 from uuid import uuid4
@@ -267,7 +271,8 @@ async def get_community_channels(
         slug=ch.slug,
         description=ch.description,
         channel_type=ch.channel_type,
-        community_id=ch.community_id
+        community_id=ch.community_id,
+        study_group_id=ch.study_group_id
     ) for ch in visible_channels]
 
 @router.post("/communities/{community_id}/channels", response_model=ChannelResponse, status_code=status.HTTP_201_CREATED)
@@ -411,6 +416,9 @@ async def vote_message(
     current_user: User = Depends(get_current_user)
 ):
     """Vote on a message. Updates author's reputation."""
+    if vote_value not in (-1, 0, 1):
+        raise HTTPException(status_code=400, detail="vote_value must be -1, 0, or 1")
+    
     message = session.get(Message, message_id)
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
@@ -445,9 +453,10 @@ async def vote_message(
     if message_author and message_author.id != current_user.id:
         vote_delta = vote_value - old_vote_value
         message_author.reputation_points = max(0, message_author.reputation_points + vote_delta)
-        if vote_delta > 0:
+        # Only count upvotes received (positive votes) for the helpful_votes badge metric
+        if vote_value == 1 and old_vote_value != 1:
             message_author.helpful_votes += 1
-        elif vote_delta < 0 and message_author.helpful_votes > 0:
+        elif vote_value != 1 and old_vote_value == 1 and message_author.helpful_votes > 0:
             message_author.helpful_votes -= 1
         session.add(message_author)
         
@@ -531,17 +540,40 @@ async def delete_message(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """Delete a message. Only the author can delete their own messages."""
+    """Delete a message. Author, community owner, or admins can delete."""
     message = session.get(Message, message_id)
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Check permission: author OR community owner/admin
     if message.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only delete your own messages")
+        channel = session.get(Channel, channel_id)
+        if channel and channel.community_id:
+            membership = session.exec(
+                select(CommunityMember)
+                .where(CommunityMember.community_id == channel.community_id)
+                .where(CommunityMember.user_id == current_user.id)
+                .where(CommunityMember.role.in_(["owner", "admin"]))
+            ).first()
+            if not membership:
+                raise HTTPException(status_code=403, detail="You can only delete your own messages")
+        else:
+            raise HTTPException(status_code=403, detail="You can only delete your own messages")
 
     # Delete all votes on this message first
     votes = session.exec(select(MessageVote).where(MessageVote.message_id == message_id)).all()
     for vote in votes:
         session.delete(vote)
+
+    # Cascade-delete all child replies and their votes
+    child_replies = session.exec(
+        select(Message).where(Message.parent_id == message_id)
+    ).all()
+    for reply in child_replies:
+        child_votes = session.exec(select(MessageVote).where(MessageVote.message_id == reply.id)).all()
+        for cv in child_votes:
+            session.delete(cv)
+        session.delete(reply)
 
     # Decrement parent reply count if this is a reply
     if message.parent_id:
@@ -1037,8 +1069,16 @@ async def create_message_by_slug(
         user_id=current_user.id
     )
     session.add(db_message)
+    
+    # Track stats (same as primary endpoint)
+    current_user.total_messages += 1
+    session.add(current_user)
+    
     session.commit()
     session.refresh(db_message)
+    
+    # Award badges
+    await check_and_award_badges(session, current_user)
     
     await manager.broadcast_all(
         {
@@ -1174,30 +1214,68 @@ async def get_leaderboard(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """Get the community leaderboard sorted by reputation."""
-    # Get users ordered by reputation
+    """Get the community leaderboard sorted by reputation, filtered by period."""
+    from datetime import datetime, timezone, timedelta
+    
+    # Build base query
+    base_query = select(User).where(User.is_active == True)
+    
+    # Apply period filter: for weekly/monthly, filter by messages sent recently
+    # We approximate by using reputation earned. True per-period tracking would
+    # require a separate stats table; here we use the User fields directly.
+    # For "all_time" we just rank by total reputation.
+    # For weekly/monthly we rank by message count as a proxy (sent in period).
+    # Full implementation: filter users who sent messages in the period.
+    now = datetime.now(timezone.utc)
+    
+    if period == "this_week":
+        since = now - timedelta(days=7)
+        # Get user IDs who sent messages in the last 7 days
+        active_user_ids = session.exec(
+            select(Message.user_id)
+            .where(Message.timestamp >= since)
+            .distinct()
+        ).all()
+        base_query = base_query.where(User.id.in_(active_user_ids))
+    elif period == "this_month":
+        since = now - timedelta(days=30)
+        active_user_ids = session.exec(
+            select(Message.user_id)
+            .where(Message.timestamp >= since)
+            .distinct()
+        ).all()
+        base_query = base_query.where(User.id.in_(active_user_ids))
+    
     users = session.exec(
-        select(User)
-        .where(User.is_active == True)
-        .order_by(desc(User.reputation_points))
-        .limit(limit)
+        base_query.order_by(desc(User.reputation_points)).limit(limit)
     ).all()
     
     entries = []
     for rank, user in enumerate(users, 1):
-        # Get badge count
-        badge_count = len(session.exec(
-            select(UserBadge).where(UserBadge.user_id == user.id)
-        ).all())
+        # Efficient badge count using COUNT
+        badge_count = session.exec(
+            select(func.count(UserBadge.id)).where(UserBadge.user_id == user.id)
+        ).one()
         
-        # Get top badge (highest tier)
-        top_badge_result = session.exec(
+        # Get top 3 badges (highest criteria_value = most prestigious)
+        top_badge_rows = session.exec(
             select(Badge)
-            .join(UserBadge)
+            .join(UserBadge, UserBadge.badge_id == Badge.id)
             .where(UserBadge.user_id == user.id)
             .order_by(desc(Badge.criteria_value))
-            .limit(1)
-        ).first()
+            .limit(3)
+        ).all()
+        
+        top_badges = [
+            BadgeResponse(
+                id=b.id,
+                name=b.name,
+                description=b.description,
+                icon=b.icon,
+                category=b.category,
+                tier=b.tier
+            ) for b in top_badge_rows
+        ]
         
         entries.append(LeaderboardEntryResponse(
             rank=rank,
@@ -1208,13 +1286,16 @@ async def get_leaderboard(
             total_messages=user.total_messages,
             helpful_votes=user.helpful_votes,
             badge_count=badge_count,
-            top_badge=top_badge_result.name if top_badge_result else None
+            top_badges=top_badges
         ))
     
-    total_users = len(session.exec(select(User).where(User.is_active == True)).all())
+    # Efficient total count
+    total_users = session.exec(
+        select(func.count(User.id)).where(User.is_active == True)
+    ).one()
     
     return LeaderboardResponse(
-        entries=entries,
+        leaderboard=entries,
         total_users=total_users,
         period=period
     )
@@ -1249,12 +1330,12 @@ async def get_user_reputation(
                 earned_at=ub.earned_at
             ))
     
-    # Calculate rank
-    higher_ranked = len(session.exec(
-        select(User)
+    # Efficient rank calculation using COUNT
+    higher_ranked = session.exec(
+        select(func.count(User.id))
         .where(User.reputation_points > user.reputation_points)
         .where(User.is_active == True)
-    ).all())
+    ).one()
     rank = higher_ranked + 1
     
     return UserReputationResponse(
@@ -1299,7 +1380,9 @@ async def seed_default_badges(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """Seed default badges (run once to initialize)."""
+    """Seed default badges (admin only)."""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
     default_badges = [
         # Reputation badges
         Badge(name="Rising Star", description="Earned 10 reputation points", icon="⭐", 
@@ -1421,14 +1504,18 @@ async def get_community_study_groups(
     
     result = []
     for group in groups:
-        member_count = len(session.exec(
-            select(StudyGroupMember).where(StudyGroupMember.group_id == group.id)
-        ).all())
+        # Count only approved members (not pending)
+        member_count = session.exec(
+            select(func.count(StudyGroupMember.id))
+            .where(StudyGroupMember.group_id == group.id)
+            .where(StudyGroupMember.status == "approved")
+        ).one()
         
         is_member = session.exec(
             select(StudyGroupMember)
             .where(StudyGroupMember.group_id == group.id)
             .where(StudyGroupMember.user_id == current_user.id)
+            .where(StudyGroupMember.status == "approved")
         ).first() is not None
         
         result.append(StudyGroupResponse(
@@ -1511,10 +1598,12 @@ async def join_study_group(
     if existing:
         raise HTTPException(status_code=400, detail="Already a member of this group")
     
-    # Check member limit
-    current_members = len(session.exec(
-        select(StudyGroupMember).where(StudyGroupMember.group_id == group_id)
-    ).all())
+    # Check member limit — count only approved members
+    current_members = session.exec(
+        select(func.count(StudyGroupMember.id))
+        .where(StudyGroupMember.group_id == group_id)
+        .where(StudyGroupMember.status == "approved")
+    ).one()
     
     if current_members >= group.max_members:
         raise HTTPException(status_code=400, detail="Study group is full")
@@ -1660,9 +1749,11 @@ async def get_my_study_groups(
     for membership in memberships:
         group = session.get(StudyGroup, membership.group_id)
         if group:
-            member_count = len(session.exec(
-                select(StudyGroupMember).where(StudyGroupMember.group_id == group.id)
-            ).all())
+            member_count = session.exec(
+                select(func.count(StudyGroupMember.id))
+                .where(StudyGroupMember.group_id == group.id)
+                .where(StudyGroupMember.status == "approved")
+            ).one()
             
             result.append(StudyGroupResponse(
                 id=group.id,
@@ -1678,3 +1769,426 @@ async def get_my_study_groups(
             ))
     
     return result
+
+# ==================== CHANNEL MANAGEMENT ====================
+
+from pydantic import BaseModel as PydanticBaseModel
+
+class ChannelUpdate(PydanticBaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+@router.put("/channels/{channel_id}", response_model=ChannelResponse)
+async def update_channel(
+    channel_id: str,
+    update_data: ChannelUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Rename or update a channel (community owner/admin only)."""
+    channel = session.get(Channel, channel_id)
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    if channel.community_id:
+        membership = session.exec(
+            select(CommunityMember)
+            .where(CommunityMember.community_id == channel.community_id)
+            .where(CommunityMember.user_id == current_user.id)
+            .where(CommunityMember.role.in_(["owner", "admin"]))
+        ).first()
+        if not membership:
+            raise HTTPException(status_code=403, detail="Only community owners and admins can rename channels")
+    
+    if update_data.name:
+        channel.name = update_data.name
+        channel.slug = update_data.name.lower().replace(" ", "-")
+    if update_data.description is not None:
+        channel.description = update_data.description
+    
+    session.add(channel)
+    session.commit()
+    session.refresh(channel)
+    
+    return ChannelResponse(
+        id=channel.id,
+        name=channel.name,
+        slug=channel.slug,
+        description=channel.description,
+        channel_type=channel.channel_type,
+        community_id=channel.community_id,
+        study_group_id=channel.study_group_id
+    )
+
+@router.delete("/channels/{channel_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_channel(
+    channel_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a channel and all its messages (community owner/admin only)."""
+    channel = session.get(Channel, channel_id)
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    if channel.community_id:
+        membership = session.exec(
+            select(CommunityMember)
+            .where(CommunityMember.community_id == channel.community_id)
+            .where(CommunityMember.user_id == current_user.id)
+            .where(CommunityMember.role.in_(["owner", "admin"]))
+        ).first()
+        if not membership:
+            raise HTTPException(status_code=403, detail="Only community owners and admins can delete channels")
+    
+    # Delete all messages and their votes
+    messages = session.exec(select(Message).where(Message.channel_id == channel_id)).all()
+    for msg in messages:
+        votes = session.exec(select(MessageVote).where(MessageVote.message_id == msg.id)).all()
+        for v in votes:
+            session.delete(v)
+        session.delete(msg)
+    
+    # Delete shared notes in this channel
+    notes = session.exec(select(SharedNote).where(SharedNote.channel_id == channel_id)).all()
+    for note in notes:
+        session.delete(note)
+    
+    session.delete(channel)
+    session.commit()
+
+# ==================== STUDY GROUP MANAGEMENT ====================
+
+class StudyGroupUpdate(PydanticBaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    is_public: Optional[bool] = None
+    max_members: Optional[int] = None
+
+@router.put("/groups/{group_id}", response_model=StudyGroupResponse)
+async def update_study_group(
+    group_id: str,
+    update_data: StudyGroupUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Update study group info (leader only)."""
+    group = session.get(StudyGroup, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Study group not found")
+    
+    leader = session.exec(
+        select(StudyGroupMember)
+        .where(StudyGroupMember.group_id == group_id)
+        .where(StudyGroupMember.user_id == current_user.id)
+        .where(StudyGroupMember.role == "leader")
+    ).first()
+    if not leader:
+        raise HTTPException(status_code=403, detail="Only the group leader can edit group details")
+    
+    if update_data.name is not None: group.name = update_data.name
+    if update_data.description is not None: group.description = update_data.description
+    if update_data.is_public is not None: group.is_public = update_data.is_public
+    if update_data.max_members is not None: group.max_members = update_data.max_members
+    
+    session.add(group)
+    session.commit()
+    session.refresh(group)
+    
+    member_count = session.exec(
+        select(func.count(StudyGroupMember.id))
+        .where(StudyGroupMember.group_id == group_id)
+        .where(StudyGroupMember.status == "approved")
+    ).one()
+    
+    return StudyGroupResponse(
+        id=group.id, name=group.name, description=group.description,
+        community_id=group.community_id, creator_id=group.creator_id,
+        is_public=group.is_public, max_members=group.max_members,
+        created_at=group.created_at, member_count=member_count, is_member=True
+    )
+
+@router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_study_group(
+    group_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a study group (leader only). Also removes the private channel."""
+    group = session.get(StudyGroup, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Study group not found")
+    
+    leader = session.exec(
+        select(StudyGroupMember)
+        .where(StudyGroupMember.group_id == group_id)
+        .where(StudyGroupMember.user_id == current_user.id)
+        .where(StudyGroupMember.role == "leader")
+    ).first()
+    if not leader:
+        raise HTTPException(status_code=403, detail="Only the group leader can delete the group")
+    
+    # Delete all memberships
+    members = session.exec(select(StudyGroupMember).where(StudyGroupMember.group_id == group_id)).all()
+    for m in members:
+        session.delete(m)
+    
+    # Delete private channel and its messages
+    group_channel = session.exec(
+        select(Channel).where(Channel.study_group_id == group_id)
+    ).first()
+    if group_channel:
+        msgs = session.exec(select(Message).where(Message.channel_id == group_channel.id)).all()
+        for msg in msgs:
+            votes = session.exec(select(MessageVote).where(MessageVote.message_id == msg.id)).all()
+            for v in votes: session.delete(v)
+            session.delete(msg)
+        session.delete(group_channel)
+    
+    session.delete(group)
+    session.commit()
+
+# ==================== SHARED NOTES ENDPOINTS ====================
+
+@router.get("/channels/{channel_id}/notes", response_model=List[SharedNoteResponse])
+async def get_channel_notes(
+    channel_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all shared notes for a channel."""
+    channel = session.get(Channel, channel_id)
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    notes = session.exec(
+        select(SharedNote)
+        .where(SharedNote.channel_id == channel_id)
+        .order_by(desc(SharedNote.updated_at))
+    ).all()
+    
+    result = []
+    for note in notes:
+        creator = session.get(User, note.created_by)
+        result.append(SharedNoteResponse(
+            id=note.id,
+            title=note.title,
+            content=note.content or "",
+            channel_id=note.channel_id,
+            created_by=note.created_by,
+            updated_at=note.updated_at,
+            version=note.version,
+            creator_email=creator.email if creator else None
+        ))
+    return result
+
+@router.post("/channels/{channel_id}/notes", response_model=SharedNoteResponse, status_code=status.HTTP_201_CREATED)
+async def create_channel_note(
+    channel_id: str,
+    note_data: SharedNoteCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new shared note in a channel."""
+    from datetime import datetime, timezone
+    channel = session.get(Channel, channel_id)
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    note = SharedNote(
+        title=note_data.title,
+        content=note_data.content or "",
+        channel_id=channel_id,
+        created_by=current_user.id,
+        updated_at=datetime.now(timezone.utc),
+        version=1
+    )
+    session.add(note)
+    session.commit()
+    session.refresh(note)
+    
+    return SharedNoteResponse(
+        id=note.id, title=note.title, content=note.content or "",
+        channel_id=note.channel_id, created_by=note.created_by,
+        updated_at=note.updated_at, version=note.version,
+        creator_email=current_user.email
+    )
+
+@router.put("/notes/{note_id}", response_model=SharedNoteResponse)
+async def update_channel_note(
+    note_id: str,
+    update_data: SharedNoteUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Update a shared note (optimistic locking via version)."""
+    from datetime import datetime, timezone
+    note = session.get(SharedNote, note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Optimistic locking: reject if client's version doesn't match current
+    if update_data.version != note.version:
+        raise HTTPException(
+            status_code=409,
+            detail="Version conflict: note was edited by someone else. Please refresh."
+        )
+    
+    if update_data.title is not None: note.title = update_data.title
+    if update_data.content is not None: note.content = update_data.content
+    note.version += 1
+    note.updated_at = datetime.now(timezone.utc)
+    
+    session.add(note)
+    session.commit()
+    session.refresh(note)
+    
+    creator = session.get(User, note.created_by)
+    return SharedNoteResponse(
+        id=note.id, title=note.title, content=note.content or "",
+        channel_id=note.channel_id, created_by=note.created_by,
+        updated_at=note.updated_at, version=note.version,
+        creator_email=creator.email if creator else None
+    )
+
+# ==================== PEER REVIEW ENDPOINTS ====================
+
+@router.get("/channels/{channel_id}/submissions", response_model=List[PeerReviewSubmissionResponse])
+async def get_channel_submissions(
+    channel_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all peer review submissions for a channel."""
+    channel = session.get(Channel, channel_id)
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    submissions = session.exec(
+        select(PeerReviewSubmission)
+        .where(PeerReviewSubmission.channel_id == channel_id)
+        .order_by(desc(PeerReviewSubmission.created_at))
+    ).all()
+    
+    result = []
+    for sub in submissions:
+        author = session.get(User, sub.author_id)
+        fb_count = session.exec(
+            select(func.count(PeerReviewFeedback.id))
+            .where(PeerReviewFeedback.submission_id == sub.id)
+        ).one()
+        avg_rating = session.exec(
+            select(func.avg(PeerReviewFeedback.rating))
+            .where(PeerReviewFeedback.submission_id == sub.id)
+        ).one()
+        result.append(PeerReviewSubmissionResponse(
+            id=sub.id, channel_id=sub.channel_id, author_id=sub.author_id,
+            author_email=author.email if author else None,
+            title=sub.title, content=sub.content, file_url=sub.file_url,
+            created_at=sub.created_at,
+            feedback_count=fb_count,
+            average_rating=float(avg_rating) if avg_rating else None
+        ))
+    return result
+
+@router.post("/channels/{channel_id}/submissions", response_model=PeerReviewSubmissionResponse, status_code=status.HTTP_201_CREATED)
+async def create_submission(
+    channel_id: str,
+    data: PeerReviewSubmissionCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Submit work for peer review."""
+    channel = session.get(Channel, channel_id)
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    submission = PeerReviewSubmission(
+        channel_id=channel_id,
+        author_id=current_user.id,
+        title=data.title,
+        content=data.content,
+        file_url=data.file_url
+    )
+    session.add(submission)
+    session.commit()
+    session.refresh(submission)
+    
+    return PeerReviewSubmissionResponse(
+        id=submission.id, channel_id=submission.channel_id,
+        author_id=submission.author_id, author_email=current_user.email,
+        title=submission.title, content=submission.content,
+        file_url=submission.file_url, created_at=submission.created_at,
+        feedback_count=0, average_rating=None
+    )
+
+@router.get("/submissions/{submission_id}/feedback", response_model=List[PeerReviewFeedbackResponse])
+async def get_submission_feedback(
+    submission_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all feedback for a submission."""
+    submission = session.get(PeerReviewSubmission, submission_id)
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    feedbacks = session.exec(
+        select(PeerReviewFeedback)
+        .where(PeerReviewFeedback.submission_id == submission_id)
+        .order_by(desc(PeerReviewFeedback.created_at))
+    ).all()
+    
+    result = []
+    for fb in feedbacks:
+        reviewer = session.get(User, fb.reviewer_id)
+        result.append(PeerReviewFeedbackResponse(
+            id=fb.id, submission_id=fb.submission_id, reviewer_id=fb.reviewer_id,
+            reviewer_email=reviewer.email if reviewer else None,
+            rating=fb.rating, comments=fb.comments, created_at=fb.created_at
+        ))
+    return result
+
+@router.post("/submissions/{submission_id}/feedback", response_model=PeerReviewFeedbackResponse, status_code=status.HTTP_201_CREATED)
+async def submit_feedback(
+    submission_id: str,
+    data: PeerReviewFeedbackCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Submit feedback on a peer review submission."""
+    submission = session.get(PeerReviewSubmission, submission_id)
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    # Cannot review your own submission
+    if submission.author_id == current_user.id:
+        raise HTTPException(status_code=400, detail="You cannot review your own submission")
+    
+    # Cannot submit duplicate feedback
+    existing = session.exec(
+        select(PeerReviewFeedback)
+        .where(PeerReviewFeedback.submission_id == submission_id)
+        .where(PeerReviewFeedback.reviewer_id == current_user.id)
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="You have already reviewed this submission")
+    
+    if data.rating < 1 or data.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+    
+    feedback = PeerReviewFeedback(
+        submission_id=submission_id,
+        reviewer_id=current_user.id,
+        rating=data.rating,
+        comments=data.comments
+    )
+    session.add(feedback)
+    session.commit()
+    session.refresh(feedback)
+    
+    return PeerReviewFeedbackResponse(
+        id=feedback.id, submission_id=feedback.submission_id,
+        reviewer_id=feedback.reviewer_id, reviewer_email=current_user.email,
+        rating=feedback.rating, comments=feedback.comments, created_at=feedback.created_at
+    )

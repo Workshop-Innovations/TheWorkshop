@@ -299,6 +299,7 @@ class ChannelResponse(BaseModel):
     description: Optional[str] = None
     channel_type: str = "text"
     community_id: Optional[str] = None
+    study_group_id: Optional[str] = None  # Non-null means this is a private group channel
 
     model_config = {"from_attributes": True}
 
@@ -436,12 +437,12 @@ class LeaderboardEntryResponse(BaseModel):
     total_messages: int
     helpful_votes: int
     badge_count: int = 0
-    top_badge: Optional[str] = None
+    top_badges: List["BadgeResponse"] = []  # Top badges (highest tier first)
     
     model_config = {"from_attributes": True}
 
 class LeaderboardResponse(BaseModel):
-    entries: List[LeaderboardEntryResponse]
+    leaderboard: List[LeaderboardEntryResponse]  # Frontend reads data.leaderboard
     total_users: int
     period: str = "all_time"  # "weekly", "monthly", "all_time"
 

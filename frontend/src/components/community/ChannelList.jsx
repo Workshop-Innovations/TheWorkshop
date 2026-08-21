@@ -3,7 +3,7 @@ import { useCommunity } from '../../context/CommunityContext';
 import StudyGroups from './StudyGroups';
 import FindFriendsModal from './FindFriendsModal';
 import Leaderboard from './Leaderboard';
-import { Trophy, Wrench, Lock, Book } from 'lucide-react';
+import { Trophy, Wrench, Lock, Book, Pencil, Trash2, X, Check } from 'lucide-react';
 import { resolveImageUrl } from '../../utils/imageUtils';
 
 const ChannelList = () => {
@@ -13,6 +13,8 @@ const ChannelList = () => {
         currentChannel,
         setCurrentChannel,
         createChannel,
+        updateChannel,
+        deleteChannel,
         dmConversations,
         currentDM,
         setCurrentDM,
@@ -24,18 +26,39 @@ const ChannelList = () => {
         user,
     } = useCommunity();
 
+    const isOwner = user && currentCommunity && (
+        currentCommunity.owner_id === user.id
+    );
+
     const [showCreateChannel, setShowCreateChannel] = useState(false);
     const [newChannelName, setNewChannelName] = useState('');
     const [channelSearch, setChannelSearch] = useState('');
     const [showStudyGroups, setShowStudyGroups] = useState(false);
     const [showFindFriends, setShowFindFriends] = useState(false);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
+    const [renamingChannel, setRenamingChannel] = useState(null); // channel obj being renamed
+    const [renameValue, setRenameValue] = useState('');
+    const [deletingChannelId, setDeletingChannelId] = useState(null); // channel id confirm delete
 
     const handleCreateChannel = async () => {
         if (!newChannelName.trim() || !currentCommunity) return;
         await createChannel(currentCommunity.id, newChannelName);
         setNewChannelName('');
         setShowCreateChannel(false);
+    };
+
+    const handleRenameChannel = async (channel) => {
+        if (!renameValue.trim() || renameValue === channel.name) {
+            setRenamingChannel(null);
+            return;
+        }
+        await updateChannel(channel.id, { name: renameValue });
+        setRenamingChannel(null);
+    };
+
+    const handleDeleteChannel = async (channelId) => {
+        setDeletingChannelId(null);
+        await deleteChannel(channelId);
     };
 
     const handleChannelClick = (channel) => {
@@ -149,6 +172,8 @@ const ChannelList = () => {
                     {publicChannels.map((channel) => {
                         const isActive = viewMode === 'community' && currentChannel?.id === channel.id;
                         const hasUnread = unreadChannels.has(channel.id);
+                        const isRenaming = renamingChannel?.id === channel.id;
+                        const isConfirmingDelete = deletingChannelId === channel.id;
                         return (
                             <div
                                 key={channel.id}
@@ -159,12 +184,61 @@ const ChannelList = () => {
                                             ? 'text-slate-900 hover:bg-slate-100 font-bold'
                                             : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
                                 }`}
-                                onClick={() => handleChannelClick(channel)}
+                                onClick={() => !isRenaming && handleChannelClick(channel)}
                             >
                                 <span className={`text-lg opacity-50 shrink-0 ${isActive ? 'text-primary opacity-100' : hasUnread ? 'text-slate-700' : 'text-slate-400'}`}>#</span>
-                                <span className="text-[15px] truncate flex-1">{channel.name}</span>
-                                {hasUnread && !isActive && (
-                                    <span className="w-2 h-2 bg-accent rounded-sm shrink-0"></span>
+
+                                {isRenaming ? (
+                                    <input
+                                        className="flex-1 bg-white border border-primary/40 rounded px-1.5 py-0.5 text-sm text-slate-900 focus:outline-none"
+                                        value={renameValue}
+                                        onChange={e => setRenameValue(e.target.value)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter') handleRenameChannel(channel);
+                                            if (e.key === 'Escape') setRenamingChannel(null);
+                                        }}
+                                        onClick={e => e.stopPropagation()}
+                                        autoFocus
+                                    />
+                                ) : (
+                                    <span className="text-[15px] truncate flex-1">{channel.name}</span>
+                                )}
+
+                                {isRenaming ? (
+                                    <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                                        <button onClick={() => handleRenameChannel(channel)} className="text-emerald-500 hover:text-emerald-700 p-0.5"><Check className="w-3.5 h-3.5" /></button>
+                                        <button onClick={() => setRenamingChannel(null)} className="text-slate-400 hover:text-slate-600 p-0.5"><X className="w-3.5 h-3.5" /></button>
+                                    </div>
+                                ) : isConfirmingDelete ? (
+                                    <div className="flex gap-1 shrink-0 items-center" onClick={e => e.stopPropagation()}>
+                                        <span className="text-[10px] text-rose-600 font-bold">Delete?</span>
+                                        <button onClick={() => handleDeleteChannel(channel.id)} className="text-rose-500 hover:text-rose-700 p-0.5"><Check className="w-3.5 h-3.5" /></button>
+                                        <button onClick={() => setDeletingChannelId(null)} className="text-slate-400 hover:text-slate-600 p-0.5"><X className="w-3.5 h-3.5" /></button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {hasUnread && !isActive && (
+                                            <span className="w-2 h-2 bg-accent rounded-sm shrink-0 group-hover:hidden"></span>
+                                        )}
+                                        {isOwner && (
+                                            <div className="hidden group-hover:flex gap-0.5 shrink-0" onClick={e => e.stopPropagation()}>
+                                                <button
+                                                    className="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700"
+                                                    title="Rename channel"
+                                                    onClick={() => { setRenamingChannel(channel); setRenameValue(channel.name); }}
+                                                >
+                                                    <Pencil className="w-3 h-3" />
+                                                </button>
+                                                <button
+                                                    className="p-1 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600"
+                                                    title="Delete channel"
+                                                    onClick={() => setDeletingChannelId(channel.id)}
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         );

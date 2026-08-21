@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, X, ChevronLeft, Users, Lock, CheckCircle2, UserMinus, Clock, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { BookOpen, X, ChevronLeft, Users, Lock, CheckCircle2, UserMinus, Clock, ShieldCheck, ShieldAlert, Trash2 } from 'lucide-react';
 
 const StudyGroups = ({ onClose }) => {
-    const { currentCommunity, fetchStudyGroups, createStudyGroup, joinStudyGroup, leaveStudyGroup, fetchStudyGroupDetails, removeGroupMember, user } = useCommunity();
+    const { currentCommunity, fetchStudyGroups, createStudyGroup, joinStudyGroup, leaveStudyGroup, fetchStudyGroupDetails, removeGroupMember, updateStudyGroup, deleteStudyGroup, user } = useCommunity();
     const { accessToken } = useAuth();
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'details'
     const [groups, setGroups] = useState([]);
@@ -64,6 +64,16 @@ const StudyGroups = ({ onClose }) => {
         if (details) {
             setSelectedGroup(details);
             setViewMode('details');
+        }
+    };
+
+    const handleDeleteGroup = async (groupId) => {
+        if (!window.confirm('Are you sure you want to delete this group? This action cannot be undone and will delete all group channels and messages.')) return;
+        const success = await deleteStudyGroup(groupId);
+        if (success) {
+            setViewMode('list');
+            setSelectedGroup(null);
+            loadGroups();
         }
     };
 
@@ -207,7 +217,13 @@ const StudyGroups = ({ onClose }) => {
                         {!selectedGroup.is_public ? 'Request to Join' : (selectedGroup.member_count >= selectedGroup.max_members ? 'Group Full' : 'Join Group')}
                     </button>
                 ) : (
-                    selectedGroup.creator_id !== user?.id && (
+                    selectedGroup.creator_id === user?.id ? (
+                        <div className="text-center">
+                            <button className="w-full py-3.5 bg-white text-rose-600 rounded-md font-bold hover:bg-rose-50 transition-colors border border-rose-200 shadow-sm flex items-center justify-center gap-2 active:scale-[0.98]" onClick={() => handleDeleteGroup(selectedGroup.id)}>
+                                <Trash2 className="w-4 h-4" /> Delete Group
+                            </button>
+                        </div>
+                    ) : (
                         <div className="text-center">
                             {selectedGroup.members?.find(m => m.user_id === user?.id)?.status === 'pending' ? (
                                 <span className="flex items-center justify-center gap-2 w-full py-3 bg-amber-50 text-amber-700 rounded-md font-bold border border-amber-200 shadow-sm">

@@ -37,6 +37,7 @@ const SubjectSummary = () => {
     // New state for the content of the active topic
     const [activeTopicContent, setActiveTopicContent] = useState(null);
     const [contentLoading, setContentLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('summary');
 
     // Fetch Subject Outline (Lightweight)
     useEffect(() => {
@@ -61,12 +62,30 @@ const SubjectSummary = () => {
         fetchSubject();
     }, [subjectId]);
 
+    // Load TikZJax script dynamically
+    useEffect(() => {
+        if (!document.getElementById('tikzjax-script')) {
+            const script = document.createElement('script');
+            script.id = 'tikzjax-script';
+            script.src = 'https://tikzjax.com/v1/tikzjax.js';
+            script.async = true;
+            document.head.appendChild(script);
+
+            const link = document.createElement('link');
+            link.id = 'tikzjax-css';
+            link.rel = 'stylesheet';
+            link.href = 'https://tikzjax.com/v1/fonts.css';
+            document.head.appendChild(link);
+        }
+    }, []);
+
     // Fetch Topic Content when activeTopicId changes
     useEffect(() => {
         if (!activeTopicId) return;
 
         const fetchTopicContent = async () => {
             setContentLoading(true);
+            setActiveTab('summary');
             try {
                 const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/topics/${activeTopicId}`);
                 if (!response.ok) {
@@ -90,6 +109,14 @@ const SubjectSummary = () => {
     if (!subject) return <div className="min-h-screen bg-slate-50 flex items-center justify-center">Subject not found</div>;
 
     const activeTopic = subject.topics.find(t => t.id === activeTopicId);
+
+    let summaryText = activeTopicContent || "";
+    let questionsText = "";
+    if (summaryText.includes('---EXAMPLE QUESTIONS---')) {
+        const parts = summaryText.split('---EXAMPLE QUESTIONS---');
+        summaryText = parts[0];
+        questionsText = parts[1];
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -138,7 +165,25 @@ const SubjectSummary = () => {
                             <div className="bg-white rounded-md shadow-sm border border-slate-100 p-8 min-h-[500px]">
                                 {activeTopic ? (
                                     <article className="prose prose-slate max-w-none prose-headings:text-slate-800 prose-p:text-slate-600 prose-a:text-primary prose-code:text-pink-600">
-                                        <h2 className="text-3xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">{activeTopic.title}</h2>
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                                            <h2 className="text-3xl font-bold text-slate-900">{activeTopic.title}</h2>
+                                            {questionsText && (
+                                                <div className="flex items-center gap-2 mt-4 md:mt-0 bg-slate-100 p-1 rounded-md shrink-0">
+                                                    <button 
+                                                        onClick={() => setActiveTab('summary')}
+                                                        className={`px-4 py-1.5 text-sm font-bold rounded transition-all ${activeTab === 'summary' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                                    >
+                                                        Study Material
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setActiveTab('questions')}
+                                                        className={`px-4 py-1.5 text-sm font-bold rounded transition-all ${activeTab === 'questions' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                                    >
+                                                        Practice Questions
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
 
                                         {contentLoading ? (
                                             <div className="flex flex-col items-center justify-center py-20 text-slate-400">
@@ -149,8 +194,24 @@ const SubjectSummary = () => {
                                             <ReactMarkdown
                                                 remarkPlugins={remarkPlugins}
                                                 rehypePlugins={rehypePlugins}
+                                                components={{
+                                                    code({node, inline, className, children, ...props}) {
+                                                        const match = /language-(\w+)/.exec(className || '')
+                                                        if (!inline && match && match[1] === 'tikz') {
+                                                            return (
+                                                                <div 
+                                                                    className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-white p-4 rounded-md" 
+                                                                    dangerouslySetInnerHTML={{ 
+                                                                        __html: `<script type="text/tikz">${String(children).replace(/</g, '\\<')}</script>` 
+                                                                    }} 
+                                                                />
+                                                            );
+                                                        }
+                                                        return <code className={className} {...props}>{children}</code>
+                                                    }
+                                                }}
                                             >
-                                                {preprocessContent(activeTopicContent || "")}
+                                                {preprocessContent(activeTab === 'questions' ? questionsText : summaryText)}
                                             </ReactMarkdown>
                                         )}
                                     </article>
