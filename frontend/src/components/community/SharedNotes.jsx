@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { FileText, Plus, X, Edit2, AlertCircle, ChevronLeft } from 'lucide-react';
-import TikzDiagram from '../TikzDiagram';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
@@ -36,7 +35,22 @@ const SharedNotes = ({ onClose }) => {
         if (isEditing) titleInputRef.current?.focus();
     }, [isEditing]);
 
-    // Load TikZJax script dynamically is now handled by TikzDiagram component
+    // Load TikZJax script dynamically
+    useEffect(() => {
+        if (!document.getElementById('tikzjax-script')) {
+            const script = document.createElement('script');
+            script.id = 'tikzjax-script';
+            script.src = 'https://tikzjax.com/v1/tikzjax.js';
+            script.async = true;
+            document.head.appendChild(script);
+
+            const link = document.createElement('link');
+            link.id = 'tikzjax-css';
+            link.rel = 'stylesheet';
+            link.href = 'https://tikzjax.com/v1/fonts.css';
+            document.head.appendChild(link);
+        }
+    }, []);
 
     const loadNotes = async () => {
         setLoading(true);
@@ -198,7 +212,15 @@ const SharedNotes = ({ onClose }) => {
                                 pre({node, children, ...props}) {
                                     const codeElement = React.Children.toArray(children)[0];
                                     if (React.isValidElement(codeElement) && codeElement.props.className?.includes('language-tikz')) {
-                                        return <TikzDiagram content={String(codeElement.props.children).replace(/\\n$/, '')} />;
+                                        const content = String(codeElement.props.children);
+                                        return (
+                                            <div 
+                                                className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-slate-50 p-4 rounded-md border border-slate-100 not-prose" 
+                                                dangerouslySetInnerHTML={{ 
+                                                    __html: `<script type="text/tikz">${content.replace(/</g, '\\<')}</script>` 
+                                                }} 
+                                            />
+                                        );
                                     }
                                     return <pre {...props}>{children}</pre>;
                                 }

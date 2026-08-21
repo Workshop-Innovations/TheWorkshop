@@ -16,6 +16,7 @@
     "framer-motion": "^12.6.2",
     "katex": "^0.16.28",
     "lucide-react": "^1.24.0",
+    "puppeteer": "^25.8.0",
     "react": "^19.0.0",
     "react-datepicker": "^8.8.0",
     "react-dom": "^19.0.0",
