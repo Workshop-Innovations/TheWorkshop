@@ -24,6 +24,7 @@ const SharedNotes = ({ onClose }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
+    const [tikzLoaded, setTikzLoaded] = useState(false);
     const [formData, setFormData] = useState({ title: '', content: '' });
     const titleInputRef = useRef(null);
 
@@ -42,6 +43,7 @@ const SharedNotes = ({ onClose }) => {
             script.id = 'tikzjax-script';
             script.src = 'https://tikzjax.com/v1/tikzjax.js';
             script.async = true;
+            script.onload = () => setTikzLoaded(true);
             document.head.appendChild(script);
 
             const link = document.createElement('link');
@@ -49,6 +51,8 @@ const SharedNotes = ({ onClose }) => {
             link.rel = 'stylesheet';
             link.href = 'https://tikzjax.com/v1/fonts.css';
             document.head.appendChild(link);
+        } else {
+            setTikzLoaded(true);
         }
     }, []);
 
@@ -214,12 +218,13 @@ const SharedNotes = ({ onClose }) => {
                                     if (React.isValidElement(codeElement) && codeElement.props.className?.includes('language-tikz')) {
                                         const content = String(codeElement.props.children);
                                         return (
-                                            <div 
-                                                className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-slate-50 p-4 rounded-md border border-slate-100 not-prose" 
-                                                dangerouslySetInnerHTML={{ 
-                                                    __html: `<script type="text/tikz">${content.replace(/</g, '\\<')}</script>` 
-                                                }} 
-                                            />
+                                            <div className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-slate-50 p-4 rounded-md border border-slate-100 not-prose min-h-[100px] items-center">
+                                                {tikzLoaded ? (
+                                                    <div dangerouslySetInnerHTML={{ __html: `<script type="text/tikz">${content.replace(/</g, '\\<')}</script>` }} />
+                                                ) : (
+                                                    <div className="text-slate-400 text-sm animate-pulse">Loading diagram engine...</div>
+                                                )}
+                                            </div>
                                         );
                                     }
                                     return <pre {...props}>{children}</pre>;

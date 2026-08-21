@@ -38,6 +38,7 @@ const SubjectSummary = () => {
     const [activeTopicContent, setActiveTopicContent] = useState(null);
     const [contentLoading, setContentLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('summary');
+    const [tikzLoaded, setTikzLoaded] = useState(false);
 
     // Fetch Subject Outline (Lightweight)
     useEffect(() => {
@@ -69,6 +70,7 @@ const SubjectSummary = () => {
             script.id = 'tikzjax-script';
             script.src = 'https://tikzjax.com/v1/tikzjax.js';
             script.async = true;
+            script.onload = () => setTikzLoaded(true);
             document.head.appendChild(script);
 
             const link = document.createElement('link');
@@ -76,6 +78,8 @@ const SubjectSummary = () => {
             link.rel = 'stylesheet';
             link.href = 'https://tikzjax.com/v1/fonts.css';
             document.head.appendChild(link);
+        } else {
+            setTikzLoaded(true);
         }
     }, []);
 
@@ -205,12 +209,13 @@ const SubjectSummary = () => {
                                                             if (React.isValidElement(codeElement) && codeElement.props.className?.includes('language-tikz')) {
                                                                 const content = String(codeElement.props.children);
                                                                 return (
-                                                                    <div 
-                                                                        className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-white p-4 rounded-md border border-slate-100 shadow-sm not-prose" 
-                                                                        dangerouslySetInnerHTML={{ 
-                                                                            __html: `<script type="text/tikz">${content.replace(/</g, '\\<')}</script>` 
-                                                                        }} 
-                                                                    />
+                                                                    <div className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-white p-4 rounded-md border border-slate-100 shadow-sm not-prose min-h-[100px] items-center">
+                                                                        {tikzLoaded ? (
+                                                                            <div dangerouslySetInnerHTML={{ __html: `<script type="text/tikz">${content.replace(/</g, '\\<')}</script>` }} />
+                                                                        ) : (
+                                                                            <div className="text-slate-400 text-sm animate-pulse">Loading diagram engine...</div>
+                                                                        )}
+                                                                    </div>
                                                                 );
                                                             }
                                                             return <pre {...props}>{children}</pre>;
