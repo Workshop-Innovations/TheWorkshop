@@ -191,28 +191,34 @@ const SubjectSummary = () => {
                                                 <p>Loading content...</p>
                                             </div>
                                         ) : (
-                                            <ReactMarkdown
-                                                remarkPlugins={remarkPlugins}
-                                                rehypePlugins={rehypePlugins}
-                                                components={{
-                                                    code({node, inline, className, children, ...props}) {
-                                                        const match = /language-(\w+)/.exec(className || '')
-                                                        if (!inline && match && match[1] === 'tikz') {
-                                                            return (
-                                                                <div 
-                                                                    className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-white p-4 rounded-md" 
-                                                                    dangerouslySetInnerHTML={{ 
-                                                                        __html: `<script type="text/tikz">${String(children).replace(/</g, '\\<')}</script>` 
-                                                                    }} 
-                                                                />
-                                                            );
+                                            <div className="paper-content">
+                                                <style>{`
+                                                    .paper-content .katex { font-size: 1.1em !important; }
+                                                    .paper-content .katex-display { margin: 1.5rem 0; overflow-x: auto; padding: 0.5rem 0; }
+                                                `}</style>
+                                                <ReactMarkdown
+                                                    remarkPlugins={remarkPlugins}
+                                                    rehypePlugins={rehypePlugins}
+                                                    components={{
+                                                        code({node, inline, className, children, ...props}) {
+                                                            const match = /language-(\w+)/.exec(className || '')
+                                                            if (!inline && match && match[1] === 'tikz') {
+                                                                return (
+                                                                    <div 
+                                                                        className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-white p-4 rounded-md border border-slate-100 shadow-sm" 
+                                                                        dangerouslySetInnerHTML={{ 
+                                                                            __html: `<script type="text/tikz">${String(children).replace(/</g, '\\<')}</script>` 
+                                                                        }} 
+                                                                    />
+                                                                );
+                                                            }
+                                                            return <code className={className} {...props}>{children}</code>
                                                         }
-                                                        return <code className={className} {...props}>{children}</code>
-                                                    }
-                                                }}
-                                            >
-                                                {preprocessContent(activeTab === 'questions' ? questionsText : summaryText)}
-                                            </ReactMarkdown>
+                                                    }}
+                                                >
+                                                    {preprocessContent(activeTab === 'questions' ? questionsText : summaryText)}
+                                                </ReactMarkdown>
+                                            </div>
                                         )}
                                     </article>
                                 ) : (
