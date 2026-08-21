@@ -10,24 +10,24 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
 /**
- * Step 1 Ã¢â‚¬â€ Normalises the raw markdown/LaTeX content from the database.
+ * Step 1 - Normalises the raw markdown/LaTeX content from the database.
  * NOTE: Does NOT inject interactive markers here.
  * That happens AFTER the answer-bank split so markers never pollute the rubric.
  */
 function preprocessContent(raw) {
     if (!raw) return '';
     let text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    // Ensure answer-option lines (AÃ¢â‚¬â€œF) start their own paragraph
+    // Ensure answer-option lines (AF) start their own paragraph
     text = text.replace(/\n([A-F]\.[ \t])/g, '\n\n$1');
     // Ensure numbered question lines start a new paragraph
     text = text.replace(/\n(?!#)(\d{1,3})\.[ \t]/g, '\n\n$1. ');
-    // Collapse 3+ blank lines Ã¢â€ â€™ 1 blank line
+    // Collapse 3+ blank lines  ™ 1 blank line
     text = text.replace(/\n{3,}/g, '\n\n');
     return text;
 }
 
 /**
- * Step 2 Ã¢â‚¬â€ Inject interactive input markers.
+ * Step 2 - Inject interactive input markers.
  * Called ONLY on the questions section (never on answer content).
  * BUG FIX: uses a function-form .replace() so `opt` is correctly captured,
  * not the literal string "$1".
@@ -52,7 +52,7 @@ function injectInteractiveMarkers(text) {
     return lines.join('\n');
 }
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Custom renderers (defined outside component to prevent re-creation) Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* --- Custom renderers (defined outside component to prevent re-creation) -- */
 
 const PaperParagraph = ({ children, ...props }) => {
     const text = React.Children.toArray(children)
@@ -96,7 +96,7 @@ const PaperTd = ({ children }) => (
     </td>
 );
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Feedback Renderer Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* --- Feedback Renderer --------------------------------------------------- */
 
 const FeedbackView = ({ feedbackData, score }) => {
     let parsed = null;
@@ -126,7 +126,7 @@ const FeedbackView = ({ feedbackData, score }) => {
     );
 };
 
-/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Main Component Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+/* --- Main Component ------------------------------------------------------ */
 
 const PaperViewer = () => {
     const { paperId } = useParams();
@@ -144,7 +144,7 @@ const PaperViewer = () => {
     // without a stale-closure dependency on userAnswers
     const submitRef = useRef(null);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Fetch paper Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // -- Fetch paper ------------------------------------------------------
     useEffect(() => {
         const fetchPaper = async () => {
             try {
@@ -164,12 +164,12 @@ const PaperViewer = () => {
         fetchPaper();
     }, [paperId]);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Memoised content processing Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-    // Only re-runs when paper.content changes Ã¢â‚¬â€ NOT on every second tick
+    // -- Memoised content processing --------------------------------------
+    // Only re-runs when paper.content changes - NOT on every second tick
     const { mainContent, answerContent } = useMemo(() => {
         if (!paper?.content) return { mainContent: '', answerContent: null };
         const base = preprocessContent(paper.content);
-        // Split first Ã¢â‚¬â€ THEN inject markers only into questions section
+        // Split first - THEN inject markers only into questions section
         const parts = base.split(/\n#{1,3}\s*ANSWER(?:S|\s+BANK)?\s*\n/i);
         const rawMain   = parts[0];
         const rawAnswer = parts.length > 1 ? '## Answer Bank\n\n' + parts.slice(1).join('') : null;
@@ -179,7 +179,7 @@ const PaperViewer = () => {
         };
     }, [paper?.content]);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Handlers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // -- Handlers ----------------------------------------------------------
     const handleAnswerChange = useCallback((q, val) => {
         setUserAnswers(prev => ({ ...prev, [q]: val }));
     }, []);
@@ -226,8 +226,8 @@ const PaperViewer = () => {
         submitRef.current = handleSubmitTest;
     }, [handleSubmitTest]);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Timer Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-    // FIXED: does NOT list timeRemaining as a dependency Ã¢â‚¬â€ avoids the
+    // -- Timer -------------------------------------------------------------
+    // FIXED: does NOT list timeRemaining as a dependency - avoids the
     // interval-per-second bug and prevents stale-closure on handleSubmitTest
     useEffect(() => {
         if (mode !== 'practice' || isSubmitting) return;
@@ -244,7 +244,7 @@ const PaperViewer = () => {
         return () => clearInterval(interval);
     }, [mode, isSubmitting]);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Mode transitions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // -- Mode transitions --------------------------------------------------
     const enterPractice = useCallback(() => {
         setUserAnswers({});
         setTestResult(null);
@@ -269,7 +269,7 @@ const PaperViewer = () => {
         return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Early returns Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // -- Early returns ------------------------------------------------------
     if (loading) return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
             <div style={{ textAlign: 'center' }}>
@@ -278,7 +278,7 @@ const PaperViewer = () => {
                     borderTopColor: '#6366f1', borderRadius: '50%',
                     animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem',
                 }} />
-                <p style={{ color: '#64748b' }}>Loading paperÃ¢â‚¬Â¦</p>
+                <p style={{ color: '#64748b' }}>Loading paper...</p>
             </div>
         </div>
     );
@@ -291,7 +291,7 @@ const PaperViewer = () => {
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">Paper not found</div>
     );
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Remark / Rehype plugins Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // -- Remark / Rehype plugins --------------------------------------------
     const remarkPlugins = [
         [remarkMath, { singleDollarTextMath: true }],
         remarkGfm,
@@ -300,7 +300,7 @@ const PaperViewer = () => {
         [rehypeKatex, { throwOnError: false, strict: false, trust: true }],
     ];
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Markdown component map Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // -- Markdown component map ---------------------------------------------
     const components = {
         p:      PaperParagraph,
         table:  PaperTable,
@@ -409,7 +409,7 @@ const PaperViewer = () => {
         },
     };
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Render Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // -- Render -------------------------------------------------------------
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <style>{`
@@ -436,7 +436,7 @@ const PaperViewer = () => {
                         border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', padding: '2rem',
                     }}>
 
-                        {/* Ã¢â€â‚¬Ã¢â€â‚¬ Header Ã¢â€â‚¬Ã¢â€â‚¬ */}
+                        {/* -- Header -- */}
                         <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                                 <BookOpen size={20} style={{ color: '#6366f1' }} />
@@ -509,7 +509,7 @@ const PaperViewer = () => {
                             </div>
                         </div>
 
-                        {/* Ã¢â€â‚¬Ã¢â€â‚¬ Results View Ã¢â€â‚¬Ã¢â€â‚¬ */}
+                        {/* -- Results View -- */}
                         {mode === 'results' && testResult && (
                             <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-md">
                                 <h2 className="text-xl font-bold text-green-800 mb-5 flex items-center gap-2">
@@ -533,7 +533,7 @@ const PaperViewer = () => {
                             </div>
                         )}
 
-                        {/* Ã¢â€â‚¬Ã¢â€â‚¬ Tabs (only in read mode when answers exist) Ã¢â€â‚¬Ã¢â€â‚¬ */}
+                        {/* -- Tabs (only in read mode when answers exist) -- */}
                         {answerContent && mode === 'read' && (
                             <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem', gap: '1rem' }}>
                                 {[
@@ -558,7 +558,7 @@ const PaperViewer = () => {
                             </div>
                         )}
 
-                        {/* Ã¢â€â‚¬Ã¢â€â‚¬ Content Area Ã¢â€â‚¬Ã¢â€â‚¬ */}
+                        {/* -- Content Area -- */}
                         {mode !== 'results' && (
                             (!answerContent || activeTab === 'questions') ? (
                                 <div className="paper-content" style={{ lineHeight: 1.75, fontSize: '0.97rem' }}>
@@ -578,7 +578,7 @@ const PaperViewer = () => {
                                                 disabled={isSubmitting}
                                                 className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-md font-bold text-base transition-colors shadow-md"
                                             >
-                                                {isSubmitting ? 'SubmittingÃ¢â‚¬Â¦' : 'Submit Test'}
+                                                {isSubmitting ? 'Submitting...' : 'Submit Test'}
                                             </button>
                                         </div>
                                     )}

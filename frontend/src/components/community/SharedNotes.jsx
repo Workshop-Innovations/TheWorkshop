@@ -69,7 +69,7 @@ const SharedNotes = ({ onClose }) => {
             setIsEditing(false);
             setError(null);
         } else {
-            setError('Failed to save Ã¢â‚¬â€ the note may have been edited by someone else. Refreshing...');
+            setError('Failed to save - the note may have been edited by someone else. Refreshing...');
             loadNotes();
         }
     };
@@ -156,7 +156,7 @@ const SharedNotes = ({ onClose }) => {
                 <span className="text-xs text-slate-500 font-medium">
                     By <span className="text-slate-700 font-bold">{selectedNote.creator_email?.split('@')[0]}</span>
                 </span>
-                <span className="text-slate-300">Ã¢â‚¬Â¢</span>
+                <span className="text-slate-300"></span>
                 <span className="text-xs text-slate-500 font-medium">
                     Updated {formatDate(selectedNote.updated_at)}
                 </span>

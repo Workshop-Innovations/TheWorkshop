@@ -64,7 +64,7 @@ const Store = () => {
       duration: '',
       category: 'break',
     });
-    toast.success('âœ¨ New reward created!', {
+    toast.success(' New reward created!', {
       position: 'top-right',
       autoClose: 3000,
     });

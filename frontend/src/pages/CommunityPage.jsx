@@ -17,7 +17,7 @@ const CommunityPage = () => {
         return (
             <div className="h-screen w-screen flex items-center justify-center bg-slate-50 fixed inset-0 z-[9999]">
                 <div className="bg-white p-8 rounded-md shadow-xl border border-red-100 max-w-md w-full text-center">
-                    <div className="text-5xl mb-6">âš ï¸</div>
+                    <div className="text-5xl mb-6"></div>
                     <p className="text-slate-800 font-bold text-xl mb-3">Connection Lost</p>
                     <p className="text-slate-500 text-sm mb-8 leading-relaxed">{error}</p>
                     <button

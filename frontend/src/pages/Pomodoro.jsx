@@ -62,7 +62,7 @@ const ProgressView = ({ totalCompletedPomodoros }) => {
                 <div>
                   <p className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">{reward.name}</p>
                   <p className="text-xs text-slate-500 mt-1 capitalize font-medium px-2 py-0.5 bg-white rounded-md inline-block shadow-sm">
-                    {reward.type} Reward â€¢ Target: {reward.requirement}
+                    {reward.type} Reward  Target: {reward.requirement}
                   </p>
                 </div>
                 <div className="text-right">
@@ -243,7 +243,7 @@ const Pomodoro = () => {
                     {formatTime(time)}
                   </div>
                   <p className="text-slate-400 font-medium uppercase tracking-widest text-sm">
-                    Session {pomodoroCount} â€¢ Target: {settings.pomodorosUntilLongBreak}
+                    Session {pomodoroCount}  Target: {settings.pomodorosUntilLongBreak}
                   </p>
                 </div>
 

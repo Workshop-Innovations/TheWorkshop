@@ -304,7 +304,7 @@ const PeerReview = ({ onClose }) => {
                         <input
                             type="url"
                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-[15px] font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
-                            placeholder="External link (Google Doc, GitHub, etc.) Ã¢â‚¬â€ optional"
+                            placeholder="External link (Google Doc, GitHub, etc.) - optional"
                             value={newSubmission.file_url}
                             onChange={e => setNewSubmission({ ...newSubmission, file_url: e.target.value })}
                         />
@@ -381,14 +381,14 @@ const PeerReview = ({ onClose }) => {
                                         </div>
                                         {sub.author_email?.split('@')[0]}
                                     </span>
-                                    <span className="text-slate-300">Ã¢â‚¬Â¢</span>
+                                    <span className="text-slate-300"></span>
                                     <span className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md text-slate-600">
                                         <MessageCircle className="w-3.5 h-3.5" />
                                         {sub.feedback_count || 0} review{(sub.feedback_count || 0) !== 1 ? 's' : ''}
                                     </span>
                                     {sub.file_url && (
                                         <>
-                                            <span className="text-slate-300">Ã¢â‚¬Â¢</span>
+                                            <span className="text-slate-300"></span>
                                             <span className="flex items-center gap-1 text-primary bg-primary/10 px-2 py-1 rounded-md">
                                                 <ExternalLink className="w-3 h-3" /> Link
                                             </span>

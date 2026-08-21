@@ -5,7 +5,7 @@ import PeerReview from './PeerReview';
 import { FileText, ClipboardList, Smile, MessageSquare, Send, X, CornerDownLeft, ChevronUp, ChevronDown } from 'lucide-react';
 import { resolveImageUrl } from '../../utils/imageUtils';
 
-const COMMON_EMOJIS = ['😀','😂','🥲','😍','🤔','😮','🥳','😎','🤯','👍','👎','❤️','🔥','✅','⭐','💡','📚','🎉','🙏','💪','🤝','💬','📝','🏆','⚡','🎯','🚀','✨','💯','🤖'];
+const COMMON_EMOJIS = ['','','','','','','','','','','','','','','','','','','','','','','','','','','','','',''];
 
 const ChatArea = () => {
     const {
@@ -586,7 +586,7 @@ const ChatArea = () => {
                                     className="px-5 py-1.5 bg-primary text-slate-800 text-xs font-bold rounded-md hover:bg-primary transition-colors disabled:opacity-50 shadow-md shadow-primary/20"
                                     disabled={!replyInputValue.trim()}
                                 >
-                                    Reply â†µ
+                                    Reply 
                                 </button>
                             </div>
                         </form>

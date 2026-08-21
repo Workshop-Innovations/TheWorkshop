@@ -15,7 +15,7 @@ export const PLANS = [
         name: 'Basic',
         price: 0,
         period: '/mo',
-        description: 'Entry Ã¢â‚¬â€ free forever',
+        description: 'Entry - free forever',
         badge: null,
         features: [
             '5 AI Tutor queries per day',
@@ -102,7 +102,7 @@ const TIER_ORDER = ['basic', 'pro', 'premium', 'max'];
 
 export const formatPrice = (price) => {
     if (price === 0) return 'Free';
-    return `Ã¢â€šÂ¦${price.toLocaleString()}`;
+    return `${price.toLocaleString()}`;
 };
 
 const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
@@ -333,7 +333,7 @@ const Pricing = () => {
                                     You're on the <span className="capitalize">{currentTier}</span> plan
                                     {user?.subscription_expiry && (
                                         <span className="font-medium text-slate-500">
-                                            {' '}Ã‚Â· Renews {new Date(user.subscription_expiry).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            {' '}• Renews {new Date(user.subscription_expiry).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         </span>
                                     )}
                                 </p>

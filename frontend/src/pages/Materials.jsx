@@ -241,7 +241,7 @@ export default function Materials() {
                     >
                       <div>
                         <p className="font-semibold">Subject Resources</p>
-                        <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} Â· {subjectId} Â· resources</p>
+                        <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} • {subjectId} • resources</p>
                       </div>
                       <button
                         className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border ${resourceUrl ? 'bg-white text-black border-transparent hover:bg-gray-200' : 'bg-gray-700 text-gray-400 border-transparent cursor-not-allowed'}`}
@@ -269,7 +269,7 @@ export default function Materials() {
                       >
                         <div>
                           <p className="font-semibold">{f.name}</p>
-                          <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} Â· {subjectId} Â· {typeId.replace('_', ' ')} Â· {year}</p>
+                          <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} • {subjectId} • {typeId.replace('_', ' ')} • {year}</p>
                         </div>
                         <button
                           className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border ${f.url ? 'bg-white text-black border-transparent hover:bg-gray-200' : 'bg-gray-700 text-gray-400 border-transparent cursor-not-allowed'}`}

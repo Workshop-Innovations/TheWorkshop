@@ -259,7 +259,7 @@ const MemberSidebar = () => {
                     <div className="mb-4">
                         <div className="px-2 py-1.5 mb-1">
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                Online â€” {onlineMembers.length}
+                                Online - {onlineMembers.length}
                             </span>
                         </div>
                         <div className="space-y-0.5">
@@ -273,7 +273,7 @@ const MemberSidebar = () => {
                     <div>
                         <div className="px-2 py-1.5 mb-1">
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                Offline â€” {offlineMembers.length}
+                                Offline - {offlineMembers.length}
                             </span>
                         </div>
                         <div className="space-y-0.5">

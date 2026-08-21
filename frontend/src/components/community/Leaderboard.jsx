@@ -128,7 +128,7 @@ const Leaderboard = ({ onClose }) => {
                         </div>
                     ) : error ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-                            <span className="text-5xl mb-4">âš ï¸</span>
+                            <span className="text-5xl mb-4"></span>
                             <p className="text-slate-900 font-bold mb-1">Failed to load</p>
                             <p className="text-slate-500 text-sm mb-4">{error}</p>
                             <button
@@ -205,7 +205,7 @@ const Leaderboard = ({ onClose }) => {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-slate-900 font-bold text-sm truncate tracking-tight">Your Position</p>
-                                        <p className="text-slate-600 font-medium text-xs">{myEntry.reputation_points} pts Â· #{myEntry.rank}</p>
+                                        <p className="text-slate-600 font-medium text-xs">{myEntry.reputation_points} pts • #{myEntry.rank}</p>
                                     </div>
                                     <span className="text-primary font-black text-lg">#{myEntry.rank}</span>
                                 </div>
@@ -249,7 +249,7 @@ const Leaderboard = ({ onClose }) => {
                                                     {isMe && <span className="text-xs font-medium text-slate-500 ml-1">(you)</span>}
                                                 </p>
                                                 <p className="text-xs text-slate-500 font-medium">
-                                                    {entry.total_messages} msgs Â· {entry.helpful_votes} upvotes
+                                                    {entry.total_messages} msgs • {entry.helpful_votes} upvotes
                                                 </p>
                                             </div>
 

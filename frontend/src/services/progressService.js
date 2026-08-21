@@ -1,7 +1,7 @@
 // --- Global State for API Logging Guard ---
 let lastLoggedPomodoroCount = 0;
 
-// 🎯 UPDATED FIX: Use Vite Environment Variables (import.meta.env)
+//  UPDATED FIX: Use Vite Environment Variables (import.meta.env)
 // The VITE_API_BASE_URL will be set by:
 // 1. .env.local (for local development)
 // 2. Render Environment Variables (for production deployment)

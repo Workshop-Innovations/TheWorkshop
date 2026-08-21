@@ -125,7 +125,7 @@ const FindFriendsModal = ({ onClose }) => {
                                     <p className="text-slate-500 text-xs truncate font-medium">{u.email}</p>
                                     <div className="flex items-center gap-1 mt-1">
                                         <span className="text-xs font-bold text-slate-600">{u.reputation_points} pts</span>
-                                        <span className="text-slate-300">â€¢</span>
+                                        <span className="text-slate-300"></span>
                                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${rep.color} ${rep.bg}`}>
                                             {rep.label}
                                         </span>

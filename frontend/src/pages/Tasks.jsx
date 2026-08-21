@@ -89,7 +89,7 @@ const Tasks = () => {
         throw new Error(errorData.detail || 'Failed to create task');
       }
 
-      toast.success('âœ¨ Task created!', {
+      toast.success(' Task created!', {
         position: 'top-right',
         autoClose: 3000,
       });
