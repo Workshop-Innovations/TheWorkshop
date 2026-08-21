@@ -96,6 +96,21 @@ const AdminDashboard = () => {
         }
     };
 
+    // Silent refresh — updates data in background without setting loading=true.
+    // Used after diagram uploads so the page doesn't flash or reorder.
+    const fetchDataSilently = async () => {
+        try {
+            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const url = `${baseUrl}/api/v1/papers`;
+            const response = await axios.get(url, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            setData(response.data);
+        } catch (err) {
+            console.error("Silent refresh failed:", err);
+        }
+    };
+
     const handleEdit = (item, type) => {
         setEditingItem(item);
         setEditType(type);
@@ -633,7 +648,7 @@ const AdminDashboard = () => {
                     <GlobalDiagramManager 
                         papers={data} 
                         accessToken={accessToken} 
-                        onUploadSuccess={fetchData} 
+                        onUploadSuccess={fetchDataSilently} 
                     />
                 );
             case 'admins':

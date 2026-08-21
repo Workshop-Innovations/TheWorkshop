@@ -27,6 +27,18 @@ const GlobalDiagramManager = ({ papers, accessToken, onUploadSuccess }) => {
         setMissingDiagrams(missing);
     }, [papers]);
 
+    // Remove a single uploaded diagram from local state immediately —
+    // no full re-fetch needed (backend already updated the DB).
+    // This keeps the list order stable and avoids the loading flash.
+    const handleDiagramUploaded = (paperId, label) => {
+        setMissingDiagrams(prev => prev.filter(
+            d => !(d.paperId === paperId && d.label === label)
+        ));
+        // Notify parent silently in background so it can sync if needed,
+        // but don't let it cause a loading spinner.
+        if (onUploadSuccess) onUploadSuccess();
+    };
+
     if (missingDiagrams.length === 0) {
         return (
             <div className="bg-white p-8 rounded-md shadow-sm border border-slate-200 text-center">
@@ -52,7 +64,7 @@ const GlobalDiagramManager = ({ papers, accessToken, onUploadSuccess }) => {
                         key={`${diagram.paperId}-${diagram.label}`} 
                         diagram={diagram} 
                         accessToken={accessToken}
-                        onSuccess={onUploadSuccess}
+                        onSuccess={() => handleDiagramUploaded(diagram.paperId, diagram.label)}
                     />
                 ))}
             </div>
