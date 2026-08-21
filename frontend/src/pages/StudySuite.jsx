@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Bot, Send, Upload, Lightbulb, List, FileText, Loader2, X, Check, Undo, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Bot, Send, Upload, Lightbulb, List, FileText, Loader2, X, Check, Undo, ArrowLeft, ArrowRight, BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../services/progressService';
 import { useAuth } from '../context/AuthContext';
 
@@ -40,9 +41,27 @@ const StudySuite = () => {
     // PDF blob URL for authenticated iframe viewing
     const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
 
+    const [subjects, setSubjects] = useState([]);
+    const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
+
     useEffect(() => {
         fetchDocuments();
+        fetchSubjects();
     }, []);
+
+    const fetchSubjects = async () => {
+        setIsLoadingSubjects(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/subjects`);
+            if (res.ok) {
+                setSubjects(await res.json());
+            }
+        } catch (e) {
+            console.error("Failed to fetch subjects", e);
+        } finally {
+            setIsLoadingSubjects(false);
+        }
+    };
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -300,8 +319,34 @@ const StudySuite = () => {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <Navbar />
-            <div className="flex-grow flex flex-col lg:flex-row gap-6 p-6 pt-24">
-                {/* Left Panel: Document Viewer */}
+            <div className="container mx-auto px-6 pt-24 pb-6 flex-grow flex flex-col">
+                {/* Subject Summaries Quick Links */}
+                <div className="mb-8">
+                    <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                        <BookOpen className="mr-2 text-primary" /> Study Summaries
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {subjects.map(subject => (
+                            <Link
+                                key={subject.id}
+                                to={`/subjects/${subject.id}`}
+                                className="p-4 bg-white border border-slate-200 rounded-md hover:shadow-md hover:border-primary transition-all text-center"
+                            >
+                                <h3 className="font-bold text-slate-700">{subject.name}</h3>
+                                <span className="text-xs text-slate-500">View Topics</span>
+                            </Link>
+                        ))}
+                        {subjects.length === 0 && !isLoadingSubjects && (
+                            <div className="col-span-full text-center text-slate-400 italic">No subject summaries available yet.</div>
+                        )}
+                        {isLoadingSubjects && (
+                            <div className="col-span-full text-center text-slate-400">Loading subjects...</div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex-grow flex flex-col lg:flex-row gap-6">
+                    {/* Left Panel: Document Viewer */}
                 <div
                     className={`relative lg:w-1/2 flex flex-col bg-white rounded-md shadow-lg border border-slate-100 overflow-hidden transition-all ${isDragging ? 'border-primary border-2 bg-primary/5' : ''}`}
                     onDragOver={handleDragOver}

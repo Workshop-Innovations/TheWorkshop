@@ -72,27 +72,7 @@ const PastPapers = () => {
                         </p>
                     </div>
 
-                    {/* Subject Summaries Quick Links */}
-                    <div className="mb-12">
-                        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                            <BookOpen className="mr-2 text-primary" /> Study Summaries
-                        </h2>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {subjects.map(subject => (
-                                <Link
-                                    key={subject.id}
-                                    to={`/subjects/${subject.id}`}
-                                    className="p-4 bg-white border border-slate-200 rounded-md hover:shadow-md hover:border-primary transition-all text-center"
-                                >
-                                    <h3 className="font-bold text-slate-700">{subject.name}</h3>
-                                    <span className="text-xs text-slate-500">View Topics</span>
-                                </Link>
-                            ))}
-                            {subjects.length === 0 && !loading && (
-                                <div className="col-span-4 text-center text-slate-400 italic">No subject summaries available yet.</div>
-                            )}
-                        </div>
-                    </div>
+
 
                     {/* Search and Filter Section */}
                     <div className="bg-white p-6 rounded-md shadow-sm border border-slate-100 mb-8">
