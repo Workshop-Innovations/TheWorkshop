@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { Book, FileText, ShieldAlert, Plus, Edit, Trash, Layers, X, CheckCircle, UploadCloud } from 'lucide-react';
+import { Book, FileText, ShieldAlert, Plus, Edit, Trash, Layers, X, CheckCircle, UploadCloud, Search, Filter } from 'lucide-react';
 import axios from 'axios';
 import ContentEditor from '../components/ContentEditor';
 import DiagramManagerModal from '../components/DiagramManagerModal';
@@ -17,6 +17,20 @@ const AdminDashboard = () => {
     const [subjects, setSubjects] = useState([]); // Store subjects for dropdowns and lookups
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Search and Filter States
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterSubject, setFilterSubject] = useState('');
+    const [filterYear, setFilterYear] = useState('');
+    const [filterExamType, setFilterExamType] = useState('');
+
+    // Reset filters when tab changes
+    useEffect(() => {
+        setSearchQuery('');
+        setFilterSubject('');
+        setFilterYear('');
+        setFilterExamType('');
+    }, [activeTab]);
 
     // Fetch subjects to populate dropdowns and lookups
     const fetchSubjects = async () => {
@@ -470,12 +484,39 @@ const AdminDashboard = () => {
         );
     };
 
+    const getFilteredData = () => {
+        let filtered = data;
+        
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            filtered = filtered.filter(item => 
+                (item.title && item.title.toLowerCase().includes(query)) ||
+                (item.name && item.name.toLowerCase().includes(query)) ||
+                (item.username && item.username.toLowerCase().includes(query)) ||
+                (item.email && item.email.toLowerCase().includes(query))
+            );
+        }
+
+        if (activeTab === 'topics' && filterSubject) {
+            filtered = filtered.filter(item => item.subject_id === filterSubject);
+        }
+
+        if (activeTab === 'papers') {
+            if (filterSubject) filtered = filtered.filter(item => item.subject_id === filterSubject);
+            if (filterYear) filtered = filtered.filter(item => item.year === filterYear);
+            if (filterExamType) filtered = filtered.filter(item => item.exam_type === filterExamType);
+        }
+
+        return filtered;
+    };
+
     const renderContent = () => {
         if (loading) return <div className="p-8 text-center text-slate-500">Loading...</div>;
         if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
 
         switch (activeTab) {
             case 'subjects':
+                const filteredSubjects = getFilteredData();
                 return (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center mb-6">
@@ -486,6 +527,16 @@ const AdminDashboard = () => {
                             >
                                 <Plus className="mr-2" /> Add Subject
                             </button>
+                        </div>
+                        <div className="mb-4 relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Search subjects..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
+                            />
                         </div>
                         <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
                             <table className="w-full text-left text-sm text-slate-600">
@@ -498,7 +549,7 @@ const AdminDashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {data.map((subject) => (
+                                    {filteredSubjects.length > 0 ? filteredSubjects.map((subject) => (
                                         <tr key={subject.id} className="hover:bg-slate-50/50">
                                             <td className="px-6 py-4 font-medium text-slate-900">{subject.name}</td>
                                             <td className="px-6 py-4 font-mono text-xs text-slate-400">{subject.id}</td>
@@ -520,13 +571,16 @@ const AdminDashboard = () => {
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))}
+                                    )) : (
+                                        <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">No subjects found matching your criteria.</td></tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 );
             case 'topics':
+                const filteredTopics = getFilteredData();
                 return (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center mb-6">
@@ -537,6 +591,29 @@ const AdminDashboard = () => {
                             >
                                 <Plus className="mr-2" /> Add Topic
                             </button>
+                        </div>
+                        <div className="mb-4 flex flex-col md:flex-row gap-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Search topics by title..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
+                                />
+                            </div>
+                            <div className="relative min-w-[200px]">
+                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <select 
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
+                                    value={filterSubject}
+                                    onChange={(e) => setFilterSubject(e.target.value)}
+                                >
+                                    <option value="">All Subjects</option>
+                                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
+                            </div>
                         </div>
                         <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
                             {/* Group topics by subject or show flat list with subject column */}
@@ -550,7 +627,7 @@ const AdminDashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {data.map((topic) => (
+                                    {filteredTopics.length > 0 ? filteredTopics.map((topic) => (
                                         <tr key={topic.id} className="hover:bg-slate-50/50">
                                             <td className="px-6 py-4 font-medium text-slate-900">{topic.title}</td>
                                             <td className="px-6 py-4 font-mono text-xs text-slate-500">
@@ -574,13 +651,17 @@ const AdminDashboard = () => {
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))}
+                                    )) : (
+                                        <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">No topics found matching your criteria.</td></tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 );
             case 'papers':
+                const filteredPapers = getFilteredData();
+                const availableYears = [...new Set(data.map(p => p.year))].sort((a,b) => b - a);
                 return (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center mb-6">
@@ -592,20 +673,71 @@ const AdminDashboard = () => {
                                 <Plus className="mr-2" /> Add Paper
                             </button>
                         </div>
+                        <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="relative md:col-span-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Search papers..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
+                                />
+                            </div>
+                            <div className="relative">
+                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <select 
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
+                                    value={filterSubject}
+                                    onChange={(e) => setFilterSubject(e.target.value)}
+                                >
+                                    <option value="">All Subjects</option>
+                                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="relative">
+                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <select 
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
+                                    value={filterExamType}
+                                    onChange={(e) => setFilterExamType(e.target.value)}
+                                >
+                                    <option value="">All Exam Types</option>
+                                    <option value="WAEC">WAEC</option>
+                                    <option value="JAMB">JAMB</option>
+                                    <option value="NECO">NECO</option>
+                                </select>
+                            </div>
+                            <div className="relative">
+                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <select 
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
+                                    value={filterYear}
+                                    onChange={(e) => setFilterYear(e.target.value)}
+                                >
+                                    <option value="">All Years</option>
+                                    {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+                                </select>
+                            </div>
+                        </div>
                         <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
                             <table className="w-full text-left text-sm text-slate-600">
                                 <thead className="bg-slate-50 border-b border-slate-100">
                                     <tr>
                                         <th className="px-6 py-4 font-semibold">Title</th>
+                                        <th className="px-6 py-4 font-semibold">Subject</th>
                                         <th className="px-6 py-4 font-semibold">Year</th>
                                         <th className="px-6 py-4 font-semibold">Type</th>
                                         <th className="px-6 py-4 font-semibold text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {data.map((paper) => (
+                                    {filteredPapers.length > 0 ? filteredPapers.map((paper) => (
                                         <tr key={paper.id} className="hover:bg-slate-50/50">
                                             <td className="px-6 py-4 font-medium text-slate-900">{paper.title}</td>
+                                            <td className="px-6 py-4 font-mono text-xs text-slate-500">
+                                                {subjects.find(s => s.id === paper.subject_id)?.name || paper.subject_id}
+                                            </td>
                                             <td className="px-6 py-4">{paper.year}</td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-2 py-1 rounded text-xs font-bold ${paper.exam_type === 'WAEC' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
@@ -637,7 +769,9 @@ const AdminDashboard = () => {
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))}
+                                    )) : (
+                                        <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-500">No papers found matching your criteria.</td></tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -652,6 +786,7 @@ const AdminDashboard = () => {
                     />
                 );
             case 'admins':
+                const filteredAdmins = getFilteredData();
                 return (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center mb-6">
@@ -662,6 +797,16 @@ const AdminDashboard = () => {
                             >
                                 <Plus className="mr-2" /> Add Administrator
                             </button>
+                        </div>
+                        <div className="mb-4 relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Search users by username or email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
+                            />
                         </div>
                         <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
                             <table className="w-full text-left text-sm text-slate-600">
@@ -675,7 +820,7 @@ const AdminDashboard = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {data.map((u) => (
+                                    {filteredAdmins.length > 0 ? filteredAdmins.map((u) => (
                                         <tr key={u.id} className="hover:bg-slate-50/50">
                                             <td className="px-6 py-4 font-medium text-slate-900">{u.email}</td>
                                             <td className="px-6 py-4 text-slate-600">{u.username}</td>
@@ -705,7 +850,9 @@ const AdminDashboard = () => {
                                                 )}
                                             </td>
                                         </tr>
-                                    ))}
+                                    )) : (
+                                        <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-500">No users found matching your search.</td></tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
