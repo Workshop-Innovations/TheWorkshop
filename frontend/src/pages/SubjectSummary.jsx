@@ -8,6 +8,7 @@ import 'katex/dist/katex.min.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowLeft, BookOpen } from 'lucide-react';
+import TikzDiagram from '../components/TikzDiagram';
 
 /** Normalise Windows line-endings so remark parses paragraphs correctly. */
 function preprocessContent(raw) {
@@ -62,22 +63,7 @@ const SubjectSummary = () => {
         fetchSubject();
     }, [subjectId]);
 
-    // Load TikZJax script dynamically
-    useEffect(() => {
-        if (!document.getElementById('tikzjax-script')) {
-            const script = document.createElement('script');
-            script.id = 'tikzjax-script';
-            script.src = 'https://tikzjax.com/v1/tikzjax.js';
-            script.async = true;
-            document.head.appendChild(script);
-
-            const link = document.createElement('link');
-            link.id = 'tikzjax-css';
-            link.rel = 'stylesheet';
-            link.href = 'https://tikzjax.com/v1/fonts.css';
-            document.head.appendChild(link);
-        }
-    }, []);
+    // Remove the previous useEffect for tikzjax here, as it's now handled by TikzDiagram
 
     // Fetch Topic Content when activeTopicId changes
     useEffect(() => {
@@ -200,19 +186,12 @@ const SubjectSummary = () => {
                                                     remarkPlugins={remarkPlugins}
                                                     rehypePlugins={rehypePlugins}
                                                     components={{
-                                                        code({node, inline, className, children, ...props}) {
-                                                            const match = /language-(\w+)/.exec(className || '')
-                                                            if (!inline && match && match[1] === 'tikz') {
-                                                                return (
-                                                                    <div 
-                                                                        className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-white p-4 rounded-md border border-slate-100 shadow-sm" 
-                                                                        dangerouslySetInnerHTML={{ 
-                                                                            __html: `<script type="text/tikz">${String(children).replace(/</g, '\\<')}</script>` 
-                                                                        }} 
-                                                                    />
-                                                                );
+                                                        pre({node, children, ...props}) {
+                                                            const codeElement = React.Children.toArray(children)[0];
+                                                            if (React.isValidElement(codeElement) && codeElement.props.className?.includes('language-tikz')) {
+                                                                return <TikzDiagram content={String(codeElement.props.children).replace(/\\n$/, '')} />;
                                                             }
-                                                            return <code className={className} {...props}>{children}</code>
+                                                            return <pre {...props}>{children}</pre>;
                                                         }
                                                     }}
                                                 >
