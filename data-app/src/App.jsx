@@ -26,7 +26,6 @@ function PasswordGate({ onUnlock }) {
       <div className={`gate-card${shake ? ' shake' : ''}`}
         style={shake ? { animation: 'shake 0.5s ease' } : {}}>
         <div className="gate-logo">
-          <div className="gate-logo-icon"></div>
           <div style={{ textAlign: 'center' }}>
             <h1>Data Entry Portal</h1>
             <p>Enter your access code to continue</p>
@@ -146,7 +145,6 @@ function App() {
     <div className="page-wrapper">
       {/* Header */}
       <div className="page-header">
-        <div className="page-header-icon"></div>
         <div className="page-header-text">
           <h1>Data Entry Portal</h1>
           <p>Upload and process scanned past papers with AI</p>
