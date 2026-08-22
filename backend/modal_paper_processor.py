@@ -16,7 +16,8 @@ image = (
         "opencv-python-headless",
         "google-genai",
         "sqlmodel",
-        "psycopg2-binary"
+        "psycopg2-binary",
+        "fastapi[standard]"
     )
     .run_commands(
         # Download the weights during build so cold starts are faster
@@ -240,10 +241,10 @@ class PaperProcessor:
             
         engine = create_engine(db_url)
         with Session(engine) as session:
-            # We use raw SQL to avoid importing the entire FastAPI app here
-            session.exec(
+            # Use session.execute() for raw SQL text (session.exec() is for SQLModel queries)
+            session.execute(
                 text("UPDATE pastpaper SET content = :content WHERE id = :id"),
-                params={"content": final_markdown, "id": paper_id}
+                {"content": final_markdown, "id": paper_id}
             )
             session.commit()
             
@@ -259,7 +260,8 @@ class PaperProcessor:
         return "Success"
 
 # Define the webhook that FastAPI will call asynchronously
-@app.function(image=image)
+# Must use same image and secrets so it can spawn the PaperProcessor class
+@app.function(image=image, secrets=[modal.Secret.from_name("custom-secret")])
 @modal.fastapi_endpoint(method="POST")
 async def process_paper_endpoint(request: Request):
     """
@@ -275,8 +277,7 @@ async def process_paper_endpoint(request: Request):
         
     pdf_bytes = await file_obj.read()
     
-    processor = PaperProcessor()
-    # Spawn the process in the background and return a 202 Accepted
-    processor.process_pdf.spawn(paper_id, pdf_bytes)
+    # Spawn the GPU processing task in the background and return 202 immediately
+    PaperProcessor().process_pdf.spawn(paper_id, pdf_bytes)
     
     return Response(content=f"Processing started for {paper_id}", status_code=202)

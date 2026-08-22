@@ -1,6 +1,6 @@
 import os
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File, Form, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File, Form
 from sqlmodel import Session
 from app.database import get_session
 from app.schemas import PastPaper

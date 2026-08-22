@@ -44,7 +44,7 @@ function App() {
 
     try {
       // NOTE: In production, point this to your actual backend domain (e.g. https://api.workshop.com.ng)
-      const response = await fetch('https://api.workshop.com.ng/api/data-entry/upload-paper', {
+      const response = await fetch('https://workshop-vry1.onrender.com/api/data-entry/upload-paper', {
         method: 'POST',
         headers: {
           'X-Admin-Token': formData.password
