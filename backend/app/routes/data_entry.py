@@ -6,7 +6,7 @@ from app.database import get_session
 from app.schemas import PastPaper
 
 router = APIRouter(
-    prefix="/data-entry",
+    prefix="/api/v1/data-entry",
     tags=["Data Entry"]
 )
 

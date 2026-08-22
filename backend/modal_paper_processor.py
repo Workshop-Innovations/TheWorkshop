@@ -127,12 +127,36 @@ PROMPT_TEMPLATE = f"""
 You are an expert OCR and formatting assistant for an educational platform. I am providing you with the raw markdown extracted from a scanned past paper (PDF) using a specialized layout-aware OCR tool. Your task is to process this raw text and convert it into a perfectly formatted Markdown file according to our strict formatting guide.
 
 You must:
-1. Fix any minor OCR math errors (e.g., `10^2` instead of `102` if context implies it).
+1. Fix any minor OCR errors (e.g., garbled characters, broken words, mis-read numbers).
 2. Correctly format all mathematical equations using LaTeX (e.g. `$x^2$` for inline, `$$x = 2$$` for block).
 3. Insert `[DIAGRAM:label]` placeholders wherever a diagram, graph, or image appears to have been in the original paper (or is mentioned). Use a descriptive label like `[DIAGRAM:subject_year_q5]`.
 4. Apply the appropriate tags (`[ESSAY]`, `[STRUCTURED]`, `[CALC]`) depending on the type of question.
 5. Extract or generate the answers and place them at the very end of the file under the exact heading `## ANSWERS`.
 6. Ensure MCQ options immediately follow their question without blank lines, starting with A., B., C., D.
+
+CRITICAL ORDERING RULE — You MUST follow this without exception:
+- The entire QUESTIONS section must come first.
+- The `## ANSWERS` section must come LAST, after every single question.
+- Never interleave answers with questions.
+- This applies to ALL question types including fill-in-the-gap passages.
+
+FILL-IN-THE-GAP / CLOZE PASSAGE RULES:
+Some comprehension passages have numbered blanks inline (e.g. —75—, —76—, or [75], [76]).
+Each blank has its own set of MCQ options listed below the passage.
+You MUST format these as follows:
+- Write the full passage as regular text, keeping the numbered blank markers intact (e.g. —75—).
+- After the passage, write each blank as a numbered question with its MCQ options immediately below it.
+  Example:
+  ```
+  75.  Which word best fits blank 75?
+  A. tracksuit
+  B. track suit
+  C. swim suit
+  D. shell suit
+  ```
+- Do NOT split the passage or interleave options inside the passage text.
+- All the gap-fill questions for a passage must appear AFTER the passage text but BEFORE the `## ANSWERS` section.
+- In the `## ANSWERS` section, list the correct letter for each blank number.
 
 Here is the full Formatting Guide you MUST follow:
 

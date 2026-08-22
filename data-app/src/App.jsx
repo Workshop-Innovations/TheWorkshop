@@ -117,7 +117,7 @@ function App() {
     body.append('file', file)
 
     try {
-      const res = await fetch(`${API_BASE}/api/data-entry/upload-paper`, {
+      const res = await fetch(`${API_BASE}/api/v1/data-entry/upload-paper`, {
         method: 'POST',
         headers: { 'X-Admin-Token': adminToken },
         body
@@ -125,8 +125,10 @@ function App() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Upload failed')
 
-      setMessage({ type: 'success', text: `${data.message} (ID: ${data.paper_id})` })
-      setFormData(p => ({ ...p, title: '', year: new Date().getFullYear().toString() }))
+      // Reset immediately — processing is fully async in the background
+      setMessage({ type: 'success', text: `Queued for processing: "${formData.title}" (ID: ${data.paper_id})` })
+      const firstSubject = subjects.length > 0 ? subjects[0].id : ''
+      setFormData({ subject_id: firstSubject, title: '', year: new Date().getFullYear().toString(), exam_type: 'WAEC', duration_minutes: 60 })
       setFile(null)
       setFileName('')
       e.target.reset()
@@ -257,7 +259,7 @@ function App() {
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
             {loading
-              ? <><div className="spinner" /> Processing…</>
+              ? <><div className="spinner" /> Uploading…</>
               : 'Upload & Process Paper'
             }
           </button>
@@ -269,11 +271,7 @@ function App() {
           </div>
         )}
 
-        {loading && (
-          <div className="status-bar">
-            Uploaded! MinerU is extracting the paper in the background. This may take 2–5 minutes.
-          </div>
-        )}
+
       </div>
     </div>
   )
