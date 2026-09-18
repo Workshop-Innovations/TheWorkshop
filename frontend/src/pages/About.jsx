@@ -11,7 +11,7 @@ import chibuezeImg from '../assets/team/chibueze.png';
 const About = () => {
   const team = [
     { name: "Ayanfeoluwa Ayanlade", role: "Chief Technology Officer", image: ayanfeoluwaImg },
-    { name: "Mesh-Masade David Omoafe", role: "Head of Recruitment and Human Resources", image: davidImg },
+    { name: "Mesh-Masade David Omoafe", role: "Head of Growth", image: davidImg },
     { name: "Akinbola Oluwatamilore Ayodeji-Mattew", role: "Head of Data Acquisition", image: oluwatamilolaImg },
     { name: "Nwagwu Chibueze William", role: "Chief Operations Officer", image: chibuezeImg }
   ];
