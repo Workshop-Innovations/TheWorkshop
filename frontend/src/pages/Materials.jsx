@@ -184,11 +184,8 @@ export default function Materials() {
             <p className="text-gray-400">Browse resources from curricula like Cambridge (IGCSE, A-Levels).</p>
           </div>
 
-          <motion.div
+          <div
             className={`${cardBase} p-6 mb-8`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
           >
             <SelectorGroup
               title="Curriculum"
@@ -217,14 +214,11 @@ export default function Materials() {
                 onSelect={(y) => setYear(y)}
               />
             )}
-          </motion.div>
+          </div>
 
           {selectionComplete && (
-            <motion.div
+          <div
               className="space-y-6"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold">Files</h2>
@@ -289,7 +283,7 @@ export default function Materials() {
                   </>
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>

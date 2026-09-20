@@ -324,8 +324,6 @@ const TaskCard = ({ task, onComplete, onDelete }) => {
   return (
     <motion.div
       className={`bg-white p-4 rounded-md shadow-sm border border-slate-100 hover:shadow-md transition-shadow duration-300 ${task.completed ? 'opacity-75' : ''}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
       transition={{ duration: 0.2 }}
     >

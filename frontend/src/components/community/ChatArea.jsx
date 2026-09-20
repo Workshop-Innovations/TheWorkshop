@@ -35,6 +35,7 @@ const ChatArea = () => {
     const [showReviews, setShowReviews] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [sending, setSending] = useState(false);
+    const [optimisticMessages, setOptimisticMessages] = useState([]);
 
     // Edit state
     const [editingMessageId, setEditingMessageId] = useState(null);
@@ -57,7 +58,7 @@ const ChatArea = () => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, dmMessages]);
+    }, [messages, dmMessages, optimisticMessages]);
 
     useEffect(() => {
         threadEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -74,15 +75,37 @@ const ChatArea = () => {
     const handleSend = async (e) => {
         e.preventDefault();
         if (!inputValue.trim() || sending) return;
-        setSending(true);
-        if (viewMode === 'dms' && currentDM) {
-            await sendDMMessage(inputValue);
-        } else if (currentChannel) {
-            await sendMessage(inputValue);
-        }
+
+        const content = inputValue.trim();
         setInputValue('');
-        setSending(false);
         setShowEmojiPicker(false);
+
+        if (viewMode === 'dms' && currentDM) {
+            setSending(true);
+            await sendDMMessage(content);
+            setSending(false);
+        } else if (currentChannel) {
+            // Optimistic: add message immediately with a temp id
+            const tempId = `optimistic-${Date.now()}`;
+            const optimisticMsg = {
+                id: tempId,
+                content,
+                user_id: user?.id,
+                channel_id: currentChannel.id,
+                timestamp: new Date().toISOString(),
+                user_email: user?.email,
+                user_profile_pic: user?.profile_pic,
+                parent_id: null,
+                score: 0,
+                user_vote: 0,
+                reply_count: 0,
+                _pending: true,
+            };
+            setOptimisticMessages(prev => [...prev, optimisticMsg]);
+            await sendMessage(content);
+            // The WS will confirm and add the real message; remove the optimistic one
+            setOptimisticMessages(prev => prev.filter(m => m.id !== tempId));
+        }
     };
 
     const handleInputKeyDown = (e) => {
@@ -462,7 +485,7 @@ const ChatArea = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto py-6 space-y-1 custom-scrollbar bg-gradient-to-b from-slate-50 to-slate-100/50" onClick={() => setShowEmojiPicker(false)}>
-                    {parentMessages.length === 0 ? (
+                    {parentMessages.length === 0 && optimisticMessages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center py-20 px-4">
                             <div className="w-24 h-24 rounded-sm bg-gradient-to-br from-white to-slate-100 flex items-center justify-center mb-6 shadow-2xl border border-slate-200">
                                 <span className="text-5xl text-slate-400 font-light">#</span>
@@ -473,7 +496,37 @@ const ChatArea = () => {
                             </p>
                         </div>
                     ) : (
-                        parentMessages.map((msg, index) => renderMessage(msg, index, false, parentMessages))
+                        <>
+                            {parentMessages.map((msg, index) => renderMessage(msg, index, false, parentMessages))}
+                            {optimisticMessages.map((msg, index) => (
+                                <div key={msg.id} className="flex gap-4 px-6 py-2 opacity-60">
+                                    <div className="w-11 h-11 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm shrink-0 shadow-lg overflow-hidden mt-1">
+                                        {msg.user_profile_pic ? (
+                                            <img src={msg.user_profile_pic} alt={msg.user_email} className="w-full h-full object-cover" />
+                                        ) : (
+                                            msg.user_email?.charAt(0).toUpperCase() || '?'
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-baseline gap-3 mb-1">
+                                            <span className="font-bold text-[15px] text-primary tracking-tight">
+                                                {msg.user_email?.split('@')[0] || 'You'}
+                                                <span className="text-[11px] font-medium text-indigo-500/70 ml-2 uppercase tracking-wider bg-primary/10 px-1.5 py-0.5 rounded">You</span>
+                                            </span>
+                                        </div>
+                                        <div className="text-slate-600 text-[15px] leading-relaxed whitespace-pre-wrap break-words flex items-end gap-2">
+                                            <span>{msg.content}</span>
+                                            <span className="shrink-0 mb-0.5">
+                                                <span className="inline-flex items-center gap-0.5">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-pulse inline-block" />
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-pulse inline-block" style={{animationDelay: '0.15s'}} />
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </>
                     )}
                     <div ref={messagesEndRef} />
                 </div>

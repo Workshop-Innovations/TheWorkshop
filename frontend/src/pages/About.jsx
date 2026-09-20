@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Building2, Users } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -23,18 +22,14 @@ const About = () => {
       {/* --- HERO SECTION --- */}
       <section className="relative pt-32 pb-24 px-6 flex items-center bg-white border-b border-slate-100">
         <div className="w-full max-w-4xl mx-auto text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.1] tracking-tighter mb-6">
               Workshop Innovations Ltd
             </h1>
             <p className="text-lg md:text-xl text-slate-500 max-w-3xl mx-auto font-medium leading-relaxed tracking-tight">
               We are a passionate group who understand the difficulties faced by students in the West African education system and are committed to building solutions to fix them.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -53,11 +48,8 @@ const About = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {team.map((member, i) => (
-              <motion.div
+              <div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.05 }}
                 className="p-6 bg-white rounded-md border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-200 transition-all group flex flex-col items-center text-center card"
               >
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full mb-6 overflow-hidden bg-slate-100 flex-shrink-0 border-4 border-slate-50 group-hover:border-primary/10 transition-colors">
@@ -81,7 +73,7 @@ const About = () => {
                 <div className="text-xs font-bold uppercase tracking-widest text-primary">
                   {member.role}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

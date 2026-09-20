@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PomodoroProvider, usePomodoro } from './context/PomodoroContext';
@@ -173,9 +172,7 @@ const AppContent = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      <AnimatePresence>
-        {showMinimizedTimer && <MinimizedPomodoro />}
-      </AnimatePresence>
+      {showMinimizedTimer && <MinimizedPomodoro />}
     </div>
   );
 };
@@ -193,14 +190,15 @@ function App() {
 
       <ToastContainer
         position="bottom-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
+        autoClose={3500}
+        hideProgressBar={true}
+        newestOnTop={true}
         closeOnClick
         rtl={false}
         pauseOnFocusLoss
-        draggable
+        draggable={false}
         pauseOnHover
+        icon={false}
       />
     </Router>
   );

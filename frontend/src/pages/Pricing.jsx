@@ -109,10 +109,7 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
     const isBasic = plan.id === 'basic';
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+        <div
             className={`relative flex flex-col rounded-md border bg-white transition-all overflow-hidden ${plan.popular ? 'border-primary shadow-xl shadow-primary/5' : 'border-slate-200 shadow-sm'
                 }`}
         >
@@ -203,7 +200,7 @@ const PlanCard = ({ plan, isCurrentPlan, isDowngrade, onUpgrade, loading }) => {
                     )}
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
 

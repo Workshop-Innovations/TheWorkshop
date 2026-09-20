@@ -17,11 +17,8 @@ const Landing = () => {
       <section className="relative min-h-[calc(100dvh-1px)] pt-32 pb-24 px-6 flex items-center bg-white">
 
         <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16 relative z-10">
-          <motion.div
+          <div
             className="w-full flex-1 text-center lg:text-left"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 leading-[1.1] tracking-tighter mb-6">
               Clear Explanations.<br />
@@ -41,14 +38,11 @@ const Landing = () => {
                 View Features
               </Link>
             </div>
-          </motion.div>
+          </div>
 
           {/* Soft Premium Hero Visual */}
-          <motion.div
+          <div
             className="hidden lg:block w-full flex-1 max-w-lg mx-auto lg:mx-0"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="w-full bg-white/80 backdrop-blur-xl border border-white/50 p-8 rounded-md shadow-2xl shadow-slate-200/50">
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
@@ -70,7 +64,7 @@ const Landing = () => {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 

@@ -12,7 +12,7 @@ const PERIODS = [
 const TIER_STYLES = {
     bronze:   { bg: 'bg-amber-100',  border: 'border-amber-200', text: 'text-amber-700',  label: 'Bronze' },
     silver:   { bg: 'bg-slate-100',  border: 'border-slate-300', text: 'text-slate-600',  label: 'Silver' },
-    gold:     { bg: 'bg-yellow-100', border: 'border-yellow-300', text: 'text-yellow-700', label: 'Gold' },
+    gold:     { bg: 'bg-primary/10', border: 'border-primary/30', text: 'text-primary',   label: 'Gold' },
     platinum: { bg: 'bg-cyan-50',   border: 'border-cyan-200',  text: 'text-cyan-700',   label: 'Platinum' },
 };
 
@@ -68,7 +68,7 @@ const Leaderboard = ({ onClose }) => {
 
     const podiumSizes = {
         0: { height: 'h-20', bg: 'bg-slate-200', medal: <Medal className="w-5 h-5 text-slate-500" />, textSize: 'text-sm', avatarSize: 'w-12 h-12', rank: 2 },
-        1: { height: 'h-28', bg: 'bg-yellow-100', medal: <Crown className="w-6 h-6 text-yellow-500" />, textSize: 'text-base', avatarSize: 'w-14 h-14', rank: 1 },
+        1: { height: 'h-28', bg: 'bg-primary/10', medal: <Crown className="w-6 h-6 text-primary" />, textSize: 'text-base', avatarSize: 'w-14 h-14', rank: 1 },
         2: { height: 'h-16', bg: 'bg-amber-100', medal: <Medal className="w-5 h-5 text-amber-600" />, textSize: 'text-sm', avatarSize: 'w-11 h-11', rank: 3 },
     };
 
@@ -163,7 +163,7 @@ const Leaderboard = ({ onClose }) => {
                                                     )}
 
                                                     <div className={`${style.avatarSize} rounded-sm overflow-hidden border-2 ${
-                                                        style.rank === 1 ? 'border-yellow-400' :
+                                                        style.rank === 1 ? 'border-primary/50' :
                                                         style.rank === 2 ? 'border-slate-300' : 'border-amber-400'
                                                     } shadow-sm flex-shrink-0 bg-slate-100 flex items-center justify-center text-slate-600 font-black ${isMe ? 'ring-2 ring-primary ring-offset-2 ring-offset-white' : ''}`}>
                                                         {entry.profile_pic ? (
@@ -181,7 +181,7 @@ const Leaderboard = ({ onClose }) => {
                                                     <p className="text-xs text-slate-500 font-medium">{entry.reputation_points} pts</p>
 
                                                     <div className={`w-full ${style.height} ${style.bg} rounded-t-xl flex items-start justify-center pt-2 border border-b-0 ${
-                                                        style.rank === 1 ? 'border-yellow-200' :
+                                                        style.rank === 1 ? 'border-primary/20' :
                                                         style.rank === 2 ? 'border-slate-300' : 'border-amber-200'
                                                     }`}>
                                                         <span className="text-slate-900/60 font-black text-sm">{style.rank}</span>

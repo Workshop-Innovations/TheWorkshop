@@ -242,7 +242,7 @@ const StudyGroups = ({ onClose }) => {
     );
 
     return (
-        <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-[1000] backdrop-blur-sm p-4" onClick={onClose}>
+        <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-[10000] backdrop-blur-sm p-4" onClick={onClose}>
             <div className="bg-white w-full max-w-5xl max-h-[90vh] h-full rounded-md flex flex-col overflow-hidden shadow-2xl border border-slate-200" onClick={e => e.stopPropagation()}>
                 <div className="px-6 py-4 bg-slate-50 flex justify-between items-center border-b border-slate-200 shrink-0">
                     <h2 className="text-lg font-bold text-slate-900 m-0 flex items-center gap-3 tracking-tight">

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Clock, Brain, UserCircle, Camera, X, Crown, BookOpen, Bot, Users, ArrowRight, Play, CheckCircle2, GraduationCap, MessageSquare } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import GlobalLoader from '../components/GlobalLoader';
@@ -243,22 +242,15 @@ const Dashboard = () => {
                 </div>
 
                 {/* Profile Customization Modal */}
-                <AnimatePresence>
-                    {isSettingsOpen && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setIsSettingsOpen(false)}
-                                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-                            />
-                            <motion.div
-                                initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                                className="bg-white rounded-md w-full max-w-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
-                            >
+                {isSettingsOpen && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                        <div
+                            onClick={() => setIsSettingsOpen(false)}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                        />
+                        <div
+                            className="bg-white rounded-md w-full max-w-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
+                        >
                                 <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-white">
                                     <h3 className="text-2xl font-extrabold text-slate-800 tracking-tight">Profile Settings</h3>
                                     <button onClick={() => setIsSettingsOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 p-3 rounded-full hover:bg-slate-100">
@@ -356,10 +348,9 @@ const Dashboard = () => {
                                         Save & Close
                                     </button>
                                 </div>
-                            </motion.div>
                         </div>
-                    )}
-                </AnimatePresence>
+                    </div>
+                )}
             </main>
             <Footer />
         </div>
