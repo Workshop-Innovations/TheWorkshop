@@ -46,27 +46,46 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
+def get_user_from_token(session: Session, token: Optional[str]) -> Optional[User]:
+    """
+    Decode a JWT and return the matching active user, or None.
+    Shared by HTTP auth, WebSocket auth and query-param auth (file downloads).
+
+    New tokens carry the immutable user id in "uid". Tokens issued before that
+    change only carry the username in "sub"; they are still honoured until they expire.
+    """
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError:
+        return None
+
+    user_id = payload.get("uid")
+    if user_id:
+        user = session.get(User, user_id)
+    else:
+        username = payload.get("sub")
+        if not username:
+            return None
+        user = session.exec(select(User).where(User.username == username)).first()
+
+    if user is None or not user.is_active:
+        return None
+    return user
+
 # --- Dependency to get the current user from the token ---
 async def get_current_user(
     session: Session = Depends(get_session),
     token: str = Depends(oauth2_scheme)
 ):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    
-    user = session.exec(select(User).where(User.username == username)).first()
+    user = get_user_from_token(session, token)
     if user is None:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     return user
 
 async def get_current_admin_user(current_user: User = Depends(get_current_user)):

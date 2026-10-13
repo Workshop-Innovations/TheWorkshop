@@ -35,10 +35,14 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
-        // Sync profile pic from backend
+        // Sync profile pic from backend — the server is the source of truth, so a
+        // picture cached from a previous account on this browser is cleared too.
         if (userData.profile_pic) {
           setProfilePic(userData.profile_pic);
           localStorage.setItem('userProfilePic', userData.profile_pic);
+        } else {
+          setProfilePic(null);
+          localStorage.removeItem('userProfilePic');
         }
       } else {
         // If token is invalid, logout (but maybe don't redirect strictly yet)
@@ -70,6 +74,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('accessToken');
     setUser(null);
     localStorage.removeItem('username'); // Clean up legacy
+    // Otherwise the next account on this browser shows this user's avatar
+    // and skips the community profile-picture gate
+    setProfilePic(null);
+    localStorage.removeItem('userProfilePic');
 
     toast.info("You have been logged out.");
     navigate('/login');

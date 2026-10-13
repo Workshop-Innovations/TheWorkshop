@@ -3,7 +3,7 @@ import { Plus, Calendar, Check, Flag, X, Trash2, Loader2 } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../src/datepicker-styles.css';
 import Navbar from '../components/Navbar';
@@ -166,7 +166,6 @@ const Tasks = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
-      <ToastContainer theme="light" />
 
       <div className="container mx-auto px-4 py-32">
         <div className="max-w-4xl mx-auto">

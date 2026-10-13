@@ -1,55 +1,43 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Depends, status
-from sqlmodel import Session, select
-from jose import jwt, JWTError
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, status
+from sqlmodel import Session
 
 from ..websocket_manager import manager
-from ..database import get_session
-from ..schemas import User
-from ..dependencies import settings
+from ..database import engine
+from ..dependencies import get_user_from_token
 
 router = APIRouter()
 
-async def get_current_user_ws(
-    session: Session,
-    token: str
-):
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            return None
-    except JWTError:
-        return None
-    
-    user = session.exec(select(User).where(User.username == username)).first()
-    return user
-
 @router.websocket("/ws/community/global")
 async def websocket_endpoint(
-    websocket: WebSocket, 
+    websocket: WebSocket,
     token: str = Query(...),
-    session: Session = Depends(get_session)
 ):
     """
     WebSocket endpoint for real-time global community chat.
     Authenticates user via token query parameter and manages connection.
     Tracks user as online while connected.
     """
-    # Authenticate user
-    user = await get_current_user_ws(session, token)
-    if not user:
+    # Authenticate with a short-lived session. Using Depends(get_session) here would
+    # hold a pooled DB connection open for the whole lifetime of the socket, and a
+    # handful of open tabs would exhaust the pool for every HTTP request.
+    with Session(engine) as session:
+        user = get_user_from_token(session, token)
+        user_id = user.id if user else None
+
+    if not user_id:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
     # Connection manager handles online status broadcast inside connect()
-    await manager.connect(websocket, user.id)
-    
+    await manager.connect(websocket, user_id)
+
     try:
         while True:
             # Keep connection alive; listen for any client pings
-            data = await websocket.receive_text()
+            await websocket.receive_text()
             # Could handle typing indicators here in the future
-            
     except WebSocketDisconnect:
-        # Connection manager handles offline status broadcast inside disconnect()
-        await manager.disconnect(user.id)
+        pass
+    finally:
+        # Runs on any exit (including unexpected errors) so the user isn't left "online"
+        await manager.disconnect(user_id, websocket)

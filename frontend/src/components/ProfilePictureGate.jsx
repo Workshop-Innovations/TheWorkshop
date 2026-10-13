@@ -19,12 +19,14 @@ const ProfilePictureGate = ({ children }) => {
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [error, setError] = useState('');
 
-    // If the user already has a profile picture, render children directly
-    if (profilePic) return children;
-
     const onCropComplete = useCallback((_, pixels) => {
         setCroppedAreaPixels(pixels);
     }, []);
+
+    // If the user already has a profile picture, render children directly.
+    // Must come after every hook: returning early before useCallback changed the hook
+    // count when the picture was saved and crashed the page ("Rendered fewer hooks").
+    if (profilePic) return children;
 
     const handleFileChange = (e) => {
         setError('');

@@ -1,5 +1,5 @@
 // --- Global State for API Logging Guard ---
-let lastLoggedPomodoroCount = 0;
+let lastLoggedSessionKey;
 
 //  UPDATED FIX: Use Vite Environment Variables (import.meta.env)
 // The VITE_API_BASE_URL will be set by:
@@ -68,56 +68,63 @@ export const saveProgressData = (data) => {
     localStorage.setItem('progressData', JSON.stringify(data));
 };
 
-export const logPomodoro = async (minutes, coinsEarned = 10, currentCount) => {
-    // 1. API Logging Check: Only proceed if this is a new, unlogged count
-    if (currentCount > lastLoggedPomodoroCount) {
-        const authToken = getAuthToken();
-        if (authToken) {
-            const maxRetries = 3;
-            let delay = 1000;
+const sendSessionLog = async (minutes) => {
+    const authToken = getAuthToken();
+    if (!authToken) {
+        console.warn("User not authenticated. Skipping backend logging.");
+        return;
+    }
+    const maxRetries = 3;
+    let delay = 1000;
 
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-                try {
-                    // Uses the actual backend session logging endpoint
-                    const response = await fetch(`${API_BASE_URL}/api/v1/log/session`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-                        body: JSON.stringify({
-                            minutes_spent: minutes,
-                            session_type: 'focus',
-                        }),
-                    });
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            // Uses the actual backend session logging endpoint
+            const response = await fetch(`${API_BASE_URL}/api/v1/log/session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                body: JSON.stringify({
+                    minutes_spent: minutes,
+                    session_type: 'focus',
+                }),
+            });
 
-                    if (response.ok) {
-                        lastLoggedPomodoroCount = currentCount; // SUCCESS: Update the tracker
-                        console.log(`Pomodoro #${currentCount} successfully logged to backend.`);
-                        break; // Exit retry loop on success
-                    } else {
-                        // Retry on server errors (5xx)
-                        if (response.status >= 500 && attempt < maxRetries - 1) {
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            delay *= 2;
-                        } else {
-                            const errorData = await response.json().catch(() => ({ message: response.statusText }));
-                            console.error('Failed to log session to backend:', errorData);
-                            break;
-                        }
-                    }
-                } catch (error) {
-                    if (attempt < maxRetries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        delay *= 2;
-                    } else {
-                        console.error('Final attempt failed to log session:', error);
-                    }
-                }
+            if (response.ok) return;
+            // Retry on server errors (5xx)
+            if (response.status >= 500 && attempt < maxRetries - 1) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            } else {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                console.error('Failed to log session to backend:', errorData);
+                return;
             }
-        } else {
-            console.warn("User not authenticated. Skipping backend logging.");
+        } catch (error) {
+            if (attempt < maxRetries - 1) {
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            } else {
+                console.error('Final attempt failed to log session:', error);
+            }
         }
     }
+};
 
-    // 2. Local Storage Logging (Always keep this for immediate frontend progress/coins)
+/**
+ * Records a completed pomodoro. The local update (coins, history, totals) is applied
+ * synchronously and returned; the backend log is sent in the background.
+ * `sessionKey` must be unique per completed session (e.g. its end time) so a double
+ * completion call can't log it twice. The old count-based guard skipped the first
+ * pomodoro of every cycle and stopped logging once the count reset after a long break.
+ */
+export const logPomodoro = (minutes, coinsEarned = 10, sessionKey) => {
+    if (sessionKey !== undefined && sessionKey === lastLoggedSessionKey) {
+        return getProgressData();
+    }
+    lastLoggedSessionKey = sessionKey;
+
+    sendSessionLog(minutes);
+
     const data = getProgressData();
     const today = getToday();
 
@@ -127,14 +134,11 @@ export const logPomodoro = async (minutes, coinsEarned = 10, currentCount) => {
         data.history[today].breakTime = 0;
     }
 
-    // Only increment if we haven't logged this count yet (local tracker)
-    if (currentCount > lastLoggedPomodoroCount || !currentCount) {
-        data.history[today].pomodoros += 1;
-        data.history[today].focusTime += minutes;
-        data.coins += coinsEarned;
-        // NEW: Update total completed pomodoros for reward tracking
-        data.userStats.totalCompletedPomodoros += 1;
-    }
+    data.history[today].pomodoros += 1;
+    data.history[today].focusTime += minutes;
+    data.coins += coinsEarned;
+    // NEW: Update total completed pomodoros for reward tracking
+    data.userStats.totalCompletedPomodoros += 1;
 
     saveProgressData(data);
     return data;
@@ -219,12 +223,14 @@ export const createReward = (reward) => {
 /**
  * Fetches all completed sessions for the authenticated user from the backend.
  * This data will be used to calculate daily progress.
+ * Returns null when the sessions couldn't be fetched, so callers can tell
+ * "request failed" apart from "user has no sessions" and keep their local data.
  */
 export const fetchCompletedSessions = async () => {
     const authToken = getAuthToken(); // Assuming getAuthToken is defined at the top of this file
     if (!authToken) {
         console.error("Authentication token is missing. Cannot fetch sessions.");
-        return [];
+        return null;
     }
 
     try {
@@ -239,15 +245,17 @@ export const fetchCompletedSessions = async () => {
 
         if (response.ok) {
             const data = await response.json();
-            return data.sessions || []; // Assuming backend returns an array of sessions
+            // The backend returns a plain array; `data.sessions` was always undefined,
+            // which reset the synced pomodoro total to 0 on every load.
+            return Array.isArray(data) ? data : (data.sessions || []);
         } else {
             console.error(`Failed to fetch sessions: ${response.statusText}`);
             // Fallback for failed fetch, perhaps returning local data?
-            return [];
+            return null;
         }
     } catch (error) {
         console.error('Network error during session fetch:', error);
-        return [];
+        return null;
     }
 };
 

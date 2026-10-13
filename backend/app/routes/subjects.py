@@ -127,6 +127,17 @@ async def delete_subject(
     subject = session.get(Subject, subject_id)
     if not subject:
         raise HTTPException(status_code=404, detail="Subject not found")
+
+    # Delete children first — topics/papers/attempts have FKs to this subject,
+    # so deleting the subject alone fails on Postgres once it has content.
+    papers = session.exec(select(PastPaper).where(PastPaper.subject_id == subject_id)).all()
+    for paper in papers:
+        for attempt in session.exec(select(TestAttempt).where(TestAttempt.paper_id == paper.id)).all():
+            session.delete(attempt)
+        session.delete(paper)
+    for topic in session.exec(select(Topic).where(Topic.subject_id == subject_id)).all():
+        session.delete(topic)
+
     session.delete(subject)
     session.commit()
 
@@ -275,9 +286,11 @@ async def grade_paper(
     if modal_url and rubric:
         try:
             async with httpx.AsyncClient() as client:
+                shared_secret = os.getenv("MODAL_SHARED_SECRET")
                 ai_response = await client.post(
                     modal_url,
                     json={"user_answers": answers_dict, "rubric": rubric},
+                    headers={"X-Workshop-Secret": shared_secret} if shared_secret else {},
                     timeout=45.0
                 )
                 ai_response.raise_for_status()

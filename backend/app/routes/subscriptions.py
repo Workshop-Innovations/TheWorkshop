@@ -3,12 +3,13 @@ import hmac
 import hashlib
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlmodel import Session
+from sqlmodel import Session, select
 from pydantic import BaseModel
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from ..database import get_session
-from ..schemas import User
+from ..schemas import User, PaymentTransaction
 from ..dependencies import get_current_user
 
 router = APIRouter(
@@ -38,6 +39,58 @@ PLAN_LIMITS = {
     "premium": {"ai_queries_daily": -1,  "name": "Premium"},  # -1 = unlimited
     "max":     {"ai_queries_daily": -1,  "name": "Max"},
 }
+
+
+def _as_utc(dt: Optional[datetime]) -> Optional[datetime]:
+    """DB drivers may return naive datetimes (SQLite, TIMESTAMP WITHOUT TIME ZONE);
+    treat those as UTC so comparisons with aware datetimes don't raise TypeError."""
+    if dt is not None and dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def is_subscription_expired(user: User) -> bool:
+    expiry = _as_utc(user.subscription_expiry)
+    return bool(
+        user.subscription_tier != "basic"
+        and expiry
+        and expiry < datetime.now(timezone.utc)
+    )
+
+
+def effective_tier(user: User) -> str:
+    """The tier the user is actually entitled to right now (expired plans count as basic)."""
+    tier = user.subscription_tier or "basic"
+    if tier not in PLAN_LIMITS or is_subscription_expired(user):
+        return "basic"
+    return tier
+
+
+def _apply_payment(session: Session, user: User, reference: str, plan: str, amount: int,
+                   customer_code: Optional[str]) -> bool:
+    """Upgrade the user for a successful payment. Returns False if this reference
+    was already applied (idempotency guard against replays and verify+webhook double-processing)."""
+    already = session.exec(
+        select(PaymentTransaction).where(PaymentTransaction.reference == reference)
+    ).first()
+    if already:
+        return False
+
+    # Extend from the current expiry if the plan is still active, so renewing early isn't lost time
+    now = datetime.now(timezone.utc)
+    current_expiry = _as_utc(user.subscription_expiry)
+    base = current_expiry if (current_expiry and current_expiry > now and user.subscription_tier == plan) else now
+
+    user.subscription_tier = plan
+    user.subscription_expiry = base + timedelta(days=30)
+    if customer_code:
+        user.paystack_customer_id = customer_code
+
+    session.add(PaymentTransaction(reference=reference, user_id=user.id, plan=plan, amount=amount))
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return True
 
 
 class InitializeRequest(BaseModel):
@@ -209,30 +262,32 @@ async def verify_payment(
         raise HTTPException(status_code=502, detail="Payment verification failed")
 
     data = response.json()
+    tx = data.get("data") or {}
 
-    if data["data"]["status"] != "success":
+    if tx.get("status") != "success":
         return {"status": "failed", "message": "Payment was not successful"}
 
     # Extract plan from metadata
-    metadata = data["data"].get("metadata", {})
+    metadata = tx.get("metadata") or {}
     plan = metadata.get("plan_id") or metadata.get("plan")
     user_id = metadata.get("user_id")
 
-    # Security: ensure the verified payment belongs to the current user
-    if user_id and user_id != current_user.id:
+    # Security: the payment must have been initialized by this account. A missing
+    # user_id is rejected too, otherwise any successful reference could be claimed.
+    if user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Payment does not belong to this account")
 
-    if plan and plan in PLAN_PRICES:
-        current_user.subscription_tier = plan
-        current_user.subscription_expiry = datetime.now(timezone.utc) + timedelta(days=30)
-        # Store Paystack customer code if available
-        customer = data["data"].get("customer", {})
-        if customer.get("customer_code"):
-            current_user.paystack_customer_id = customer["customer_code"]
+    if not plan or plan not in PLAN_PRICES:
+        raise HTTPException(status_code=400, detail="Payment is not for a recognised plan")
 
-        session.add(current_user)
-        session.commit()
-        session.refresh(current_user)
+    amount = int(tx.get("amount") or 0)
+    if amount < PLAN_PRICES[plan] or tx.get("currency", "NGN") != "NGN":
+        raise HTTPException(status_code=400, detail="Payment amount does not match the selected plan")
+
+    _apply_payment(
+        session, current_user, tx.get("reference") or reference, plan, amount,
+        (tx.get("customer") or {}).get("customer_code"),
+    )
 
     return {
         "status": "success",
@@ -247,23 +302,14 @@ async def get_subscription_status(
     current_user: User = Depends(get_current_user),
 ):
     """Return the current user's subscription status and limits."""
-    limits = PLAN_LIMITS.get(current_user.subscription_tier, PLAN_LIMITS["basic"])
-    is_expired = (
-        current_user.subscription_expiry
-        and current_user.subscription_expiry < datetime.now(timezone.utc)
-        and current_user.subscription_tier != "basic"
-    )
-
     # Downgrade expired subscriptions on the fly
-    effective_tier = current_user.subscription_tier
-    if is_expired:
-        effective_tier = "basic"
+    tier = effective_tier(current_user)
 
     return {
-        "tier": effective_tier,
+        "tier": tier,
         "expiry": current_user.subscription_expiry,
-        "is_expired": is_expired,
-        "limits": PLAN_LIMITS.get(effective_tier),
+        "is_expired": is_subscription_expired(current_user),
+        "limits": PLAN_LIMITS.get(tier),
         "ai_queries_used_today": current_user.ai_queries_today,
     }
 
@@ -280,20 +326,20 @@ async def paystack_webhook(request: Request, session: Session = Depends(get_sess
         paystack_key.encode("utf-8"), raw_body, hashlib.sha512
     ).hexdigest()
 
-    if signature != expected_sig:
+    if not hmac.compare_digest(signature.encode(), expected_sig.encode()):
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
     payload = await request.json()
     event = payload.get("event")
 
     if event == "charge.success":
-        data = payload.get("data", {})
-        metadata = data.get("metadata", {})
+        data = payload.get("data") or {}
+        # Paystack sends metadata as "" when none was attached
+        metadata = data.get("metadata") or {}
         plan_id = metadata.get("plan_id") or metadata.get("plan")
         user_id = metadata.get("user_id")
-        customer_email = data.get("customer", {}).get("email")
+        customer_email = (data.get("customer") or {}).get("email")
 
-        from sqlmodel import select
         user = None
         if user_id:
             user = session.exec(select(User).where(User.id == user_id)).first()
@@ -314,15 +360,11 @@ async def paystack_webhook(request: Request, session: Session = Depends(get_sess
             if not plan_id or plan_id not in PLAN_PRICES:
                  plan_id = user.subscription_tier if user.subscription_tier != "basic" else "pro"
 
-            user.subscription_tier = plan_id
-            user.subscription_expiry = datetime.now(timezone.utc) + timedelta(days=30)
-            
-            # Store customer code
-            customer_code = data.get("customer", {}).get("customer_code")
-            if customer_code:
-                user.paystack_customer_id = customer_code
-                
-            session.add(user)
-            session.commit()
+            reference = data.get("reference")
+            if reference:
+                _apply_payment(
+                    session, user, reference, plan_id, int(data.get("amount") or 0),
+                    (data.get("customer") or {}).get("customer_code"),
+                )
 
     return {"status": "success"}

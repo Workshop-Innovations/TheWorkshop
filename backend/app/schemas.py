@@ -116,6 +116,21 @@ class SessionLogCreate(BaseModel):
     minutes_spent: int
     session_type: str
 
+    @field_validator('minutes_spent')
+    @classmethod
+    def validate_minutes(cls, v):
+        # Upper bound stops a client from inflating study stats with one request
+        if v <= 0 or v > 240:
+            raise ValueError('minutes_spent must be between 1 and 240')
+        return v
+
+    @field_validator('session_type')
+    @classmethod
+    def validate_session_type(cls, v):
+        if v not in ('focus', 'pomodoro', 'short_break', 'long_break'):
+            raise ValueError("session_type must be one of: focus, pomodoro, short_break, long_break")
+        return v
+
 # Pydantic model for responding with the created log
 class SessionLogResponse(BaseModel):
     id: str
@@ -858,6 +873,19 @@ class SubjectResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+
+# --- Payment Models ---
+
+class PaymentTransaction(SQLModel, table=True):
+    """A Paystack transaction that has already been applied to a user's subscription.
+    The unique reference makes verify/webhook processing idempotent, so one payment
+    can't be replayed to extend a subscription again."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    reference: str = Field(unique=True, index=True)
+    user_id: str = Field(foreign_key="user.id", index=True)
+    plan: str
+    amount: int  # kobo
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # --- System Models ---
 

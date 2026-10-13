@@ -195,6 +195,10 @@ class PaperProcessor:
 
     @modal.method()
     def process_pdf(self, paper_id: str, pdf_bytes: bytes) -> str:
+        import uuid
+        # paper_id is used in file paths and the DB update; only accept real UUIDs
+        paper_id = str(uuid.UUID(paper_id))
+
         # Save bytes to temp file
         temp_pdf = f"/tmp/{paper_id}.pdf"
         temp_out = f"/tmp/{paper_id}_out"
@@ -204,9 +208,9 @@ class PaperProcessor:
             
         print(f"Running MinerU extraction on {temp_pdf}...")
         
-        # We can just use the magic-pdf CLI which is installed in the path
-        cmd = f"magic-pdf -p \"{temp_pdf}\" -o \"{temp_out}\""
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        # We can just use the magic-pdf CLI which is installed in the path.
+        # Pass args as a list (no shell) so paper_id can never be interpreted by a shell.
+        result = subprocess.run(["magic-pdf", "-p", temp_pdf, "-o", temp_out], capture_output=True, text=True)
         
         if result.returncode != 0:
             print(f"MinerU Error: {result.stderr}")
@@ -237,7 +241,7 @@ class PaperProcessor:
         client = genai.Client(api_key=api_key)
         
         response = client.models.generate_content(
-            model='gemini-1.5-pro',
+            model='gemini-2.5-pro',  # 1.5 models are retired
             contents=PROMPT_TEMPLATE + "\n\n" + raw_markdown
         )
         
@@ -292,6 +296,16 @@ async def process_paper_endpoint(request: Request):
     Accepts multipart/form-data with 'paper_id' and 'file'.
     Spawns the background task on the GPU class and returns immediately.
     """
+    # When MODAL_SHARED_SECRET is set (in the "custom-secret" Modal secret and on the backend),
+    # only the backend can trigger processing — otherwise anyone with this URL could
+    # overwrite past paper content in the production database.
+    expected_secret = os.environ.get("MODAL_SHARED_SECRET")
+    if expected_secret:
+        import hmac
+        provided = request.headers.get("x-workshop-secret", "")
+        if not hmac.compare_digest(provided.encode(), expected_secret.encode()):
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
     form = await request.form()
     paper_id = form.get("paper_id")
     file_obj = form.get("file")

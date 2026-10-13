@@ -14,8 +14,9 @@ import shutil
 from pathlib import Path
 
 from ..database import get_session
-from ..dependencies import get_current_user
+from ..dependencies import get_current_user, get_user_from_token
 from ..schemas import User, TutorDocument, TutorChatRequest, TutorChatResponse
+from .subscriptions import PLAN_LIMITS, effective_tier
 
 router = APIRouter(
     prefix="/api/v1/tutor",
@@ -31,6 +32,9 @@ else:
     print("WARNING: GEMINI_API_KEY not set. AI Tutor features will not work.")
 
 # Removed local uploads directory creation
+
+# Max chat turns from the client's history forwarded to the model per request
+MAX_HISTORY_TURNS = 20
 
 # --- Request/Response Schemas for Generation ---
 class GenerateRequest(BaseModel):
@@ -180,22 +184,7 @@ async def serve_document_file(
     session: Session = Depends(get_session)
 ):
     """Serve the original PDF file for embedding. Accepts token as query parameter."""
-    from jose import jwt, JWTError
-    from ..dependencies import settings as dep_settings
-
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    # Manually decode the token
-    try:
-        payload = jwt.decode(token, dep_settings.SECRET_KEY, algorithms=[dep_settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise HTTPException(status_code=401, detail="Not authenticated")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    user = session.exec(select(User).where(User.username == username)).first()
+    user = get_user_from_token(session, token)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
@@ -284,19 +273,9 @@ async def chat_with_tutor(
         )
 
     # --- Subscription Limit Check ---
-    DAILY_LIMITS = {"basic": 5, "pro": 50, "premium": -1, "max": -1}
-    tier = current_user.subscription_tier or "basic"
-
-    # Check if subscription is expired (downgrade to basic)
-    if (
-        current_user.subscription_expiry
-        and current_user.subscription_expiry < datetime.now(timezone.utc)
-        and tier != "basic"
-    ):
-        tier = "basic"
-
-    daily_limit = DAILY_LIMITS.get(tier, 5)
-    today = date.today()
+    tier = effective_tier(current_user)  # expired plans count as basic
+    daily_limit = PLAN_LIMITS[tier]["ai_queries_daily"]
+    today = datetime.now(timezone.utc).date()
 
     # Reset counter if it's a new day
     if current_user.last_ai_query_date != today:
@@ -324,9 +303,10 @@ async def chat_with_tutor(
         f"Document Content:\n{doc.content[:30000]}\n\n"
     )
 
-    # Convert frontend history to proper format
+    # Convert frontend history to proper format.
+    # Only the most recent turns are sent, to keep token cost per request bounded.
     formatted_history = []
-    for entry in request.history:
+    for entry in request.history[-MAX_HISTORY_TURNS:]:
         role = entry.get("role", "user")
         parts = entry.get("parts", [])
         text_parts = [
@@ -335,8 +315,10 @@ async def chat_with_tutor(
         formatted_history.append({"role": role, "parts": text_parts})
 
     try:
-        chat = client.chats.create(model='gemini-2.5-flash', history=formatted_history)
-        response = chat.send_message(context_prompt + f"Question: {request.message}")
+        # Use the async client: a blocking call here would freeze the whole event loop
+        # (every other user's request) for the duration of the model call.
+        chat = client.aio.chats.create(model='gemini-2.5-flash', history=formatted_history)
+        response = await chat.send_message(context_prompt + f"Question: {request.message}")
 
         # Increment usage counter
         current_user.ai_queries_today += 1
@@ -384,7 +366,7 @@ async def generate_quiz(
     )
 
     try:
-        response = client.models.generate_content(
+        response = await client.aio.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
             config={"response_mime_type": "application/json"}
@@ -433,7 +415,7 @@ async def generate_flashcards(
     )
 
     try:
-        response = client.models.generate_content(
+        response = await client.aio.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
             config={"response_mime_type": "application/json"}

@@ -2,70 +2,75 @@
 WebSocket connection manager for real-time messaging.
 Handles connection tracking, message broadcasting, and online user tracking.
 """
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional, Set
 from fastapi import WebSocket
 
 
 class ConnectionManager:
     """Manages WebSocket connections for real-time messaging."""
-    
+
     def __init__(self):
-        # Map of user_id -> WebSocket connection
-        self.active_connections: Dict[str, WebSocket] = {}
-    
+        # Map of user_id -> all of that user's open sockets (one per tab/device)
+        self.active_connections: Dict[str, Set[WebSocket]] = {}
+
     async def connect(self, websocket: WebSocket, user_id: str):
         """Accept a new WebSocket connection for a user."""
         await websocket.accept()
-        self.active_connections[user_id] = websocket
-        # Broadcast online status
-        await self.broadcast_all({
-            "type": "user_online",
-            "user_id": user_id
-        }, exclude_user=user_id)
-    
-    async def disconnect(self, user_id: str):
-        """Remove a WebSocket connection for a user."""
-        if user_id in self.active_connections:
-            del self.active_connections[user_id]
-            # Broadcast offline status
+        first_connection = user_id not in self.active_connections
+        self.active_connections.setdefault(user_id, set()).add(websocket)
+        # Broadcast online status only when the user goes from offline -> online
+        if first_connection:
+            await self.broadcast_all({
+                "type": "user_online",
+                "user_id": user_id
+            }, exclude_user=user_id)
+
+    async def disconnect(self, user_id: str, websocket: Optional[WebSocket] = None):
+        """Remove one of a user's WebSocket connections (or all of them if none given)."""
+        sockets = self.active_connections.get(user_id)
+        if sockets is None:
+            return
+        if websocket is not None:
+            sockets.discard(websocket)
+        if websocket is None or not sockets:
+            self.active_connections.pop(user_id, None)
+            # Broadcast offline status once the user's last tab closes
             await self.broadcast_all({
                 "type": "user_offline",
                 "user_id": user_id
             })
-    
-    async def broadcast_to_users(self, message: dict, user_ids: List[str]):
+
+    async def _send(self, user_id: str, message: dict):
+        """Send to every socket of a user, dropping sockets that fail."""
+        dead = []
+        for conn in list(self.active_connections.get(user_id, ())):
+            try:
+                await conn.send_json(message)
+            except Exception:
+                dead.append(conn)
+        if dead:
+            sockets = self.active_connections.get(user_id)
+            if sockets is not None:
+                for conn in dead:
+                    sockets.discard(conn)
+                if not sockets:
+                    self.active_connections.pop(user_id, None)
+
+    async def broadcast_to_users(self, message: dict, user_ids: Iterable[str]):
         """Send a message to specific users."""
-        for user_id in user_ids:
-            if user_id in self.active_connections:
-                conn = self.active_connections[user_id]
-                try:
-                    await conn.send_json(message)
-                except Exception:
-                    # Don't await disconnect here to avoid modifying dict while iterating
-                    pass
-    
+        for user_id in set(user_ids):
+            await self._send(user_id, message)
+
     async def broadcast_all(self, message: dict, exclude_user: Optional[str] = None):
         """Send a message to ALL connected clients."""
-        disconnected = []
-        for user_id, connection in self.active_connections.items():
+        for user_id in list(self.active_connections.keys()):
             if user_id == exclude_user:
                 continue
-            try:
-                await connection.send_json(message)
-            except Exception:
-                disconnected.append(user_id)
-        
-        for user_id in disconnected:
-            if user_id in self.active_connections:
-                del self.active_connections[user_id]
-    
+            await self._send(user_id, message)
+
     async def send_personal_message(self, message: dict, user_id: str):
         """Send a message to a specific user."""
-        if user_id in self.active_connections:
-            try:
-                await self.active_connections[user_id].send_json(message)
-            except Exception:
-                del self.active_connections[user_id]
+        await self._send(user_id, message)
 
     @property
     def online_users_list(self) -> List[str]:

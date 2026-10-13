@@ -1,5 +1,9 @@
 import modal
 import json
+import os
+import hmac
+from typing import Optional
+from fastapi import Header, HTTPException
 
 app = modal.App("theworkshop-ai-grader")
 
@@ -8,7 +12,7 @@ image = modal.Image.debian_slim().pip_install("litellm", "fastapi[standard]")
 
 @app.function(image=image, secrets=[modal.Secret.from_name("gemini-api-key")])
 @modal.fastapi_endpoint(method="POST")
-def grade_paper_endpoint(data: dict):
+def grade_paper_endpoint(data: dict, x_workshop_secret: Optional[str] = Header(default=None)):
     """
     Receives user answers and a rubric (marking scheme), grades them using
     Gemini via LiteLLM, and returns a structured score + feedback object.
@@ -26,6 +30,12 @@ def grade_paper_endpoint(data: dict):
         }
     """
     from litellm import completion
+
+    # When MODAL_SHARED_SECRET is set (in the "gemini-api-key" Modal secret and on the backend),
+    # reject callers that aren't the backend, so nobody else can spend our Gemini quota.
+    expected_secret = os.environ.get("MODAL_SHARED_SECRET")
+    if expected_secret and not hmac.compare_digest((x_workshop_secret or "").encode(), expected_secret.encode()):
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
     user_answers: dict = data.get("user_answers", {})
     rubric: str = data.get("rubric", "")
@@ -59,7 +69,7 @@ OUTPUT: Return ONLY a valid JSON object with exactly this shape:
 """
     try:
         response = completion(
-            model="gemini/gemini-1.5-flash",  # Flash is faster & cheaper for marking
+            model="gemini/gemini-2.5-flash",  # Flash is faster & cheaper for marking (1.5 models are retired)
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"},
         )

@@ -219,7 +219,8 @@ const StudySuite = () => {
         setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
         setIsSending(true);
         try {
-            const history = messages.map(m => ({
+            // Local error bubbles ("⚠️ Connection error…") aren't real model turns — don't send them as history
+            const history = messages.filter(m => !m.isError).map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
                 parts: [m.content]
             }));

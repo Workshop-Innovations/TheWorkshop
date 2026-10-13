@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus, X, Clock, Coins } from 'lucide-react';
 import { getProgressData, createReward, redeemReward } from '../services/progressService';
 import { motion, AnimatePresence } from 'framer-motion'
-import { ToastContainer, toast } from 'react-toastify'
+import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
@@ -91,7 +91,6 @@ const Store = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
-      <ToastContainer theme="light" />
 
       <div className="container mx-auto px-4 py-32">
         <div className="max-w-6xl mx-auto">

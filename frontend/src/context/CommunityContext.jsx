@@ -567,7 +567,8 @@ export const CommunityProvider = ({ children }) => {
         ws.onclose = (event) => {
             setIsConnected(false);
             // Reconnect with exponential backoff — skip on intentional close (1000)
-            if (event.code !== 1000 && token) {
+            // and on auth rejection (1008): retrying with the same bad token can't succeed
+            if (event.code !== 1000 && event.code !== 1008 && token) {
                 const delay = wsReconnectDelay.current;
                 console.log(`[WS] Disconnected (code ${event.code}). Reconnecting in ${delay}ms...`);
                 wsReconnectTimeout.current = setTimeout(() => {

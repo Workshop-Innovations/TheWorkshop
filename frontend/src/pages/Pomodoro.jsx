@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePomodoro } from '../context/PomodoroContext';
 import { Play, Pause, Forward, RotateCw, Settings, Flame } from 'lucide-react';
-import { ToastContainer, toast } from 'react-toastify'
+import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../components/Navbar'
@@ -176,7 +176,6 @@ const Pomodoro = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
       <Navbar />
       {/* Toast container must be light theme now */}
-      <ToastContainer position="bottom-right" theme="light" />
 
       <div className="flex-grow container mx-auto px-4 py-28 flex flex-col items-center">
 

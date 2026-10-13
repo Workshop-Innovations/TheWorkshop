@@ -34,6 +34,15 @@ async def update_current_user(
     Update the current user's profile information.
     """
     user_data = user_update.model_dump(exclude_unset=True)
+
+    # Unique columns: return a clean 409 instead of an IntegrityError 500
+    if user_data.get("username") and user_data["username"] != current_user.username:
+        if session.exec(select(User).where(User.username == user_data["username"])).first():
+            raise HTTPException(status_code=409, detail="Username already taken")
+    if user_data.get("email") and user_data["email"] != current_user.email:
+        if session.exec(select(User).where(User.email == user_data["email"])).first():
+            raise HTTPException(status_code=409, detail="Email already registered")
+
     for key, value in user_data.items():
         setattr(current_user, key, value)
     
@@ -86,7 +95,10 @@ async def create_user(
     )).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Username or Email already registered")
-    
+
+    if user_in.role not in ["admin", "user"]:
+        raise HTTPException(status_code=400, detail="Invalid role. Must be 'admin' or 'user'")
+
     hashed_password = get_password_hash(user_in.password)
     user = User(
         id=str(uuid4()),

@@ -46,24 +46,21 @@ export const PomodoroProvider = ({ children }) => {
         let nextMode = 'pomodoro';
         let newPomodoroCount = pomodoroCount;
 
-        let newUserStats = { ...userStats };
-
         if (mode === 'pomodoro') {
             if (!isSkip) {
-                // 1. Log Pomodoro
-                logPomodoro(settings.pomodoro, settings.coinsPerPomodoro, pomodoroCount);
+                // 1. Log Pomodoro. The session's end time identifies it, so a duplicate
+                // completion call (e.g. StrictMode re-running effects) can't log it twice.
+                const sessionKey = getTimerState()?.endTime ?? Date.now();
+                const updated = logPomodoro(settings.pomodoro, settings.coinsPerPomodoro, sessionKey);
                 toast.success(` Well done! You've earned ${settings.coinsPerPomodoro} coins!`);
 
                 newPomodoroCount++;
 
-                // 2. Update Total Pomodoros in Stats
-                newUserStats.totalCompletedPomodoros += 1;
-
-                // 3. Update Service and Local State
-                const currentProgress = getProgressData();
-                saveProgressData({ ...currentProgress, userStats: newUserStats });
-
-                setUserStats(newUserStats);
+                // 2. logPomodoro already persisted the new total; mirror it in state
+                setUserStats(prev => ({
+                    ...prev,
+                    totalCompletedPomodoros: updated.userStats.totalCompletedPomodoros,
+                }));
                 setPomodoroCount(newPomodoroCount);
             }
 
@@ -104,38 +101,29 @@ export const PomodoroProvider = ({ children }) => {
             setIsRunning(true);
             saveTimerState({ endTime: Date.now() + newTime * 1000, mode: nextMode, pomodoroCount: newPomodoroCount });
         }
-    }, [mode, pomodoroCount, settings, userStats]);
+    }, [mode, pomodoroCount, settings]);
 
-    // 1. Initial Load of Timer State
+    // 1. Initial Load of Timer State (runs once on mount)
     useEffect(() => {
-        // Load Timer State
         const savedState = getTimerState();
-        let shouldComplete = false;
+        if (!savedState) return;
 
-        if (savedState) {
-            setMode(savedState.mode);
-            setPomodoroCount(savedState.pomodoroCount);
+        setMode(savedState.mode);
+        setPomodoroCount(savedState.pomodoroCount);
 
-            if (savedState.endTime) {
-                const remainingSeconds = Math.round((savedState.endTime - Date.now()) / 1000);
-                if (remainingSeconds > 0) {
-                    setTime(remainingSeconds);
-                    setIsRunning(true);
-                } else {
-                    // Timer expired while offline. Flag it for completion.
-                    shouldComplete = true;
-                }
-            } else if (savedState.remainingTime) {
-                setTime(savedState.remainingTime);
-                setIsRunning(false);
-            }
+        if (savedState.endTime) {
+            const remainingSeconds = Math.round((savedState.endTime - Date.now()) / 1000);
+            // If the timer expired while the app was closed, restore it at 0 and let the
+            // interval effect complete it on the next render — by then `mode` is the saved
+            // one. Calling handleCompletion directly here used the initial 'pomodoro' mode,
+            // so an expired break was credited as a finished pomodoro.
+            setTime(Math.max(remainingSeconds, 0));
+            setIsRunning(true);
+        } else if (savedState.remainingTime) {
+            setTime(savedState.remainingTime);
+            setIsRunning(false);
         }
-
-        // Run completion logic after state checks.
-        if (shouldComplete) {
-            handleCompletion();
-        }
-    }, [handleCompletion]);
+    }, []);
 
     // 2. Initial Load of User Stats (Runs once on mount)
     useEffect(() => {

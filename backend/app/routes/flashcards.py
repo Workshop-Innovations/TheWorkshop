@@ -92,8 +92,9 @@ async def generate_flashcards_from_file(
         raise HTTPException(status_code=500, detail=f"Failed to save temporary file: {str(e)}")
 
     try:
-        # Upload to Gemini
-        uploaded_file = client.files.upload(path=tmp_path, config={'mime_type': file.content_type})
+        # Upload to Gemini (google-genai >= 1.0 takes `file=`; `path=` was removed).
+        # Async client so the event loop isn't blocked during upload/generation.
+        uploaded_file = await client.aio.files.upload(file=tmp_path, config={'mime_type': file.content_type})
         
         prompt = (
             "Generate exactly 20 question-and-answer pairs based on the content of the attached file. "
@@ -102,7 +103,7 @@ async def generate_flashcards_from_file(
         )
         
         # Generate content with file and prompt
-        response = client.models.generate_content(
+        response = await client.aio.models.generate_content(
             model='gemini-2.5-flash',
             contents=[uploaded_file, prompt],
             config={"response_mime_type": "application/json"}

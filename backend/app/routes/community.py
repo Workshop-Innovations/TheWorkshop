@@ -29,6 +29,119 @@ router = APIRouter(
     tags=["community"]
 )
 
+# ==================== ACCESS HELPERS ====================
+
+MAX_PAGE_SIZE = 200
+
+def _clamp_limit(limit: int) -> int:
+    return max(1, min(limit, MAX_PAGE_SIZE))
+
+def _channel_audience(session: Session, channel: Channel) -> Optional[List[str]]:
+    """User ids allowed to see a channel, or None if it is open to everyone."""
+    if channel.study_group_id:
+        return list(session.exec(
+            select(StudyGroupMember.user_id)
+            .where(StudyGroupMember.group_id == channel.study_group_id)
+            .where(StudyGroupMember.status == "approved")
+        ).all())
+    if channel.community_id:
+        return list(session.exec(
+            select(CommunityMember.user_id)
+            .where(CommunityMember.community_id == channel.community_id)
+        ).all())
+    return None
+
+def require_channel_access(session: Session, channel: Channel, user: User) -> None:
+    """Private study-group channels are limited to approved group members;
+    community channels to community members."""
+    if channel.study_group_id:
+        allowed = session.exec(
+            select(StudyGroupMember)
+            .where(StudyGroupMember.group_id == channel.study_group_id)
+            .where(StudyGroupMember.user_id == user.id)
+            .where(StudyGroupMember.status == "approved")
+        ).first()
+    elif channel.community_id:
+        allowed = session.exec(
+            select(CommunityMember)
+            .where(CommunityMember.community_id == channel.community_id)
+            .where(CommunityMember.user_id == user.id)
+        ).first()
+    else:
+        allowed = True
+    if not allowed:
+        raise HTTPException(status_code=403, detail="You don't have access to this channel")
+
+def get_accessible_channel(session: Session, channel_id: str, user: User) -> Channel:
+    channel = session.get(Channel, channel_id)
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    require_channel_access(session, channel, user)
+    return channel
+
+def get_channel_message(session: Session, channel_id: str, message_id: int) -> Message:
+    """Fetch a message and make sure it really belongs to the channel in the URL,
+    so channel permission checks can't be bypassed by mixing ids."""
+    message = session.get(Message, message_id)
+    if not message or message.channel_id != channel_id:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return message
+
+async def broadcast_channel_event(session: Session, channel: Channel, payload: dict) -> None:
+    """Send a realtime event only to users who can see the channel
+    (broadcasting private group messages to everyone leaked their content)."""
+    audience = _channel_audience(session, channel)
+    if audience is None:
+        await manager.broadcast_all(payload)
+    else:
+        await manager.broadcast_to_users(payload, audience)
+
+def _is_community_moderator(session: Session, community_id: str, user: User) -> bool:
+    return session.exec(
+        select(CommunityMember)
+        .where(CommunityMember.community_id == community_id)
+        .where(CommunityMember.user_id == user.id)
+        .where(CommunityMember.role.in_(["owner", "admin"]))
+    ).first() is not None
+
+def _unique_channel_slug(session: Session, base: str) -> str:
+    slug, n = base, 2
+    while session.exec(select(Channel).where(Channel.slug == slug)).first():
+        slug = f"{base}-{n}"
+        n += 1
+    return slug
+
+def _delete_channel_contents(session: Session, channel_id: str) -> None:
+    """Remove everything that references a channel so deleting it doesn't violate FKs."""
+    messages = session.exec(select(Message).where(Message.channel_id == channel_id)).all()
+    message_ids = [m.id for m in messages]
+    if message_ids:
+        for vote in session.exec(select(MessageVote).where(MessageVote.message_id.in_(message_ids))).all():
+            session.delete(vote)
+        session.flush()
+    # Replies reference their parent via FK, so delete them before top-level messages
+    for msg in messages:
+        if msg.parent_id is not None:
+            session.delete(msg)
+    session.flush()
+    for msg in messages:
+        if msg.parent_id is None:
+            session.delete(msg)
+
+    for note in session.exec(select(SharedNote).where(SharedNote.channel_id == channel_id)).all():
+        session.delete(note)
+
+    submissions = session.exec(
+        select(PeerReviewSubmission).where(PeerReviewSubmission.channel_id == channel_id)
+    ).all()
+    for sub in submissions:
+        for fb in session.exec(select(PeerReviewFeedback).where(PeerReviewFeedback.submission_id == sub.id)).all():
+            session.delete(fb)
+    session.flush()
+    for sub in submissions:
+        session.delete(sub)
+    session.flush()
+
 # ==================== COMMUNITY ENDPOINTS ====================
 
 @router.post("/communities", response_model=CommunityResponse, status_code=status.HTTP_201_CREATED)
@@ -254,6 +367,7 @@ async def get_community_channels(
         .join(StudyGroup)
         .where(StudyGroup.community_id == community_id)
         .where(StudyGroupMember.user_id == current_user.id)
+        .where(StudyGroupMember.status == "approved")  # pending requests don't grant access
     ).all()
     
     visible_channels = []
@@ -286,11 +400,14 @@ async def create_channel(
     community = session.get(Community, community_id)
     if not community:
         raise HTTPException(status_code=404, detail="Community not found")
-    
-    # Generate a unique slug
-    base_slug = re.sub(r'[^a-z0-9-]', '', channel_data.name.lower().replace(' ', '-'))
-    slug = f"{community_id[:8]}-{base_slug}"
-    
+
+    if not _is_community_moderator(session, community_id, current_user):
+        raise HTTPException(status_code=403, detail="Only community owners and admins can create channels")
+
+    # Generate a unique slug (duplicates previously crashed with an IntegrityError)
+    base_slug = re.sub(r'[^a-z0-9-]', '', channel_data.name.lower().replace(' ', '-')) or "channel"
+    slug = _unique_channel_slug(session, f"{community_id[:8]}-{base_slug}")
+
     channel = Channel(
         name=channel_data.name,
         slug=slug,
@@ -321,15 +438,13 @@ async def get_channel_messages(
     current_user: User = Depends(get_current_user)
 ):
     """Get messages from a channel."""
-    channel = session.get(Channel, channel_id)
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
+    get_accessible_channel(session, channel_id, current_user)
+
     messages = session.exec(
         select(Message)
         .where(Message.channel_id == channel_id)
         .order_by(Message.timestamp.desc())
-        .limit(limit)
+        .limit(_clamp_limit(limit))
     ).all()
     
     response_messages = []
@@ -347,9 +462,13 @@ async def get_channel_messages(
             user_email=user.email if user else None,
             user_profile_pic=user.profile_pic if user else None,
             score=score,
-            user_vote=user_vote
+            user_vote=user_vote,
+            # Without these the client can't tell replies from top-level messages,
+            # so thread replies showed up in the main feed after a reload.
+            parent_id=msg.parent_id,
+            reply_count=msg.reply_count
         ))
-    
+
     return list(reversed(response_messages))
 
 @router.post("/channels/{channel_id}/messages", response_model=MessageResponse)
@@ -360,10 +479,8 @@ async def create_message(
     current_user: User = Depends(get_current_user)
 ):
     """Send a message to a channel."""
-    channel = session.get(Channel, channel_id)
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
+    channel = get_accessible_channel(session, channel_id, current_user)
+
     db_message = Message(
         content=message_data.content,
         channel_id=channel_id,
@@ -382,7 +499,8 @@ async def create_message(
     await check_and_award_badges(session, current_user)
     
     # Broadcast via WebSocket
-    await manager.broadcast_all(
+    await broadcast_channel_event(
+        session, channel,
         {
             "type": "message",
             "id": db_message.id,
@@ -418,11 +536,10 @@ async def vote_message(
     """Vote on a message. Updates author's reputation."""
     if vote_value not in (-1, 0, 1):
         raise HTTPException(status_code=400, detail="vote_value must be -1, 0, or 1")
-    
-    message = session.get(Message, message_id)
-    if not message:
-        raise HTTPException(status_code=404, detail="Message not found")
-    
+
+    get_accessible_channel(session, channel_id, current_user)
+    message = get_channel_message(session, channel_id, message_id)
+
     # Get message author for reputation update
     message_author = session.get(User, message.user_id)
     
@@ -494,9 +611,8 @@ async def edit_message(
     current_user: User = Depends(get_current_user)
 ):
     """Edit a message. Only the author can edit their own messages."""
-    message = session.get(Message, message_id)
-    if not message:
-        raise HTTPException(status_code=404, detail="Message not found")
+    channel = get_accessible_channel(session, channel_id, current_user)
+    message = get_channel_message(session, channel_id, message_id)
     if message.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="You can only edit your own messages")
 
@@ -509,8 +625,8 @@ async def edit_message(
     score = sum(v.value for v in message.votes) if message.votes else 0
     user_vote = next((v.value for v in message.votes if v.user_id == current_user.id), 0) if message.votes else 0
 
-    channel = session.get(Channel, channel_id)
-    await manager.broadcast_all(
+    await broadcast_channel_event(
+        session, channel,
         {
             "type": "message_edited",
             "id": message.id,
@@ -541,13 +657,11 @@ async def delete_message(
     current_user: User = Depends(get_current_user)
 ):
     """Delete a message. Author, community owner, or admins can delete."""
-    message = session.get(Message, message_id)
-    if not message:
-        raise HTTPException(status_code=404, detail="Message not found")
-    
+    message = get_channel_message(session, channel_id, message_id)
+    channel = session.get(Channel, channel_id)
+
     # Check permission: author OR community owner/admin
     if message.user_id != current_user.id:
-        channel = session.get(Channel, channel_id)
         if channel and channel.community_id:
             membership = session.exec(
                 select(CommunityMember)
@@ -582,11 +696,12 @@ async def delete_message(
             parent.reply_count -= 1
             session.add(parent)
 
+    session.flush()  # replies (FK to this message) must be gone before the parent
     session.delete(message)
     session.commit()
 
-    channel = session.get(Channel, channel_id)
-    await manager.broadcast_all(
+    await broadcast_channel_event(
+        session, channel,
         {
             "type": "message_deleted",
             "id": message_id,
@@ -607,14 +722,9 @@ async def create_reply(
     current_user: User = Depends(get_current_user)
 ):
     """Create a reply to a message (threaded discussion)."""
-    parent_message = session.get(Message, message_id)
-    if not parent_message:
-        raise HTTPException(status_code=404, detail="Parent message not found")
-    
-    channel = session.get(Channel, channel_id)
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
+    channel = get_accessible_channel(session, channel_id, current_user)
+    parent_message = get_channel_message(session, channel_id, message_id)
+
     # Create reply
     reply = Message(
         content=message_data.content,
@@ -639,7 +749,8 @@ async def create_reply(
     await check_and_award_badges(session, current_user)
     
     # Broadcast via WebSocket
-    await manager.broadcast_all(
+    await broadcast_channel_event(
+        session, channel,
         {
             "type": "reply",
             "id": reply.id,
@@ -675,10 +786,9 @@ async def get_thread(
     current_user: User = Depends(get_current_user)
 ):
     """Get a message thread (parent + all replies)."""
-    parent_message = session.get(Message, message_id)
-    if not parent_message:
-        raise HTTPException(status_code=404, detail="Message not found")
-    
+    get_accessible_channel(session, channel_id, current_user)
+    parent_message = get_channel_message(session, channel_id, message_id)
+
     # Get parent message response
     parent_user = session.get(User, parent_message.user_id)
     parent_score = sum(v.value for v in parent_message.votes) if parent_message.votes else 0
@@ -844,7 +954,7 @@ async def get_dm_messages(
         select(DMMessage)
         .where(DMMessage.conversation_id == conversation_id)
         .order_by(DMMessage.timestamp.desc())
-        .limit(limit)
+        .limit(_clamp_limit(limit))
     ).all()
     
     result = []
@@ -943,7 +1053,7 @@ async def search_users(
         )
         .where(User.id != current_user.id)
         .where(User.is_active == True)
-        .limit(limit)
+        .limit(_clamp_limit(limit))
     ).all()
 
     return [
@@ -979,195 +1089,9 @@ async def get_community_join_code(
 
     return {"join_code": community.join_code, "community_name": community.name}
 
-# ==================== LEGACY ENDPOINTS (for backwards compatibility) ====================
-
-@router.get("/channels", response_model=List[ChannelResponse])
-async def get_channels(
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
-):
-    """Get all channels (legacy - returns channels without community)."""
-    channels = session.exec(select(Channel)).all()
-    
-    if not channels:
-        # Create default channels for backwards compatibility
-        default_channels = [
-            Channel(name="General", slug="general", description="General discussion"),
-            Channel(name="Pomodoro Talk", slug="pomodoro-talk", description="Discuss Pomodoro techniques"),
-            Channel(name="Off Topic", slug="off-topic", description="Anything goes")
-        ]
-        for channel in default_channels:
-            session.add(channel)
-        session.commit()
-        for channel in default_channels:
-            session.refresh(channel)
-        channels = default_channels
-    
-    return [ChannelResponse(
-        id=ch.id,
-        name=ch.name,
-        slug=ch.slug,
-        description=ch.description,
-        channel_type=ch.channel_type if hasattr(ch, 'channel_type') else "text",
-        community_id=ch.community_id if hasattr(ch, 'community_id') else None
-    ) for ch in channels]
-
-@router.get("/channels/{channel_slug}/messages", response_model=List[MessageResponse])
-async def get_messages_by_slug(
-    channel_slug: str,
-    limit: int = 100,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
-):
-    """Get messages from a channel by slug (legacy endpoint)."""
-    channel = session.exec(select(Channel).where(Channel.slug == channel_slug)).first()
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
-    messages = session.exec(
-        select(Message)
-        .where(Message.channel_id == channel.id)
-        .order_by(Message.timestamp.desc())
-        .limit(limit)
-    ).all()
-    
-    response_messages = []
-    for msg in messages:
-        score = sum(v.value for v in msg.votes) if msg.votes else 0
-        user_vote = next((v.value for v in msg.votes if v.user_id == current_user.id), 0) if msg.votes else 0
-        user = session.get(User, msg.user_id)
-        
-        response_messages.append(MessageResponse(
-            id=msg.id,
-            content=msg.content,
-            timestamp=msg.timestamp,
-            user_id=msg.user_id,
-            channel_id=msg.channel_id,
-            user_email=user.email if user else None,
-            user_profile_pic=user.profile_pic if user else None,
-            score=score,
-            user_vote=user_vote
-        ))
-    
-    return list(reversed(response_messages))
-
-@router.post("/channels/{channel_slug}/messages", response_model=MessageResponse)
-async def create_message_by_slug(
-    channel_slug: str,
-    message_data: MessageCreate,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
-):
-    """Create a message in a channel by slug (legacy endpoint)."""
-    channel = session.exec(select(Channel).where(Channel.slug == channel_slug)).first()
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
-    db_message = Message(
-        content=message_data.content,
-        channel_id=channel.id,
-        user_id=current_user.id
-    )
-    session.add(db_message)
-    
-    # Track stats (same as primary endpoint)
-    current_user.total_messages += 1
-    session.add(current_user)
-    
-    session.commit()
-    session.refresh(db_message)
-    
-    # Award badges
-    await check_and_award_badges(session, current_user)
-    
-    await manager.broadcast_all(
-        {
-            "type": "message",
-            "id": db_message.id,
-            "content": db_message.content,
-            "user_id": db_message.user_id,
-            "channel_id": db_message.channel_id,
-            "timestamp": db_message.timestamp.isoformat(),
-            "user_email": current_user.email
-        }
-    )
-    
-    return MessageResponse(
-        id=db_message.id,
-        content=db_message.content,
-        timestamp=db_message.timestamp,
-        user_id=db_message.user_id,
-        channel_id=db_message.channel_id,
-        user_email=current_user.email,
-        user_profile_pic=current_user.profile_pic,
-        score=0,
-        user_vote=0
-    )
-
-@router.post("/channels/{channel_slug}/messages/{message_id}/vote", response_model=MessageResponse)
-async def vote_message_by_slug(
-    channel_slug: str,
-    message_id: int,
-    vote_value: int,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
-):
-    """Vote on a message (legacy endpoint)."""
-    channel = session.exec(select(Channel).where(Channel.slug == channel_slug)).first()
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
-    message = session.get(Message, message_id)
-    if not message:
-        raise HTTPException(status_code=404, detail="Message not found")
-    
-    existing_vote = session.exec(
-        select(MessageVote)
-        .where(MessageVote.user_id == current_user.id)
-        .where(MessageVote.message_id == message_id)
-    ).first()
-    
-    if vote_value == 0:
-        if existing_vote:
-            session.delete(existing_vote)
-    else:
-        if existing_vote:
-            existing_vote.value = vote_value
-            session.add(existing_vote)
-        else:
-            new_vote = MessageVote(
-                user_id=current_user.id,
-                message_id=message_id,
-                value=vote_value
-            )
-            session.add(new_vote)
-    
-    session.commit()
-    session.refresh(message)
-    
-    score = sum(v.value for v in message.votes) if message.votes else 0
-    user = session.get(User, message.user_id)
-    
-    await manager.broadcast_all(
-        {
-            "type": "vote_update",
-            "message_id": message_id,
-            "channel_id": channel.id,
-            "score": score
-        }
-    )
-    
-    return MessageResponse(
-        id=message.id,
-        content=message.content,
-        timestamp=message.timestamp,
-        user_id=message.user_id,
-        channel_id=message.channel_id,
-        user_email=user.email if user else None,
-        user_profile_pic=user.profile_pic if user else None,
-        score=score,
-        user_vote=vote_value
-    )
+# Legacy slug-based endpoints were removed: their routes were shadowed by the
+# id-based ones above (same path shape) and GET /channels listed every channel,
+# including private study-group channels, to any logged-in user.
 
 @router.get("/users/online")
 async def get_online_users(
@@ -1247,7 +1171,7 @@ async def get_leaderboard(
         base_query = base_query.where(User.id.in_(active_user_ids))
     
     users = session.exec(
-        base_query.order_by(desc(User.reputation_points)).limit(limit)
+        base_query.order_by(desc(User.reputation_points)).limit(_clamp_limit(limit))
     ).all()
     
     entries = []
@@ -1300,6 +1224,16 @@ async def get_leaderboard(
         period=period
     )
 
+# Registered before /users/{user_id}/reputation: FastAPI matches routes in order,
+# so otherwise "me" was captured as a user_id and this endpoint always returned 404.
+@router.get("/users/me/reputation", response_model=UserReputationResponse)
+async def get_my_reputation(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Get current user's reputation details and badges."""
+    return await get_user_reputation(current_user.id, session, current_user)
+
 @router.get("/users/{user_id}/reputation", response_model=UserReputationResponse)
 async def get_user_reputation(
     user_id: str,
@@ -1348,14 +1282,6 @@ async def get_user_reputation(
         badges=badges,
         rank=rank
     )
-
-@router.get("/users/me/reputation", response_model=UserReputationResponse)
-async def get_my_reputation(
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
-):
-    """Get current user's reputation details and badges."""
-    return await get_user_reputation(current_user.id, session, current_user)
 
 @router.get("/badges", response_model=List[BadgeResponse])
 async def get_all_badges(
@@ -1572,7 +1498,7 @@ async def get_study_group(
         is_public=group.is_public,
         max_members=group.max_members,
         created_at=group.created_at,
-        member_count=len(members),
+        member_count=sum(1 for m in members if m.status == "approved"),
         is_member=is_member,
         members=member_responses
     )
@@ -1655,13 +1581,28 @@ async def update_group_member_status(
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
         
-    if "status" in status_update:
-        member.status = status_update["status"]
-    
-    # helper for role updates later
-    if "role" in status_update:
-         member.role = status_update["role"]
-         
+    new_status = status_update.get("status")
+    new_role = status_update.get("role")
+    if new_status is not None and new_status not in ("approved", "pending"):
+        raise HTTPException(status_code=400, detail="status must be 'approved' or 'pending'")
+    if new_role is not None and new_role not in ("leader", "moderator", "member"):
+        raise HTTPException(status_code=400, detail="role must be 'leader', 'moderator' or 'member'")
+
+    if new_status == "approved" and member.status != "approved":
+        group = session.get(StudyGroup, group_id)
+        approved_count = session.exec(
+            select(func.count(StudyGroupMember.id))
+            .where(StudyGroupMember.group_id == group_id)
+            .where(StudyGroupMember.status == "approved")
+        ).one()
+        if group and approved_count >= group.max_members:
+            raise HTTPException(status_code=400, detail="Study group is full")
+
+    if new_status is not None:
+        member.status = new_status
+    if new_role is not None:
+        member.role = new_role
+
     session.add(member)
     session.commit()
     
@@ -1801,8 +1742,9 @@ async def update_channel(
             raise HTTPException(status_code=403, detail="Only community owners and admins can rename channels")
     
     if update_data.name:
+        # The slug is left unchanged: regenerating it from the bare name dropped the
+        # community prefix and collided (unique constraint) with other communities' channels.
         channel.name = update_data.name
-        channel.slug = update_data.name.lower().replace(" ", "-")
     if update_data.description is not None:
         channel.description = update_data.description
     
@@ -1841,19 +1783,9 @@ async def delete_channel(
         if not membership:
             raise HTTPException(status_code=403, detail="Only community owners and admins can delete channels")
     
-    # Delete all messages and their votes
-    messages = session.exec(select(Message).where(Message.channel_id == channel_id)).all()
-    for msg in messages:
-        votes = session.exec(select(MessageVote).where(MessageVote.message_id == msg.id)).all()
-        for v in votes:
-            session.delete(v)
-        session.delete(msg)
-    
-    # Delete shared notes in this channel
-    notes = session.exec(select(SharedNote).where(SharedNote.channel_id == channel_id)).all()
-    for note in notes:
-        session.delete(note)
-    
+    # Delete messages, votes, notes and peer reviews that reference the channel
+    _delete_channel_contents(session, channel_id)
+
     session.delete(channel)
     session.commit()
 
@@ -1889,7 +1821,10 @@ async def update_study_group(
     if update_data.name is not None: group.name = update_data.name
     if update_data.description is not None: group.description = update_data.description
     if update_data.is_public is not None: group.is_public = update_data.is_public
-    if update_data.max_members is not None: group.max_members = update_data.max_members
+    if update_data.max_members is not None:
+        if update_data.max_members < 1:
+            raise HTTPException(status_code=400, detail="max_members must be at least 1")
+        group.max_members = update_data.max_members
     
     session.add(group)
     session.commit()
@@ -1938,12 +1873,9 @@ async def delete_study_group(
         select(Channel).where(Channel.study_group_id == group_id)
     ).first()
     if group_channel:
-        msgs = session.exec(select(Message).where(Message.channel_id == group_channel.id)).all()
-        for msg in msgs:
-            votes = session.exec(select(MessageVote).where(MessageVote.message_id == msg.id)).all()
-            for v in votes: session.delete(v)
-            session.delete(msg)
+        _delete_channel_contents(session, group_channel.id)
         session.delete(group_channel)
+    session.flush()
     
     session.delete(group)
     session.commit()
@@ -1957,10 +1889,8 @@ async def get_channel_notes(
     current_user: User = Depends(get_current_user)
 ):
     """Get all shared notes for a channel."""
-    channel = session.get(Channel, channel_id)
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
+    get_accessible_channel(session, channel_id, current_user)
+
     notes = session.exec(
         select(SharedNote)
         .where(SharedNote.channel_id == channel_id)
@@ -1991,10 +1921,8 @@ async def create_channel_note(
 ):
     """Create a new shared note in a channel."""
     from datetime import datetime, timezone
-    channel = session.get(Channel, channel_id)
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
+    get_accessible_channel(session, channel_id, current_user)
+
     note = SharedNote(
         title=note_data.title,
         content=note_data.content or "",
@@ -2026,7 +1954,8 @@ async def update_channel_note(
     note = session.get(SharedNote, note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
-    
+    get_accessible_channel(session, note.channel_id, current_user)
+
     # Optimistic locking: reject if client's version doesn't match current
     if update_data.version != note.version:
         raise HTTPException(
@@ -2060,10 +1989,8 @@ async def get_channel_submissions(
     current_user: User = Depends(get_current_user)
 ):
     """Get all peer review submissions for a channel."""
-    channel = session.get(Channel, channel_id)
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
+    get_accessible_channel(session, channel_id, current_user)
+
     submissions = session.exec(
         select(PeerReviewSubmission)
         .where(PeerReviewSubmission.channel_id == channel_id)
@@ -2099,10 +2026,8 @@ async def create_submission(
     current_user: User = Depends(get_current_user)
 ):
     """Submit work for peer review."""
-    channel = session.get(Channel, channel_id)
-    if not channel:
-        raise HTTPException(status_code=404, detail="Channel not found")
-    
+    get_accessible_channel(session, channel_id, current_user)
+
     submission = PeerReviewSubmission(
         channel_id=channel_id,
         author_id=current_user.id,
@@ -2132,7 +2057,8 @@ async def get_submission_feedback(
     submission = session.get(PeerReviewSubmission, submission_id)
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
-    
+    get_accessible_channel(session, submission.channel_id, current_user)
+
     feedbacks = session.exec(
         select(PeerReviewFeedback)
         .where(PeerReviewFeedback.submission_id == submission_id)
@@ -2160,7 +2086,8 @@ async def submit_feedback(
     submission = session.get(PeerReviewSubmission, submission_id)
     if not submission:
         raise HTTPException(status_code=404, detail="Submission not found")
-    
+    get_accessible_channel(session, submission.channel_id, current_user)
+
     # Cannot review your own submission
     if submission.author_id == current_user.id:
         raise HTTPException(status_code=400, detail="You cannot review your own submission")

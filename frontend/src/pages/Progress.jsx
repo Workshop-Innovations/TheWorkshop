@@ -23,11 +23,13 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
     let totalFocusMinutes = 0;
 
     sessions.forEach(session => {
-      const date = session.completedAt ? new Date(session.completedAt).toISOString().split('T')[0] : 'Unknown';
-      
-      if (session.mode !== 'pomodoro') return; 
+      // Field names match the backend SessionLogResponse
+      // (completion_time / session_type / minutes_spent)
+      const date = session.completion_time ? new Date(session.completion_time).toISOString().split('T')[0] : 'Unknown';
 
-      const durationMinutes = session.duration / 60;
+      if (session.session_type !== 'focus' && session.session_type !== 'pomodoro') return;
+
+      const durationMinutes = session.minutes_spent || 0;
 
       if (!stats[date]) {
         stats[date] = { pomodoros: 0, focusMinutes: 0 };
@@ -84,7 +86,7 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
     const loadApiProgress = async () => {
       try {
         const sessions = await fetchCompletedSessions();
-        calculateProgress(sessions);
+        if (sessions) calculateProgress(sessions);
       } catch (error) {
         console.error("Failed to load API progress data:", error);
       }

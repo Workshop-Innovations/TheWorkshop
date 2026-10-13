@@ -137,18 +137,21 @@ const ChannelList = () => {
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                             Channels
                         </span>
-                        <button
-                            className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-primary transition-all p-1 rounded-md hover:bg-slate-100"
-                            onClick={() => setShowCreateChannel(!showCreateChannel)}
-                            title="Create Channel"
-                        >
-                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                            </svg>
-                        </button>
+                        {/* Only owners can create channels (the API rejects everyone else) */}
+                        {isOwner && (
+                            <button
+                                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-primary transition-all p-1 rounded-md hover:bg-slate-100"
+                                onClick={() => setShowCreateChannel(!showCreateChannel)}
+                                title="Create Channel"
+                            >
+                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                </svg>
+                            </button>
+                        )}
                     </div>
 
-                    {showCreateChannel && (
+                    {isOwner && showCreateChannel && (
                         <div className="mb-3 p-2 bg-slate-50 rounded-md border border-slate-200">
                             <input
                                 type="text"

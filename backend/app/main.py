@@ -30,7 +30,7 @@ from .schemas import (
     DMConversationResponse, DMMessageCreate, DMMessageResponse,
 )
 
-from .routes import community, websocket, flashcards, tutor, notes, reviews, subjects, users, system, subscriptions, upload, data_entry
+from .routes import community, websocket, flashcards, tutor, subjects, users, system, subscriptions, upload, data_entry
 from .dependencies import get_current_user, settings, create_access_token
 
 # --- Password Utility Functions ---
@@ -48,10 +48,13 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     logger.info("Database tables created/checked.")
     
-    # Auto-promote admin user
+    # Auto-promote admin user (only when ADMIN_EMAIL is explicitly configured —
+    # a hardcoded fallback would let anyone register that address and become admin)
     with Session(engine) as session:
-        admin_email = os.getenv("ADMIN_EMAIL", "a@gmail.com")
-        user = session.exec(select(User).where(User.email == admin_email)).first()
+        admin_email = os.getenv("ADMIN_EMAIL")
+        user = None
+        if admin_email:
+            user = session.exec(select(User).where(User.email == admin_email)).first()
         if user:
             if user.role != "admin":
                 user.role = "admin"
@@ -60,16 +63,20 @@ async def lifespan(app: FastAPI):
                 logger.info(f"User {admin_email} has been promoted to ADMIN.")
             else:
                 logger.info(f"User {admin_email} is already ADMIN.")
-        else:
+        elif admin_email:
             logger.info(f"Admin candidate {admin_email} not found. Register with this email to become admin.")
+        else:
+            logger.warning("ADMIN_EMAIL is not set; no user will be auto-promoted to admin.")
 
-        # Auto-create "The Workshop" default community if it doesn't exist
+        # Auto-create "The Workshop" default community if it doesn't exist.
+        # It needs a real owner (FK to user.id); without an admin user yet, the
+        # /communities endpoint creates it lazily on first visit instead.
         workshop = session.exec(select(Community).where(Community.name == "The Workshop")).first()
-        if not workshop:
+        if not workshop and user:
             workshop = Community(
                 name="The Workshop",
                 icon="🏫",
-                owner_id=user.id if user else str(uuid4()),
+                owner_id=user.id,
             )
             session.add(workshop)
             session.commit()
@@ -104,7 +111,7 @@ async def lifespan(app: FastAPI):
 
             session.commit()
             logger.info("Created default community: The Workshop")
-        else:
+        elif workshop:
             logger.info("Default community 'The Workshop' already exists.")
 
         # Backfill: add any existing users who are not yet members of The Workshop
@@ -163,8 +170,6 @@ app.include_router(community.router)
 app.include_router(websocket.router)
 app.include_router(flashcards.router)
 app.include_router(tutor.router)
-app.include_router(notes.router)
-app.include_router(reviews.router)
 app.include_router(subjects.router)
 app.include_router(users.router)
 app.include_router(system.router)
@@ -267,9 +272,9 @@ async def login_for_access_token(user_data: UserLogin, session: Session = Depend
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    # Store username in the subject
+    # "uid" is the immutable user id used for auth; "sub" keeps the username for older clients.
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "uid": user.id}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
