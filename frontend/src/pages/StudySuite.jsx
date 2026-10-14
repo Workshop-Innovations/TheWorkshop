@@ -430,7 +430,7 @@ const StudySuite = () => {
                     >
                         {isDragging && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                                <div className="bg-white rounded-2xl shadow-2xl p-10 border-2 border-dashed border-primary text-center">
+                                <div className="bg-white rounded-md shadow-2xl p-10 border-2 border-dashed border-primary text-center">
                                     <Upload size={40} className="text-primary mx-auto mb-2 animate-bounce" />
                                     <p className="font-bold text-slate-700">Drop file to upload</p>
                                 </div>
@@ -558,7 +558,7 @@ const StudySuite = () => {
                                                     <Bot size={10} className="text-white" />
                                                 </div>
                                             )}
-                                            <div className={`py-2.5 px-3 rounded-2xl max-w-[88%] shadow-sm ${
+                                            <div className={`py-2.5 px-3 rounded-md max-w-[88%] shadow-sm ${
                                                 msg.role === 'user'
                                                     ? 'bg-primary text-white rounded-tr-sm'
                                                     : msg.isError
@@ -582,7 +582,7 @@ const StudySuite = () => {
                                             <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                                                 <Bot size={10} className="text-white" />
                                             </div>
-                                            <div className="py-3 px-4 bg-white border border-slate-100 rounded-2xl rounded-tl-sm shadow-sm">
+                                            <div className="py-3 px-4 bg-white border border-slate-100 rounded-md rounded-tl-sm shadow-sm">
                                                 <div className="flex gap-1 items-center h-3">
                                                     {[0, 150, 300].map(d => (
                                                         <span key={d} className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
@@ -604,12 +604,12 @@ const StudySuite = () => {
                                             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                                             disabled={!selectedDoc || isSending}
                                             placeholder={selectedDoc ? 'Ask a question…' : 'Select a document first…'}
-                                            className="flex-1 px-3 py-2 text-xs bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 disabled:opacity-50"
+                                            className="flex-1 px-3 py-2 text-xs bg-slate-50 rounded-md border border-slate-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 disabled:opacity-50"
                                         />
                                         <button
                                             onClick={sendMessage}
                                             disabled={!selectedDoc || isSending || !inputMessage.trim()}
-                                            className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all disabled:opacity-40"
+                                            className="p-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all disabled:opacity-40"
                                         >
                                             <Send size={13} />
                                         </button>
@@ -664,7 +664,7 @@ const StudySuite = () => {
                                         {/* Questions */}
                                         <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
                                             {quiz.map((q, qi) => (
-                                                <div key={qi} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                                                <div key={qi} className="bg-slate-50 rounded-md p-3 border border-slate-100">
                                                     <p className="text-[11px] font-bold text-slate-800 mb-2">{qi + 1}. {q.question}</p>
                                                     <div className="space-y-1.5">
                                                         {q.options.map((opt, oi) => {

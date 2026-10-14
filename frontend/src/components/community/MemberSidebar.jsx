@@ -23,14 +23,16 @@ const ProfileHoverCard = memo(({ member, onStartDM, isOwn, onClose, cachedRep })
 
     return (
         // Bug 14 fix: positioned to the left, clamped so it never overflows viewport
-        <div className="absolute right-full top-0 mr-2 z-50 w-64 bg-slate-900 rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
+        <div className="absolute right-full top-0 mr-2 z-50 w-64 bg-white rounded-md shadow-xl border border-slate-200 overflow-hidden">
             {/* Banner */}
-            <div className="h-14 bg-gradient-to-r from-indigo-600 to-purple-600" />
+            <div className="h-14 bg-primary relative overflow-hidden">
+                <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+            </div>
 
             {/* Body */}
             <div className="px-4 pb-4">
                 <div className="-mt-7 mb-3 relative inline-block">
-                    <div className="w-14 h-14 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-black text-xl border-4 border-slate-900 overflow-hidden shadow-xl">
+                    <div className="w-14 h-14 rounded-md bg-slate-100 flex items-center justify-center text-slate-600 font-black text-xl border-4 border-white overflow-hidden shadow-md">
                         {member.user_profile_pic ? (
                             <img src={resolveImageUrl(member.user_profile_pic)} alt={member.user_email} className="w-full h-full object-cover" />
                         ) : (
@@ -40,11 +42,11 @@ const ProfileHoverCard = memo(({ member, onStartDM, isOwn, onClose, cachedRep })
                 </div>
 
                 <div className="mb-3">
-                    <h3 className="text-white font-black text-sm">{member.user_email?.split("@")[0] || "User"}</h3>
-                    <p className="text-slate-400 text-xs truncate">{member.user_email}</p>
+                    <h3 className="text-slate-900 font-black text-sm">{member.user_email?.split("@")[0] || "User"}</h3>
+                    <p className="text-slate-500 text-xs truncate">{member.user_email}</p>
                     {member.role !== "member" && (
-                        <span className={`inline-block mt-1 text-[10px] uppercase font-black px-2 py-0.5 rounded ${
-                            member.role === "owner" ? "bg-amber-500/20 text-amber-400" : "bg-red-500/20 text-red-400"
+                        <span className={`inline-block mt-1 text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded ${
+                            member.role === "owner" ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"
                         }`}>
                             {member.role}
                         </span>
@@ -53,41 +55,41 @@ const ProfileHoverCard = memo(({ member, onStartDM, isOwn, onClose, cachedRep })
 
                 {/* Stats */}
                 {rep ? (
-                    <div className="bg-slate-800 rounded-lg p-3 mb-3">
+                    <div className="bg-slate-50 border border-slate-100 rounded-md p-3 mb-3">
                         <div className="grid grid-cols-3 gap-2 text-center">
                             <div>
-                                <p className="text-white font-black text-sm">{rep.reputation_points}</p>
-                                <p className="text-slate-500 text-[10px]">Rep</p>
+                                <p className="text-slate-900 font-black text-sm">{rep.reputation_points}</p>
+                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Rep</p>
                             </div>
                             <div>
-                                <p className="text-white font-black text-sm">{rep.total_messages}</p>
-                                <p className="text-slate-500 text-[10px]">Messages</p>
+                                <p className="text-slate-900 font-black text-sm">{rep.total_messages}</p>
+                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Messages</p>
                             </div>
                             <div>
-                                <p className="text-white font-black text-sm">{rep.helpful_votes}</p>
-                                <p className="text-slate-500 text-[10px]">Upvotes</p>
+                                <p className="text-slate-900 font-black text-sm">{rep.helpful_votes}</p>
+                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Upvotes</p>
                             </div>
                         </div>
                         {rep.badges?.length > 0 && (
-                            <div className="mt-2 pt-2 border-t border-slate-700 flex flex-wrap gap-1.5">
+                            <div className="mt-2 pt-2 border-t border-slate-200 flex flex-wrap gap-1.5">
                                 {rep.badges.slice(0, 4).map(badge => (
                                     <span key={badge.id} className="text-base" title={`${badge.name}: ${badge.description}`}>
                                         {badge.icon}
                                     </span>
                                 ))}
                                 {rep.badges.length > 4 && (
-                                    <span className="text-xs text-slate-500">+{rep.badges.length - 4}</span>
+                                    <span className="text-xs text-slate-400">+{rep.badges.length - 4}</span>
                                 )}
                             </div>
                         )}
                     </div>
                 ) : (
-                    <div className="bg-slate-800 rounded-lg p-3 mb-3 animate-pulse h-16" />
+                    <div className="rounded-md mb-3 animate-skeleton h-16" />
                 )}
 
                 {!isOwn && (
                     <button
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition-colors"
+                        className="w-full py-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-md transition-colors shadow-lg shadow-primary/20"
                         onClick={() => { onStartDM(); onClose(); }}
                     >
                         Send Message
@@ -120,7 +122,7 @@ const MemberItem = memo(({ member, isOnline, isOwn, onStartDM, cachedRep, onCach
 
     return (
         <div
-            className={`relative flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer transition-all group ${
+            className={`relative flex items-center gap-2.5 px-2 py-1.5 rounded-md cursor-pointer transition-all group ${
                 isOnline ? "" : "opacity-50 hover:opacity-100"
             } hover:bg-slate-100`}
             onClick={() => !isOwn && onStartDM(member)}
@@ -130,7 +132,7 @@ const MemberItem = memo(({ member, isOnline, isOwn, onStartDM, cachedRep, onCach
         >
             {/* Avatar with online indicator */}
             <div className="relative shrink-0">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs overflow-hidden ${
+                <div className={`w-8 h-8 rounded-sm flex items-center justify-center text-white font-bold text-xs overflow-hidden ${
                     isOnline ? "bg-primary" : "bg-slate-300"
                 }`}>
                     {member.user_profile_pic ? (
@@ -158,7 +160,7 @@ const MemberItem = memo(({ member, isOnline, isOwn, onStartDM, cachedRep, onCach
                 </div>
                 {member.role !== "member" && (
                     <span className={`text-[9px] uppercase font-black tracking-wider ${
-                        member.role === "owner" ? "text-amber-500" : "text-red-400"
+                        member.role === "owner" ? "text-primary" : "text-accent"
                     }`}>
                         {member.role}
                     </span>
@@ -220,7 +222,7 @@ const MemberSidebar = () => {
             {/* Leaderboard Button */}
             <div className="p-3 border-b border-slate-100 shrink-0">
                 <button
-                    className="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-lg shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-sm"
+                    className="w-full py-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-md shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 text-sm"
                     onClick={() => setShowLeaderboard(true)}
                 >
                     <Trophy size={15} /> Leaderboard
@@ -229,7 +231,7 @@ const MemberSidebar = () => {
 
             {/* Member Search */}
             <div className="px-3 py-2 shrink-0 border-b border-slate-100">
-                <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-200">
+                <div className="flex items-center gap-2 bg-slate-50 rounded-md px-2.5 py-1.5 border border-slate-200">
                     <Search size={13} className="text-slate-400 shrink-0" />
                     <input
                         type="text"

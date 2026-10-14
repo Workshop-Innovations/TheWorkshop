@@ -66,10 +66,10 @@ const ProgressView = ({ totalCompletedPomodoros }) => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${reward.type === 'title' ? 'text-purple-600' : 'text-blue-600'}`}>
+                  <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${reward.type === 'title' ? 'text-primary' : 'text-accent'}`}>
                     {reward.type}
                   </p>
-                  <p className="text-sm text-amber-600 font-bold">
+                  <p className="text-sm text-slate-500 font-bold">
                     {formatRequirementRemaining(reward.sessionsRemaining)}
                   </p>
                 </div>
@@ -142,13 +142,13 @@ const Pomodoro = () => {
   const modeColors = {
     pomodoro: 'bg-primary border-primary',
     shortBreak: 'bg-secondary border-secondary',
-    longBreak: 'bg-indigo-500 border-indigo-500',
+    longBreak: 'bg-accent border-accent',
   };
 
   const modeTextColors = {
     pomodoro: 'text-primary',
     shortBreak: 'text-secondary',
-    longBreak: 'text-indigo-500',
+    longBreak: 'text-accent',
   };
 
   const SettingInput = ({ label, value, onChange }) => (

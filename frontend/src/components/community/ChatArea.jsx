@@ -248,7 +248,7 @@ const ChatArea = () => {
                     onMouseLeave={() => setHoveredMessageId(null)}
                 >
                     {/* Avatar */}
-                    <div className="w-11 h-11 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm shrink-0 shadow-lg overflow-hidden mt-1 transform group-hover:scale-105 transition-transform">
+                    <div className="w-11 h-11 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm shrink-0 shadow-sm overflow-hidden mt-1 transform group-hover:scale-105 transition-transform">
                         {msg.user_profile_pic ? (
                             <img src={resolveImageUrl(msg.user_profile_pic)} alt={msg.user_email} className="w-full h-full object-cover" />
                         ) : (
@@ -261,7 +261,7 @@ const ChatArea = () => {
                         <div className="flex items-baseline gap-3 mb-1">
                             <span className={`font-bold text-[15px] ${isOwn ? 'text-primary' : 'text-slate-700'} hover:underline cursor-pointer tracking-tight`}>
                                 {msg.user_email?.split('@')[0] || 'User'}
-                                {isOwn && <span className="text-[11px] font-medium text-indigo-500/70 ml-2 uppercase tracking-wider bg-primary/10 px-1.5 py-0.5 rounded">You</span>}
+                                {isOwn && <span className="text-[11px] font-medium text-primary ml-2 uppercase tracking-wider bg-primary/10 px-1.5 py-0.5 rounded">You</span>}
                             </span>
                             <span className="text-xs text-slate-400 font-medium">{formatDate(msg.timestamp)}</span>
                         </div>
@@ -271,7 +271,7 @@ const ChatArea = () => {
                             <div className="mt-2">
                                 <textarea
                                     ref={editInputRef}
-                                    className="w-full bg-slate-50 text-slate-700 text-sm rounded-md px-4 py-3 border border-primary/30 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-primary resize-none shadow-inner"
+                                    className="w-full bg-slate-50 text-slate-700 text-sm rounded-md px-4 py-3 border border-primary/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none shadow-inner"
                                     value={editValue}
                                     onChange={e => setEditValue(e.target.value)}
                                     onKeyDown={e => handleEditKeyDown(e, msg.id)}
@@ -371,7 +371,7 @@ const ChatArea = () => {
             <div className="flex-1 flex flex-col h-full relative min-w-0 bg-slate-50">
                 {/* DM Header */}
                 <div className="h-16 flex items-center px-6 border-b border-slate-200 shrink-0 bg-slate-50/80 backdrop-blur-xl shadow-sm z-10">
-                    <div className="w-10 h-10 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm mr-4 overflow-hidden shrink-0 shadow-lg">
+                    <div className="w-10 h-10 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm mr-4 overflow-hidden shrink-0 shadow-sm">
                         {currentDM.other_user_profile_pic ? (
                             <img src={resolveImageUrl(currentDM.other_user_profile_pic)} alt={currentDM.other_user_email} className="w-full h-full object-cover" />
                         ) : (
@@ -500,7 +500,7 @@ const ChatArea = () => {
                             {parentMessages.map((msg, index) => renderMessage(msg, index, false, parentMessages))}
                             {optimisticMessages.map((msg, index) => (
                                 <div key={msg.id} className="flex gap-4 px-6 py-2 opacity-60">
-                                    <div className="w-11 h-11 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center text-slate-800 font-bold text-sm shrink-0 shadow-lg overflow-hidden mt-1">
+                                    <div className="w-11 h-11 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm shrink-0 shadow-sm overflow-hidden mt-1">
                                         {msg.user_profile_pic ? (
                                             <img src={msg.user_profile_pic} alt={msg.user_email} className="w-full h-full object-cover" />
                                         ) : (
@@ -511,7 +511,7 @@ const ChatArea = () => {
                                         <div className="flex items-baseline gap-3 mb-1">
                                             <span className="font-bold text-[15px] text-primary tracking-tight">
                                                 {msg.user_email?.split('@')[0] || 'You'}
-                                                <span className="text-[11px] font-medium text-indigo-500/70 ml-2 uppercase tracking-wider bg-primary/10 px-1.5 py-0.5 rounded">You</span>
+                                                <span className="text-[11px] font-medium text-primary ml-2 uppercase tracking-wider bg-primary/10 px-1.5 py-0.5 rounded">You</span>
                                             </span>
                                         </div>
                                         <div className="text-slate-600 text-[15px] leading-relaxed whitespace-pre-wrap break-words flex items-end gap-2">

@@ -939,6 +939,7 @@ const AdminDashboard = () => {
                     <ContentEditor
                         initialValue={editType === 'topics' ? (formData.summary_content || '') : (formData.content || '')}
                         title={`Editing: ${formData.title || 'New Item'}`}
+                        enableTikz={editType === 'topics'}
                         onSave={(content) => {
                             const fieldName = editType === 'topics' ? 'summary_content' : 'content';
                             setFormData({ ...formData, [fieldName]: content });

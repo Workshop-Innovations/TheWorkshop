@@ -39,10 +39,10 @@ const FindFriendsModal = ({ onClose }) => {
     };
 
     const getRepLabel = (points) => {
-        if (points >= 500) return { label: 'Legend', color: 'text-purple-600', bg: 'bg-purple-100' };
-        if (points >= 100) return { label: 'Top Contributor', color: 'text-amber-600', bg: 'bg-amber-100' };
-        if (points >= 50) return { label: 'Voice', color: 'text-blue-600', bg: 'bg-blue-100' };
-        if (points >= 10) return { label: 'Rising Star', color: 'text-emerald-600', bg: 'bg-emerald-100' };
+        if (points >= 500) return { label: 'Legend', color: 'text-white', bg: 'bg-primary' };
+        if (points >= 100) return { label: 'Top Contributor', color: 'text-primary', bg: 'bg-primary/10' };
+        if (points >= 50) return { label: 'Voice', color: 'text-accent', bg: 'bg-accent/10' };
+        if (points >= 10) return { label: 'Rising Star', color: 'text-slate-700', bg: 'bg-slate-200' };
         return { label: 'Newcomer', color: 'text-slate-500', bg: 'bg-slate-100' };
     };
 

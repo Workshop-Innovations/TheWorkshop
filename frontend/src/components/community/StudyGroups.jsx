@@ -133,7 +133,7 @@ const StudyGroups = ({ onClose }) => {
                             <Users className="w-4 h-4" /> {selectedGroup.member_count}/{selectedGroup.max_members}
                         </span>
                         {!selectedGroup.is_public && (
-                            <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-md text-xs border border-amber-200">
+                            <span className="flex items-center gap-1 bg-slate-50 text-slate-600 px-2.5 py-1 rounded-md text-xs border border-slate-200">
                                 <Lock className="w-3.5 h-3.5" /> Private
                             </span>
                         )}
@@ -175,13 +175,13 @@ const StudyGroups = ({ onClose }) => {
                     {/* Pending Requests (Leader Only) */}
                     {selectedGroup.creator_id === user?.id && selectedGroup.members?.some(m => m.status === 'pending') && (
                         <div className="mt-8">
-                            <h4 className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-4 flex items-center gap-2 bg-amber-50 px-3 py-2 rounded-md border border-amber-200">
+                            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2 bg-primary/5 px-3 py-2 rounded-md border border-primary/20">
                                 <Clock className="w-4 h-4" /> Pending Requests
                             </h4>
                             {selectedGroup.members?.filter(m => m.status === 'pending').map(member => (
-                                <div key={member.id} className="flex items-center justify-between p-4 bg-white rounded-md border border-amber-200 shadow-sm mb-3">
+                                <div key={member.id} className="flex items-center justify-between p-4 bg-white rounded-md border border-slate-200 shadow-sm mb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-sm bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold text-xs shrink-0">
+                                        <div className="w-8 h-8 rounded-sm bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
                                             {member.user_email?.charAt(0).toUpperCase()}
                                         </div>
                                         <span className="font-bold text-slate-900">{member.user_email?.split('@')[0]}</span>
@@ -226,7 +226,7 @@ const StudyGroups = ({ onClose }) => {
                     ) : (
                         <div className="text-center">
                             {selectedGroup.members?.find(m => m.user_id === user?.id)?.status === 'pending' ? (
-                                <span className="flex items-center justify-center gap-2 w-full py-3 bg-amber-50 text-amber-700 rounded-md font-bold border border-amber-200 shadow-sm">
+                                <span className="flex items-center justify-center gap-2 w-full py-3 bg-primary/5 text-primary rounded-md font-bold border border-primary/20 shadow-sm">
                                     <Clock className="w-4 h-4" /> Request Pending...
                                 </span>
                             ) : (
@@ -346,7 +346,7 @@ const StudyGroups = ({ onClose }) => {
                                             <div className="flex-1">
                                                 <h3 className="font-bold text-slate-900 text-[16px] mb-3 flex items-start justify-between tracking-tight leading-snug">
                                                     <span className="truncate pr-3 group-hover:text-primary transition-colors">{group.name}</span>
-                                                    {!group.is_public && <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-1" />}
+                                                    {!group.is_public && <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-1" />}
                                                 </h3>
                                                 {group.description && (
                                                     <p className="text-sm text-slate-500 line-clamp-2 mb-4 font-medium leading-relaxed">{group.description}</p>

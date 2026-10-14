@@ -5,6 +5,8 @@
 @theme {
   /* Minimalist monochrome palette */
   --color-primary: #154c79; /* Dark Blue from Logo */
+  --color-primary-dark: #103b5e; /* Hover/pressed state */
+  --color-primary-light: #2a6aa0;
   --color-secondary: #71717a; /* Zinc 500 */
   --color-secondary-dark: #27272a; /* Zinc 800 */
   

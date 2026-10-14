@@ -86,7 +86,7 @@ const ImageUploaderModal = ({ isOpen, onClose, onSave }) => {
                                     <p className="text-slate-600 font-medium mb-2">Select an image to upload</p>
                                     <p className="text-xs text-slate-400">JPG, PNG supported.</p>
                                     <label className="mt-6 inline-block cursor-pointer">
-                                        <span className="px-6 py-2 bg-slate-800 text-white rounded-md font-bold hover:bg-slate-900 transition-colors shadow-lg shadow-slate-200">
+                                        <span className="px-6 py-2 bg-primary text-white rounded-md font-bold hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20">
                                             Choose File
                                         </span>
                                         <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />

@@ -57,13 +57,13 @@ function createDefaultLinks() {
 
 const LINKS = createDefaultLinks()
 
-const chipBase = "px-4 py-2 rounded-md border transition-colors duration-200"
-const cardBase = "bg-[#1A1A1A] hover:bg-[#242424] border border-white/10 rounded-md"
+const chipBase = "px-4 py-2 rounded-md border text-sm font-bold transition-colors duration-200"
+const cardBase = "bg-white border border-slate-100/50 rounded-md shadow-sm"
 
 function SelectorGroup({ title, items, selectedId, onSelect }) {
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-semibold mb-4 text-white/90">{title}</h3>
+      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.15em] mb-4">{title}</h3>
       <div className="flex flex-wrap gap-3">
         {items.map((it) => (
           <button
@@ -71,8 +71,8 @@ function SelectorGroup({ title, items, selectedId, onSelect }) {
             onClick={() => onSelect(it.id)}
             className={`${chipBase} ${
               selectedId === it.id
-                ? 'bg-white text-black border-transparent'
-                : 'bg-[#1A1A1A] text-white border-white/20 hover:bg-white/10'
+                ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary'
             }`}
           >
             {it.name}
@@ -86,13 +86,13 @@ function SelectorGroup({ title, items, selectedId, onSelect }) {
 function TypeSelector({ selectedId, onSelect }) {
   const types = TYPES
   const iconFor = (id) => {
-    if (id === 'past_papers') return <FileDown className="mr-2" />
-    if (id === 'marking_guides') return <ClipboardCheck className="mr-2" />
-    return <ExternalLink className="mr-2" />
+    if (id === 'past_papers') return <FileDown className="w-4 h-4 mr-2" />
+    if (id === 'marking_guides') return <ClipboardCheck className="w-4 h-4 mr-2" />
+    return <ExternalLink className="w-4 h-4 mr-2" />
   }
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-semibold mb-4 text-white/90">Material Type</h3>
+      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.15em] mb-4">Material Type</h3>
       <div className="flex flex-wrap gap-3">
         {types.map((t) => (
           <button
@@ -100,8 +100,8 @@ function TypeSelector({ selectedId, onSelect }) {
             onClick={() => onSelect(t.id)}
             className={`${chipBase} ${
               selectedId === t.id
-                ? 'bg-white text-black border-transparent'
-                : 'bg-[#1A1A1A] text-white border-white/20 hover:bg-white/10'
+                ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary'
             } flex items-center`}
           >
             {iconFor(t.id)}
@@ -116,10 +116,10 @@ function TypeSelector({ selectedId, onSelect }) {
 function YearSelector({ years, selectedYear, onSelect }) {
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-semibold mb-4 text-white/90">Year</h3>
+      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.15em] mb-4">Year</h3>
       <div className="flex flex-wrap gap-3">
         {years.length === 0 && (
-          <span className="text-sm text-gray-400">No years available.</span>
+          <span className="text-sm text-slate-400">No years available.</span>
         )}
         {years.map((y) => (
           <button
@@ -127,8 +127,8 @@ function YearSelector({ years, selectedYear, onSelect }) {
             onClick={() => onSelect(y)}
             className={`${chipBase} ${
               selectedYear === y
-                ? 'bg-white text-black border-transparent'
-                : 'bg-[#1A1A1A] text-white border-white/20 hover:bg-white/10'
+                ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-primary/40 hover:text-primary'
             }`}
           >
             {y}
@@ -174,18 +174,18 @@ export default function Materials() {
   }
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-32">
+      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-32">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h1 className="text-4xl font-bold mb-2">Materials</h1>
-            <p className="text-gray-400">Browse resources from curricula like Cambridge (IGCSE, A-Levels).</p>
+          <div className="mb-12">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-2">Materials</h1>
+            <p className="text-slate-500 text-lg font-medium">Browse resources from curricula like Cambridge (IGCSE, A-Levels).</p>
           </div>
 
           <div
-            className={`${cardBase} p-6 mb-8`}
+            className={`${cardBase} p-8 mb-12`}
           >
             <SelectorGroup
               title="Curriculum"
@@ -221,33 +221,32 @@ export default function Materials() {
               className="space-y-6"
             >
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold">Files</h2>
-                <div className="text-sm text-gray-400"></div>
+                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-[0.15em] ml-1">Files</h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {typeId === 'resources' ? (
                   <>
                     <motion.div
-                      className={`${cardBase} p-5 flex items-center justify-between`}
+                      className={`${cardBase} p-5 flex items-center justify-between card hover:shadow-md`}
                       whileHover={{ scale: 1.02 }}
                       transition={{ duration: 0.15 }}
                     >
                       <div>
-                        <p className="font-semibold">Subject Resources</p>
-                        <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} • {subjectId} • resources</p>
+                        <p className="font-bold text-slate-800">Subject Resources</p>
+                        <p className="text-xs font-medium text-slate-400 capitalize">{curriculumId?.toUpperCase?.()} • {subjectId} • resources</p>
                       </div>
                       <button
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border ${resourceUrl ? 'bg-white text-black border-transparent hover:bg-gray-200' : 'bg-gray-700 text-gray-400 border-transparent cursor-not-allowed'}`}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border ${resourceUrl ? 'bg-primary text-white border-transparent hover:bg-primary-dark shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400 border-transparent cursor-not-allowed'}`}
                         disabled={!resourceUrl}
                         onClick={() => { if (resourceUrl) window.open(resourceUrl, '_blank') }}
                       >
-                        <ExternalLink />
+                        <ExternalLink className="w-4 h-4" />
                         Visit
                       </button>
                     </motion.div>
                     {!resourceUrl && (
-                      <div className="col-span-full text-center py-12 text-gray-400">
+                      <div className="col-span-full text-center py-12 text-slate-400 font-medium">
                         No resource link set.
                       </div>
                     )}
@@ -257,26 +256,26 @@ export default function Materials() {
                     {items.map((f, idx) => (
                       <motion.div
                         key={`${f.name}-${idx}`}
-                        className={`${cardBase} p-5 flex items-center justify-between`}
+                        className={`${cardBase} p-5 flex items-center justify-between card hover:shadow-md`}
                         whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.15 }}
                       >
                         <div>
-                          <p className="font-semibold">{f.name}</p>
-                          <p className="text-xs text-gray-400">{curriculumId?.toUpperCase?.()} • {subjectId} • {typeId.replace('_', ' ')} • {year}</p>
+                          <p className="font-bold text-slate-800">{f.name}</p>
+                          <p className="text-xs font-medium text-slate-400 capitalize">{curriculumId?.toUpperCase?.()} • {subjectId} • {typeId.replace('_', ' ')} • {year}</p>
                         </div>
                         <button
-                          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border ${f.url ? 'bg-white text-black border-transparent hover:bg-gray-200' : 'bg-gray-700 text-gray-400 border-transparent cursor-not-allowed'}`}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold border ${f.url ? 'bg-primary text-white border-transparent hover:bg-primary-dark shadow-lg shadow-primary/20' : 'bg-slate-100 text-slate-400 border-transparent cursor-not-allowed'}`}
                           disabled={!f.url}
                           onClick={() => { if (f.url) window.open(f.url, '_blank') }}
                         >
-                          <FileDown />
+                          <FileDown className="w-4 h-4" />
                           Download
                         </button>
                       </motion.div>
                     ))}
                     {items.length === 0 && (
-                      <div className="col-span-full text-center py-12 text-gray-400">
+                      <div className="col-span-full text-center py-12 text-slate-400 font-medium">
                         No files available.
                       </div>
                     )}
@@ -286,7 +285,7 @@ export default function Materials() {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

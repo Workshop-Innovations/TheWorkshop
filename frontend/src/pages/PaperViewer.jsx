@@ -4,10 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowLeft, BookOpen, CheckCircle, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import remarkGfm from 'remark-gfm';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+import { REMARK_PLUGINS, REHYPE_PLUGINS, normalizeMarkdown, paperUrlTransform } from '../utils/markdownMath';
 
 export const PaperContext = createContext();
 
@@ -19,14 +16,52 @@ export const PaperContext = createContext();
  */
 function preprocessContent(raw) {
     if (!raw) return '';
-    let text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    // Ensure answer-option lines (A’…F) start their own paragraph
-    text = text.replace(/\n([A-F]\.[ \t])/g, '\n\n$1');
-    // Ensure numbered question lines start a new paragraph
-    text = text.replace(/\n(?!#)(\d{1,3})\.[ \t]/g, '\n\n$1. ');
-    // Collapse 3+ blank lines ’  1 blank line
+    // Shared LaTeX normalisation: \( \) / \[ \] delimiters, one-line $$ display math, currency `$`.
+    let text = normalizeMarkdown(raw);
+    text = mapProseLines(text, (line) => line
+        // Ensure answer-option lines (A–F) start their own paragraph
+        .replace(/^([A-F]\.[ \t])/, '\n$1')
+        // Ensure numbered question lines start a new paragraph
+        .replace(/^(\d{1,3})\.[ \t]/, '\n$1. '));
+    // Collapse 3+ blank lines → 1 blank line
     text = text.replace(/\n{3,}/g, '\n\n');
     return text;
+}
+
+/**
+ * Applies `fn` to every line outside display-math ($$) blocks and fenced code, so the
+ * paper's line-based rules never rewrite the inside of an equation or code sample.
+ */
+function mapProseLines(text, fn) {
+    let inMath = false;
+    let fence = null;
+    return text.split('\n').map((line) => {
+        const trimmed = line.trim();
+        if (fence) {
+            if (trimmed.startsWith(fence) && /^(`+|~+)$/.test(trimmed)) fence = null;
+            return line;
+        }
+        if (!inMath) {
+            const open = trimmed.match(/^(`{3,}|~{3,})/);
+            if (open) {
+                fence = open[1];
+                return line;
+            }
+        }
+        if (trimmed === '$$') {
+            inMath = !inMath;
+            return line;
+        }
+        return inMath ? line : fn(line);
+    }).join('\n');
+}
+
+/** [DIAGRAM:label] → placeholder link. The label is URL-encoded so spaces or brackets can't break the link. */
+function injectDiagramPlaceholders(text) {
+    return mapProseLines(text, (line) => line.replace(
+        /(^|[^!])\[DIAGRAM:([^\]]+)\]/g,
+        (_, prefix, label) => `${prefix}[__DIAGRAM__](input://diagram?label=${encodeURIComponent(label.trim())})`
+    ));
 }
 
 /**
@@ -39,16 +74,16 @@ function injectInteractiveMarkers(text) {
     let currentQ = 'unknown';
     const optionsSeenForCurrentQ = new Set();
     
-    const lines = text.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-        const qMatch = lines[i].match(/^(\d{1,3})\.[ \t]/);
+    const marked = mapProseLines(text, (original) => {
+        let line = original;
+        const qMatch = line.match(/^(\d{1,3})\.[ \t]/);
         if (qMatch) {
             currentQ = qMatch[1];
             optionsSeenForCurrentQ.clear();
         }
 
         // Correct regex: function replacement captures opt properly
-        lines[i] = lines[i].replace(/^([A-F])\.[ \t](.*)/, (_, opt, rest) => {
+        line = line.replace(/^([A-F])\.[ \t](.*)/, (_, opt, rest) => {
             if (opt === 'A' && optionsSeenForCurrentQ.has('A')) {
                 const num = parseInt(currentQ, 10);
                 if (!isNaN(num)) {
@@ -62,12 +97,12 @@ function injectInteractiveMarkers(text) {
             return `[__MCQ__](input://mcq?q=${currentQ}&opt=${opt}) ${opt}. ${rest}`;
         });
 
-        lines[i] = lines[i].replace(/\[ESSAY\]/g, `[__ESSAY__](input://essay?q=${currentQ})`);
-        lines[i] = lines[i].replace(/\[STRUCTURED\]/g, `[__STRUCTURED__](input://structured?q=${currentQ})`);
-        lines[i] = lines[i].replace(/\[CALC\]/g, `[__CALC__](input://calc?q=${currentQ})`);
-        lines[i] = lines[i].replace(/(^|[^\!])\[DIAGRAM:([^\]]+)\]/g, '$1[__DIAGRAM__](input://diagram?label=$2)');
-    }
-    return lines.join('\n');
+        line = line.replace(/\[ESSAY\]/g, `[__ESSAY__](input://essay?q=${currentQ})`);
+        line = line.replace(/\[STRUCTURED\]/g, `[__STRUCTURED__](input://structured?q=${currentQ})`);
+        line = line.replace(/\[CALC\]/g, `[__CALC__](input://calc?q=${currentQ})`);
+        return line;
+    });
+    return injectDiagramPlaceholders(marked);
 }
 
 /* ’’’ Custom renderers (defined outside component to prevent re-creation) ’’ */
@@ -189,11 +224,12 @@ function PaperLink({ href, children }) {
 
         if (type === 'diagram') {
             const label = url.searchParams.get('label');
+            // <span> (not <div>): this renders inside a markdown <p>, where block elements are invalid.
             return (
-                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'1.5rem', margin:'1rem 0', border:'2px dashed #cbd5e1', background:'#f8fafc', color:'#64748b' }}>
+                <span style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'1.5rem', margin:'1rem 0', border:'2px dashed #cbd5e1', background:'#f8fafc', color:'#64748b' }}>
                     <span style={{ fontSize:'0.875rem', fontWeight:600, marginBottom:'0.25rem' }}>Missing Diagram</span>
                     <code style={{ fontSize:'0.75rem', background:'#e2e8f0', padding:'2px 8px', color:'#475569' }}>{label}</code>
-                </div>
+                </span>
             );
         }
 
@@ -206,7 +242,7 @@ function PaperLink({ href, children }) {
                     value={opt}
                     checked={(userAnswers || {})[q] === opt}
                     onChange={e => handleAnswerChange && handleAnswerChange(q, e.target.value)}
-                    className="mr-2 accent-indigo-600 w-4 h-4 cursor-pointer"
+                    className="mr-2 accent-primary w-4 h-4 cursor-pointer"
                 />
             );
         }
@@ -214,7 +250,7 @@ function PaperLink({ href, children }) {
         if (type === 'essay') {
             return (
                 <textarea
-                    className="w-full mt-2 p-3 border border-slate-300 rounded-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent resize-y text-sm"
+                    className="w-full mt-2 p-3 border border-slate-300 rounded-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent resize-y text-sm"
                     rows={6}
                     placeholder="Type your essay answer here..."
                     value={(userAnswers || {})[q] || ''}
@@ -227,7 +263,7 @@ function PaperLink({ href, children }) {
             return (
                 <input
                     type="text"
-                    className="w-full mt-2 p-2 border border-slate-300 rounded-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm"
+                    className="w-full mt-2 p-2 border border-slate-300 rounded-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent text-sm"
                     placeholder="Type your short answer..."
                     value={(userAnswers || {})[q] || ''}
                     onChange={e => handleAnswerChange && handleAnswerChange(q, e.target.value)}
@@ -240,7 +276,7 @@ function PaperLink({ href, children }) {
                 <div className="mt-2">
                     <input
                         type="text"
-                        className="w-full p-2 border border-slate-300 rounded-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent text-sm font-mono"
+                        className="w-full p-2 border border-slate-300 rounded-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent text-sm font-mono"
                         placeholder="Final answer"
                         value={(userAnswers || {})[q] || ''}
                         onChange={e => handleAnswerChange && handleAnswerChange(q, e.target.value)}
@@ -253,21 +289,14 @@ function PaperLink({ href, children }) {
         }
     }
     return (
-        <a href={href} className="text-indigo-600 hover:underline" target="_blank" rel="noopener noreferrer">
+        <a href={href} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
             {children}
         </a>
     );
 }
 
-// Remark / rehype plugins are module-level constants so they are never
-// recreated on every render (e.g. on every timer tick in practice mode).
-const REMARK_PLUGINS = [
-    [remarkMath, { singleDollarTextMath: true }],
-    remarkGfm,
-];
-const REHYPE_PLUGINS = [
-    [rehypeKatex, { throwOnError: false, strict: false, trust: true }],
-];
+// Remark / rehype plugins are shared module-level constants (utils/markdownMath) so they
+// are never recreated on every render (e.g. on every timer tick in practice mode).
 
 const PaperViewer = () => {
     const { paperId } = useParams();
@@ -317,10 +346,10 @@ const PaperViewer = () => {
         // Split first ’ THEN inject markers only into questions section
         const parts = base.split(/\n#{1,3}\s*ANSWER(?:S|\s+BANK)?\s*\n/i);
         const rawMain   = parts[0];
-        const rawAnswer = parts.length > 1 ? '## Answer Bank\n\n' + parts.slice(1).join('') : null;
+        const rawAnswer = parts.length > 1 ? '## Answer Bank\n\n' + parts.slice(1).join('\n\n') : null;
         return {
             mainContent:   injectInteractiveMarkers(rawMain),
-            answerContent: rawAnswer,
+            answerContent: rawAnswer && injectDiagramPlaceholders(rawAnswer),
         };
     }, [paper?.content]);
 
@@ -332,6 +361,7 @@ const PaperViewer = () => {
     const handleSubmitTest = useCallback(async () => {
         if (isSubmitting) return;
         setIsSubmitting(true);
+        setSubmitError(null);
         try {
             // FIXED: correct localStorage key ('accessToken' not 'access_token')
             const token = localStorage.getItem('accessToken');
@@ -377,22 +407,28 @@ const PaperViewer = () => {
     useEffect(() => {
         if (mode !== 'practice' || isSubmitting) return;
         const interval = setInterval(() => {
-            setTimeRemaining(prev => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    submitRef.current?.();
-                    return 0;
-                }
-                return prev - 1;
-            });
+            // Pure updater: the auto-submit side effect lives in the effect below.
+            setTimeRemaining(prev => Math.max(0, (prev ?? 0) - 1));
         }, 1000);
         return () => clearInterval(interval);
     }, [mode, isSubmitting]);
+
+    // Auto-submit exactly once when time runs out. If that submission fails, the student
+    // sees the error and can resubmit manually instead of being re-submitted every second.
+    const autoSubmittedRef = useRef(false);
+    useEffect(() => {
+        if (mode === 'practice' && timeRemaining === 0 && !autoSubmittedRef.current) {
+            autoSubmittedRef.current = true;
+            submitRef.current?.();
+        }
+    }, [mode, timeRemaining]);
 
     // ’’ Mode transitions ’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’’
     const enterPractice = useCallback(() => {
         setUserAnswers({});
         setTestResult(null);
+        setSubmitError(null);
+        autoSubmittedRef.current = false;
         // Reset timer every time we enter practice mode
         setTimeRemaining((paper?.duration_minutes ?? 60) * 60);
         setActiveTab('questions');
@@ -407,6 +443,8 @@ const PaperViewer = () => {
         setShowExitConfirm(false);
         setMode('read');
         setUserAnswers({});
+        setSubmitError(null);
+        autoSubmittedRef.current = false;
         setTimeRemaining((paper?.duration_minutes ?? 60) * 60);
     }, [paper?.duration_minutes]);
 
@@ -431,7 +469,7 @@ const PaperViewer = () => {
             <div style={{ textAlign: 'center' }}>
                 <div style={{
                     width: 48, height: 48, border: '4px solid #e2e8f0',
-                    borderTopColor: '#6366f1', borderRadius: '50%',
+                    borderTopColor: '#154c79', borderRadius: '50%',
                     animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem',
                 }} />
                 <p style={{ color: '#64748b' }}>Loading paper...</p>
@@ -443,7 +481,7 @@ const PaperViewer = () => {
             <div style={{ maxWidth: 480, width:'100%', background:'#fff', border:'1px solid #fee2e2', borderRadius:4, padding:'2rem', textAlign:'center' }}>
                 <p style={{ color:'#ef4444', fontWeight:700, fontSize:'1.1rem', marginBottom:'0.5rem' }}>Failed to load paper</p>
                 <p style={{ color:'#64748b', fontSize:'0.9rem', marginBottom:'1.5rem' }}>{error}</p>
-                <Link to="/past-papers" style={{ display:'inline-flex', alignItems:'center', gap:'0.4rem', color:'#6366f1', fontWeight:600, textDecoration:'none' }}>
+                <Link to="/past-papers" style={{ display:'inline-flex', alignItems:'center', gap:'0.4rem', color:'#154c79', fontWeight:600, textDecoration:'none' }}>
                     <ArrowLeft size={16} /> Back to Past Papers
                 </Link>
             </div>
@@ -476,7 +514,7 @@ const PaperViewer = () => {
             <div className="container mx-auto px-4 py-24 flex-grow">
                 <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
-                    <Link to="/past-papers" className="inline-flex items-center text-slate-500 hover:text-indigo-600 mb-6 transition-colors">
+                    <Link to="/past-papers" className="inline-flex items-center text-slate-500 hover:text-primary mb-6 transition-colors">
                         <ArrowLeft className="mr-2" /> Back to Past Papers
                     </Link>
 
@@ -488,7 +526,7 @@ const PaperViewer = () => {
                         {/* ’’ Header ’’ */}
                         <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                                <BookOpen size={20} style={{ color: '#6366f1' }} />
+                                <BookOpen size={20} style={{ color: '#154c79' }} />
                                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                                     {paper.title}
                                 </h1>
@@ -499,9 +537,9 @@ const PaperViewer = () => {
                                 <div className="flex gap-2 flex-wrap">
                                     <span style={{
                                         padding: '2px 10px', fontSize: '0.75rem', fontWeight: 700, borderRadius: 3,
-                                        background: paper.exam_type === 'WAEC' ? '#f0fdf4' : '#faf5ff',
-                                        color: paper.exam_type === 'WAEC' ? '#15803d' : '#7c3aed',
-                                        border: `1px solid ${paper.exam_type === 'WAEC' ? '#bbf7d0' : '#e9d5ff'}`,
+                                        background: paper.exam_type === 'WAEC' ? 'rgba(13,148,136,0.08)' : 'rgba(21,76,121,0.08)',
+                                        color: paper.exam_type === 'WAEC' ? '#0d9488' : '#154c79',
+                                        border: `1px solid ${paper.exam_type === 'WAEC' ? 'rgba(13,148,136,0.2)' : 'rgba(21,76,121,0.2)'}`,
                                     }}>
                                         {paper.exam_type}
                                     </span>
@@ -513,7 +551,7 @@ const PaperViewer = () => {
                                     </span>
                                     <span style={{
                                         padding: '2px 10px', fontSize: '0.75rem', fontWeight: 600, borderRadius: 3,
-                                        background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd',
+                                        background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0',
                                     }}>
                                         {paper.duration_minutes ?? 60} mins
                                     </span>
@@ -525,7 +563,7 @@ const PaperViewer = () => {
                                         <div className={`flex items-center gap-1.5 font-mono font-bold text-lg px-3 py-1 rounded-md border ${
                                             timeRemaining <= 300
                                                 ? 'text-red-600 bg-red-50 border-red-200'
-                                                : 'text-indigo-600 bg-indigo-50 border-indigo-100'
+                                                : 'text-primary bg-primary/5 border-primary/20'
                                         }`}>
                                             {formatTime(timeRemaining)}
                                         </div>
@@ -533,7 +571,7 @@ const PaperViewer = () => {
                                     {mode === 'read' && (
                                         <button
                                             onClick={enterPractice}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-bold text-sm transition-colors shadow-sm"
+                                            className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-md font-bold text-sm transition-colors shadow-sm"
                                         >
                                             Start Practice Mode
                                         </button>
@@ -549,7 +587,7 @@ const PaperViewer = () => {
                                     {mode === 'results' && (
                                         <button
                                             onClick={enterPractice}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-bold text-sm transition-colors"
+                                            className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-md font-bold text-sm transition-colors"
                                         >
                                             Retry
                                         </button>
@@ -586,7 +624,7 @@ const PaperViewer = () => {
                         {answerContent && mode === 'read' && (
                             <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem', gap: '1rem' }}>
                                 {[
-                                    { id: 'questions', label: 'Questions',   icon: <FileText size={16} />,   activeColor: '#6366f1' },
+                                    { id: 'questions', label: 'Questions',   icon: <FileText size={16} />,   activeColor: '#154c79' },
                                     { id: 'answers',   label: 'Answer Bank', icon: <CheckCircle size={16} />, activeColor: '#10b981' },
                                 ].map(tab => (
                                     <button
@@ -615,17 +653,22 @@ const PaperViewer = () => {
                                         remarkPlugins={REMARK_PLUGINS} 
                                         rehypePlugins={REHYPE_PLUGINS} 
                                         components={PaperMarkdownComponents}
-                                        urlTransform={(value) => value}
+                                        urlTransform={paperUrlTransform}
                                     >
                                         {mainContent}
                                     </ReactMarkdown>
 
                                     {mode === 'practice' && (
                                         <div className="mt-10 pt-6 border-t border-slate-100 text-right">
+                                            {submitError && (
+                                                <p role="alert" className="mb-4 text-left text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md px-4 py-3">
+                                                    {submitError}
+                                                </p>
+                                            )}
                                             <button
                                                 onClick={handleSubmitTest}
                                                 disabled={isSubmitting}
-                                                className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-md font-bold text-base transition-colors shadow-md"
+                                                className="px-8 py-3 bg-primary hover:bg-primary-dark disabled:bg-primary/40 text-white rounded-md font-bold text-base transition-colors shadow-md"
                                             >
                                                 {isSubmitting ? 'Submitting...' : 'Submit Test'}
                                             </button>
@@ -642,7 +685,7 @@ const PaperViewer = () => {
                                         remarkPlugins={REMARK_PLUGINS} 
                                         rehypePlugins={REHYPE_PLUGINS} 
                                         components={PaperMarkdownComponents}
-                                        urlTransform={(value) => value}
+                                        urlTransform={paperUrlTransform}
                                     >
                                         {answerContent}
                                     </ReactMarkdown>

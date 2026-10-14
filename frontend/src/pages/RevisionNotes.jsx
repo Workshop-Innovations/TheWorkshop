@@ -39,7 +39,7 @@ const RevisionNotes = () => {
             <div className="bg-white border-b border-slate-200 pt-28 pb-12 px-6">
                 <div className="max-w-5xl mx-auto">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 bg-primary/10 rounded-xl">
+                        <div className="p-2.5 bg-primary/10 rounded-md">
                             <GraduationCap size={22} className="text-primary" />
                         </div>
                         <span className="text-xs font-bold text-primary uppercase tracking-widest">Study Resources</span>
@@ -59,7 +59,7 @@ const RevisionNotes = () => {
                             placeholder="Search subjects..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                         />
                     </div>
                 </div>
@@ -94,9 +94,9 @@ const RevisionNotes = () => {
                                 <Link
                                     key={subject.id}
                                     to={`/subjects/${subject.id}`}
-                                    className="group bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                                    className="group bg-white rounded-md border border-slate-100 p-6 shadow-sm hover:shadow-xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all duration-300 flex flex-col"
                                 >
-                                    <div className="w-11 h-11 rounded-xl bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary transition-colors duration-300">
+                                    <div className="w-11 h-11 rounded-md bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary transition-colors duration-300">
                                         <FileText size={18} className="text-primary group-hover:text-white transition-colors duration-300" />
                                     </div>
                                     <h2 className="font-extrabold text-slate-800 text-base tracking-tight mb-1.5 group-hover:text-primary transition-colors">

@@ -2,19 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useCommunity } from '../../context/CommunityContext';
 import { FileText, Plus, X, Edit2, AlertCircle, ChevronLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import remarkGfm from 'remark-gfm';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+import { TikzAwarePre } from '../TikzDiagram';
+import { REMARK_PLUGINS, REHYPE_PLUGINS, normalizeMarkdown } from '../../utils/markdownMath';
 
-const remarkPlugins = [
-    [remarkMath, { singleDollarTextMath: true }],
-    remarkGfm,
-];
-
-const rehypePlugins = [
-    [rehypeKatex, { throwOnError: false, strict: false, trust: true }],
-];
+const markdownComponents = { pre: TikzAwarePre };
 
 const SharedNotes = ({ onClose }) => {
     const { currentChannel, fetchChannelNotes, createNote, updateNote, user } = useCommunity();
@@ -24,7 +15,6 @@ const SharedNotes = ({ onClose }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
-    const [tikzLoaded, setTikzLoaded] = useState(false);
     const [formData, setFormData] = useState({ title: '', content: '' });
     const titleInputRef = useRef(null);
 
@@ -35,26 +25,6 @@ const SharedNotes = ({ onClose }) => {
     useEffect(() => {
         if (isEditing) titleInputRef.current?.focus();
     }, [isEditing]);
-
-    // Load TikZJax script dynamically
-    useEffect(() => {
-        if (!document.getElementById('tikzjax-script')) {
-            const script = document.createElement('script');
-            script.id = 'tikzjax-script';
-            script.src = 'https://tikzjax.com/v1/tikzjax.js';
-            script.async = true;
-            script.onload = () => setTikzLoaded(true);
-            document.head.appendChild(script);
-
-            const link = document.createElement('link');
-            link.id = 'tikzjax-css';
-            link.rel = 'stylesheet';
-            link.href = 'https://tikzjax.com/v1/fonts.css';
-            document.head.appendChild(link);
-        } else {
-            setTikzLoaded(true);
-        }
-    }, []);
 
     const loadNotes = async () => {
         setLoading(true);
@@ -210,28 +180,11 @@ const SharedNotes = ({ onClose }) => {
                             .paper-content .katex-display { margin: 1rem 0; overflow-x: auto; }
                         `}</style>
                         <ReactMarkdown
-                            remarkPlugins={remarkPlugins}
-                            rehypePlugins={rehypePlugins}
-                            components={{
-                                pre({node, children, ...props}) {
-                                    const codeElement = React.Children.toArray(children)[0];
-                                    if (React.isValidElement(codeElement) && codeElement.props.className?.includes('language-tikz')) {
-                                        const content = String(codeElement.props.children);
-                                        return (
-                                            <div className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-slate-50 p-4 rounded-md border border-slate-100 not-prose min-h-[100px] items-center">
-                                                {tikzLoaded ? (
-                                                    <div dangerouslySetInnerHTML={{ __html: `<script type="text/tikz">${content.replace(/</g, '\\<')}</script>` }} />
-                                                ) : (
-                                                    <div className="text-slate-400 text-sm animate-pulse">Loading diagram engine...</div>
-                                                )}
-                                            </div>
-                                        );
-                                    }
-                                    return <pre {...props}>{children}</pre>;
-                                }
-                            }}
+                            remarkPlugins={REMARK_PLUGINS}
+                            rehypePlugins={REHYPE_PLUGINS}
+                            components={markdownComponents}
                         >
-                            {selectedNote.content}
+                            {normalizeMarkdown(selectedNote.content, { tikz: true })}
                         </ReactMarkdown>
                     </div>
                 ) : (

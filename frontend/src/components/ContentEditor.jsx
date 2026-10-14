@@ -1,11 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
 import { Save, X, FileType2, Upload } from 'lucide-react';
+import { TikzAwarePre } from './TikzDiagram';
+import { REMARK_PLUGINS, REHYPE_PLUGINS, normalizeMarkdown } from '../utils/markdownMath';
 
-const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }) => {
+// eslint-disable-next-line no-unused-vars -- `node` must not be spread onto the DOM element
+const PreviewCode = ({ node, className, children, ...props }) => (
+    <code className={`${className || ''} bg-slate-200 px-1 py-0.5 rounded text-sm`} {...props}>
+        {children}
+    </code>
+);
+
+/**
+ * Markdown + LaTeX editor with a live preview that uses the same pipeline students see.
+ * enableTikz: render ```tikz blocks / tikzpicture environments (revision notes).
+ */
+const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor', enableTikz = false }) => {
     const [content, setContent] = useState(initialValue);
     const [debouncedContent, setDebouncedContent] = useState(initialValue);
     const [isPreview, setIsPreview] = useState(false);
@@ -23,6 +33,15 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
 
         return () => clearTimeout(timer);
     }, [content]);
+
+    const previewMarkdown = useMemo(
+        () => normalizeMarkdown(debouncedContent, { tikz: enableTikz }),
+        [debouncedContent, enableTikz]
+    );
+    const previewComponents = useMemo(
+        () => (enableTikz ? { code: PreviewCode, pre: TikzAwarePre } : { code: PreviewCode }),
+        [enableTikz]
+    );
 
     const handleSave = () => {
         onSave(content);
@@ -45,7 +64,7 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
     return (
         <div className="bg-white rounded-md shadow-lg border border-slate-200 flex flex-col h-[80vh] w-full max-w-5xl mx-auto">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-md">
                 <h3 className="font-bold text-slate-700 flex items-center">
                     <FileType2 className="mr-2 text-primary" /> {title}
                 </h3>
@@ -94,7 +113,7 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
                         onChange={(e) => setContent(e.target.value)}
                     />
                     <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
-                        <span>Markdown & LaTeX supported</span>
+                        <span>{enableTikz ? "Markdown, LaTeX & TikZ supported" : "Markdown & LaTeX supported"}</span>
                         <span>{content.length} chars</span>
                     </div>
                 </div>
@@ -106,19 +125,11 @@ const ContentEditor = ({ initialValue = '', onSave, onCancel, title = 'Editor' }
                 <div className={`flex-1 bg-slate-50 overflow-y-auto p-6 prose prose-slate max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-a:text-primary ${!isPreview ? 'hidden md:block' : 'block'}`}>
                     {debouncedContent ? (
                         <ReactMarkdown
-                            remarkPlugins={[remarkMath]}
-                            rehypePlugins={[rehypeKatex]}
-                            components={{
-                                code({ node, inline, className, children, ...props }) {
-                                    return (
-                                        <code className={`${className} bg-slate-200 px-1 py-0.5 rounded text-sm`} {...props}>
-                                            {children}
-                                        </code>
-                                    );
-                                }
-                            }}
+                            remarkPlugins={REMARK_PLUGINS}
+                            rehypePlugins={REHYPE_PLUGINS}
+                            components={previewComponents}
                         >
-                            {debouncedContent}
+                            {previewMarkdown}
                         </ReactMarkdown>
                     ) : (
                         <div className="h-full flex items-center justify-center text-slate-400 italic">

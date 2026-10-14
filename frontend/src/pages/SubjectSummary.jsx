@@ -1,31 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import remarkGfm from 'remark-gfm';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { TikzAwarePre } from '../components/TikzDiagram';
 import { ArrowLeft, BookOpen } from 'lucide-react';
+import { REMARK_PLUGINS, REHYPE_PLUGINS, normalizeMarkdown } from '../utils/markdownMath';
 
-/** Normalise Windows line-endings so remark parses paragraphs correctly. */
-function preprocessContent(raw) {
-    if (!raw) return '';
-    return raw
-        .replace(/\r\n/g, '\n')
-        .replace(/\r/g, '\n')
-        .replace(/\n{3,}/g, '\n\n');
-}
-
-const remarkPlugins = [
-    [remarkMath, { singleDollarTextMath: true }],
-    remarkGfm,
-];
-
-const rehypePlugins = [
-    [rehypeKatex, { throwOnError: false, strict: false, trust: true }],
-];
+const QUESTIONS_SEPARATOR = '---EXAMPLE QUESTIONS---';
+// Revision notes support Markdown, LaTeX and TikZ (```tikz blocks or bare tikzpicture environments).
+const markdownComponents = { pre: TikzAwarePre };
 
 const SubjectSummary = () => {
     const { subjectId } = useParams();
@@ -38,7 +22,6 @@ const SubjectSummary = () => {
     const [activeTopicContent, setActiveTopicContent] = useState(null);
     const [contentLoading, setContentLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('summary');
-    const [tikzLoaded, setTikzLoaded] = useState(false);
 
     // Fetch Subject Outline (Lightweight)
     useEffect(() => {
@@ -51,7 +34,9 @@ const SubjectSummary = () => {
                 const data = await response.json();
                 setSubject(data);
                 if (data.topics && data.topics.length > 0) {
-                    setActiveTopicId(data.topics[0].id);
+                    // Default to the first topic shown in the sidebar (Past Questions topics are hidden there).
+                    const firstVisible = data.topics.find(t => !t.title.startsWith("Past Questions")) || data.topics[0];
+                    setActiveTopicId(firstVisible.id);
                 }
             } catch (err) {
                 setError(err.message);
@@ -63,50 +48,47 @@ const SubjectSummary = () => {
         fetchSubject();
     }, [subjectId]);
 
-    // Load TikZJax script dynamically
-    useEffect(() => {
-        if (!document.getElementById('tikzjax-script')) {
-            const script = document.createElement('script');
-            script.id = 'tikzjax-script';
-            script.src = 'https://tikzjax.com/v1/tikzjax.js';
-            script.async = true;
-            script.onload = () => setTikzLoaded(true);
-            document.head.appendChild(script);
-
-            const link = document.createElement('link');
-            link.id = 'tikzjax-css';
-            link.rel = 'stylesheet';
-            link.href = 'https://tikzjax.com/v1/fonts.css';
-            document.head.appendChild(link);
-        } else {
-            setTikzLoaded(true);
-        }
-    }, []);
-
     // Fetch Topic Content when activeTopicId changes
     useEffect(() => {
         if (!activeTopicId) return;
+        // Ignore responses for topics the user has already clicked away from.
+        const controller = new AbortController();
 
         const fetchTopicContent = async () => {
             setContentLoading(true);
             setActiveTab('summary');
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/topics/${activeTopicId}`);
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/topics/${activeTopicId}`,
+                    { signal: controller.signal }
+                );
                 if (!response.ok) {
                     throw new Error('Failed to fetch topic content');
                 }
                 const data = await response.json();
                 setActiveTopicContent(data.summary_content);
             } catch (err) {
+                if (err.name === 'AbortError') return;
                 console.error("Error fetching topic content:", err);
                 setActiveTopicContent("Failed to load content. Please try again.");
             } finally {
-                setContentLoading(false);
+                if (!controller.signal.aborted) setContentLoading(false);
             }
         };
 
         fetchTopicContent();
+        return () => controller.abort();
     }, [activeTopicId]);
+
+    // Split into study material / practice questions, then normalise each for rendering.
+    const { summaryText, questionsText } = useMemo(() => {
+        const content = activeTopicContent || "";
+        const [summary, ...rest] = content.split(QUESTIONS_SEPARATOR);
+        return {
+            summaryText: normalizeMarkdown(summary, { tikz: true }),
+            questionsText: rest.join('').trim() ? normalizeMarkdown(rest.join(QUESTIONS_SEPARATOR), { tikz: true }) : "",
+        };
+    }, [activeTopicContent]);
 
     if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading subject...</div>;
     if (error) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-red-500">Error: {error}</div>;
@@ -114,13 +96,6 @@ const SubjectSummary = () => {
 
     const activeTopic = subject.topics.find(t => t.id === activeTopicId);
 
-    let summaryText = activeTopicContent || "";
-    let questionsText = "";
-    if (summaryText.includes('---EXAMPLE QUESTIONS---')) {
-        const parts = summaryText.split('---EXAMPLE QUESTIONS---');
-        summaryText = parts[0];
-        questionsText = parts[1];
-    }
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -129,8 +104,8 @@ const SubjectSummary = () => {
                 <div className="max-w-6xl mx-auto">
                     {/* Header */}
                     <div className="mb-8">
-                        <Link to="/past-papers" className="inline-flex items-center text-slate-500 hover:text-primary mb-4 transition-colors">
-                            <ArrowLeft className="mr-2" /> Back to Past Papers
+                        <Link to="/revision-notes" className="inline-flex items-center text-slate-500 hover:text-primary mb-4 transition-colors">
+                            <ArrowLeft className="mr-2" /> Back to Revision Notes
                         </Link>
                         <h1 className="text-4xl font-bold text-slate-900">{subject.name}</h1>
                         <p className="text-slate-600 mt-2">{subject.description}</p>
@@ -201,28 +176,11 @@ const SubjectSummary = () => {
                                                     .paper-content .katex-display { margin: 1.5rem 0; overflow-x: auto; padding: 0.5rem 0; }
                                                 `}</style>
                                                 <ReactMarkdown
-                                                    remarkPlugins={remarkPlugins}
-                                                    rehypePlugins={rehypePlugins}
-                                                    components={{
-                                                        pre({node, children, ...props}) {
-                                                            const codeElement = React.Children.toArray(children)[0];
-                                                            if (React.isValidElement(codeElement) && codeElement.props.className?.includes('language-tikz')) {
-                                                                const content = String(codeElement.props.children);
-                                                                return (
-                                                                    <div className="tikz-diagram flex justify-center my-6 overflow-x-auto bg-white p-4 rounded-md border border-slate-100 shadow-sm not-prose min-h-[100px] items-center">
-                                                                        {tikzLoaded ? (
-                                                                            <div dangerouslySetInnerHTML={{ __html: `<script type="text/tikz">${content.replace(/</g, '\\<')}</script>` }} />
-                                                                        ) : (
-                                                                            <div className="text-slate-400 text-sm animate-pulse">Loading diagram engine...</div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            }
-                                                            return <pre {...props}>{children}</pre>;
-                                                        }
-                                                    }}
+                                                    remarkPlugins={REMARK_PLUGINS}
+                                                    rehypePlugins={REHYPE_PLUGINS}
+                                                    components={markdownComponents}
                                                 >
-                                                    {preprocessContent(activeTab === 'questions' ? questionsText : summaryText)}
+                                                    {activeTab === 'questions' ? questionsText : summaryText}
                                                 </ReactMarkdown>
                                             </div>
                                         )}

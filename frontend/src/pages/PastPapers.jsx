@@ -119,7 +119,7 @@ const PastPapers = () => {
                                             <div>
                                                 <h3 className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">{paper.title}</h3>
                                                 <div className="flex gap-2 mt-2">
-                                                    <span className={`px-2 py-1 text-xs font-bold rounded-md ${paper.exam_type === 'WAEC' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-purple-50 text-purple-700 border border-purple-100'
+                                                    <span className={`px-2 py-1 text-xs font-bold rounded-md ${paper.exam_type === 'WAEC' ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-primary/10 text-primary border border-primary/20'
                                                         }`}>
                                                         {paper.exam_type}
                                                     </span>

@@ -101,7 +101,7 @@ const FeedbackPage = () => {
                                 key="success"
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="text-center bg-white p-12 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100"
+                                className="text-center bg-white p-12 rounded-md shadow-xl shadow-slate-200/50 border border-slate-100"
                             >
                                 <h1 className="text-3xl font-extrabold mb-3 tracking-tight text-slate-900">Thank you!</h1>
                                 <p className="text-slate-500 leading-relaxed mb-8 max-w-sm mx-auto">
@@ -109,7 +109,7 @@ const FeedbackPage = () => {
                                 </p>
                                 <Link
                                     to={user ? '/dashboard' : '/'}
-                                    className="inline-flex items-center gap-2 px-8 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all hover:scale-[1.02] shadow-xl shadow-primary/30"
+                                    className="inline-flex items-center gap-2 px-8 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-md transition-all hover:scale-[1.02] shadow-xl shadow-primary/30"
                                 >
                                     Back to {user ? 'Dashboard' : 'Home'}
                                 </Link>
@@ -143,7 +143,7 @@ const FeedbackPage = () => {
                                                     value={form.name}
                                                     onChange={set('name')}
                                                     placeholder="Your name"
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
                                                 />
                                             </div>
                                             <div>
@@ -156,7 +156,7 @@ const FeedbackPage = () => {
                                                     value={form.email}
                                                     onChange={set('email')}
                                                     placeholder="you@email.com"
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -169,7 +169,7 @@ const FeedbackPage = () => {
                                             <select
                                                 value={form.category}
                                                 onChange={set('category')}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 transition-all appearance-none cursor-pointer"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-md px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 transition-all appearance-none cursor-pointer"
                                             >
                                                 <option value="">Select a category…</option>
                                                 {CATEGORIES.map(c => (
@@ -202,13 +202,13 @@ const FeedbackPage = () => {
                                                 value={form.message}
                                                 onChange={set('message')}
                                                 placeholder="Tell us what you think, what's broken, or what you'd love to see…"
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all resize-none"
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-md px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all resize-none"
                                             />
                                         </div>
 
                                         {/* Error */}
                                         {(errorMsg || status === 'error') && (
-                                            <div className="flex items-center gap-2 text-rose-600 text-sm bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
+                                            <div className="flex items-center gap-2 text-rose-600 text-sm bg-rose-50 border border-rose-200 rounded-md px-4 py-3">
                                                 <AlertCircle size={16} />
                                                 {errorMsg || 'Failed to send feedback. Please try again.'}
                                             </div>
@@ -218,7 +218,7 @@ const FeedbackPage = () => {
                                         <button
                                             type="submit"
                                             disabled={status === 'submitting'}
-                                            className="w-full flex items-center justify-center gap-3 py-4 bg-primary hover:bg-primary/90 text-white font-extrabold rounded-xl transition-all hover:scale-[1.01] active:scale-95 shadow-xl shadow-primary/25 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm"
+                                            className="w-full flex items-center justify-center gap-3 py-4 bg-primary hover:bg-primary/90 text-white font-extrabold rounded-md transition-all hover:scale-[1.01] active:scale-95 shadow-xl shadow-primary/25 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm"
                                         >
                                             {status === 'submitting' ? (
                                                 <>
