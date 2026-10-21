@@ -1,966 +1,1166 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
-import { Book, FileText, ShieldAlert, Plus, Edit, Trash, Layers, X, CheckCircle, UploadCloud, Search, Filter } from 'lucide-react';
-import axios from 'axios';
-import ContentEditor from '../components/ContentEditor';
-import DiagramManagerModal from '../components/DiagramManagerModal';
-import { Image as ImageIcon } from 'lucide-react';
-import GlobalDiagramManager from '../components/GlobalDiagramManager';
+import { API_BASE_URL } from "../services/api.js";
+import { useState, useEffect } from "react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+
+import {
+  Book,
+  FileText,
+  ShieldAlert,
+  Plus,
+  Edit,
+  Trash,
+  Layers,
+  X,
+  Search,
+  Filter,
+} from "lucide-react";
+import axios from "axios";
+import ContentEditor from "../components/study/ContentEditor.jsx";
+import DiagramManagerModal from "../components/study/DiagramManagerModal.jsx";
+import { Image as ImageIcon } from "lucide-react";
+import GlobalDiagramManager from "../components/study/GlobalDiagramManager.jsx";
 
 const AdminDashboard = () => {
-    const { user, accessToken } = useAuth();
-    const [activeTab, setActiveTab] = useState('subjects'); // subjects, topics, papers, diagrams, admins
-    const [data, setData] = useState([]);
-    const [subjects, setSubjects] = useState([]); // Store subjects for dropdowns and lookups
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+  const { user, accessToken } = useAuth();
+  const [activeTab, setActiveTab] = useState("subjects");
+  const [data, setData] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    // Search and Filter States
-    const [searchQuery, setSearchQuery] = useState('');
-    const [filterSubject, setFilterSubject] = useState('');
-    const [filterYear, setFilterYear] = useState('');
-    const [filterExamType, setFilterExamType] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterSubject, setFilterSubject] = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const [filterExamType, setFilterExamType] = useState("");
 
-    // Reset filters when tab changes
-    useEffect(() => {
-        setSearchQuery('');
-        setFilterSubject('');
-        setFilterYear('');
-        setFilterExamType('');
-    }, [activeTab]);
+  useEffect(() => {
+    setSearchQuery("");
+    setFilterSubject("");
+    setFilterYear("");
+    setFilterExamType("");
+  }, [activeTab]);
 
-    // Fetch subjects to populate dropdowns and lookups
-    const fetchSubjects = async () => {
-        try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            const response = await axios.get(`${baseUrl}/api/v1/subjects`, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            setSubjects(response.data);
-        } catch (err) {
-            console.error("Failed to load subjects:", err);
-        }
-    };
+  const fetchSubjects = async () => {
+    try {
+      const baseUrl = API_BASE_URL;
+      const response = await axios.get(`${baseUrl}/api/v1/subjects`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      setSubjects(response.data);
+    } catch (err) {
+      console.error("Failed to load subjects:", err);
+    }
+  };
 
-    useEffect(() => {
-        if (accessToken) {
-            fetchSubjects();
-        }
-    }, [accessToken]);
+  useEffect(() => {
+    if (accessToken) {
+      fetchSubjects();
+    }
+  }, [accessToken]);
 
-    const [editingItem, setEditingItem] = useState(null);
-    const [isEditorOpen, setIsEditorOpen] = useState(false);
-    const [editorMode, setEditorMode] = useState('create'); // create or edit
-    const [editType, setEditType] = useState(null); // subjects, papers
+  const [, setEditingItem] = useState(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editorMode, setEditorMode] = useState("create");
+  const [editType, setEditType] = useState(null);
 
-    // Form states for metadata
-    const [formData, setFormData] = useState({});
-    const [showContentEditor, setShowContentEditor] = useState(false);
-    
-    // Diagram Manager states
-    const [isDiagramManagerOpen, setIsDiagramManagerOpen] = useState(false);
-    const [selectedPaperForDiagrams, setSelectedPaperForDiagrams] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [showContentEditor, setShowContentEditor] = useState(false);
 
-    // Fetch data based on active tab
-    useEffect(() => {
-        fetchData();
-    }, [activeTab]);
+  const [isDiagramManagerOpen, setIsDiagramManagerOpen] = useState(false);
+  const [selectedPaperForDiagrams, setSelectedPaperForDiagrams] =
+    useState(null);
 
-    const fetchData = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            if (accessToken) await fetchSubjects(); // Ensure subjects list is always fresh
+  useEffect(() => {
+    fetchData();
+  }, [activeTab]);
 
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            let url = '';
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (accessToken) await fetchSubjects();
 
-            switch (activeTab) {
-                case 'subjects':
-                    url = `${baseUrl}/api/v1/subjects`;
-                    break;
-                case 'topics':
-                    url = `${baseUrl}/api/v1/topics`;
-                    break;
-                case 'papers':
-                case 'diagrams':
-                    url = `${baseUrl}/api/v1/papers`;
-                    break;
-                case 'admins':
-                    url = `${baseUrl}/api/v1/users/`;
-                    break;
-                default:
-                    setLoading(false);
-                    return;
-            }
+      const baseUrl = API_BASE_URL;
+      let url = "";
 
-            const response = await axios.get(url, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            setData(response.data);
+      switch (activeTab) {
+        case "subjects":
+          url = `${baseUrl}/api/v1/subjects`;
+          break;
+        case "topics":
+          url = `${baseUrl}/api/v1/topics`;
+          break;
+        case "papers":
+        case "diagrams":
+          url = `${baseUrl}/api/v1/papers`;
+          break;
+        case "admins":
+          url = `${baseUrl}/api/v1/users/`;
+          break;
+        default:
+          setLoading(false);
+          return;
+      }
 
-        } catch (err) {
-            console.error("Error fetching admin data:", err);
-            setError("Failed to load data.");
-        } finally {
-            setLoading(false);
-        }
-    };
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      setData(response.data);
+    } catch (err) {
+      console.error("Error fetching admin data:", err);
+      setError("Failed to load data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Silent refresh — updates data in background without setting loading=true.
-    // Used after diagram uploads so the page doesn't flash or reorder.
-    const fetchDataSilently = async () => {
-        try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            const url = `${baseUrl}/api/v1/papers`;
-            const response = await axios.get(url, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            setData(response.data);
-        } catch (err) {
-            console.error("Silent refresh failed:", err);
-        }
-    };
+  const fetchDataSilently = async () => {
+    try {
+      const baseUrl = API_BASE_URL;
+      const url = `${baseUrl}/api/v1/papers`;
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      setData(response.data);
+    } catch (err) {
+      console.error("Silent refresh failed:", err);
+    }
+  };
 
-    const handleEdit = (item, type) => {
-        setEditingItem(item);
-        setEditType(type);
-        setEditorMode('edit');
-        setFormData(item);
-        setIsEditorOpen(true);
-    };
+  const handleEdit = (item, type) => {
+    setEditingItem(item);
+    setEditType(type);
+    setEditorMode("edit");
+    setFormData(item);
+    setIsEditorOpen(true);
+  };
 
-    const handleCreate = (type) => {
-        setEditingItem(null);
-        setEditType(type);
-        setEditorMode('create');
+  const handleCreate = (type) => {
+    setEditingItem(null);
+    setEditType(type);
+    setEditorMode("create");
 
-        // Initialize with valid defaults to prevent validation errors
-        if (type === 'papers') {
-            if (subjects.length === 0) {
-                alert("You must create at least one Subject before adding a Paper.");
-                return;
-            }
-            setFormData({
-                exam_type: 'WAEC',
-                year: new Date().getFullYear().toString(),
-                subject_id: subjects[0].id
-            });
-        } else if (type === 'topics') {
-            if (subjects.length === 0) {
-                alert("You must create at least one Subject before adding a Topic.");
-                return;
-            }
-            setFormData({
-                order: 1,
-                subject_id: subjects[0].id
-            });
-        } else if (type === 'users') {
-            setFormData({ role: 'admin' });
-        } else {
-            setFormData({});
-        }
+    if (type === "papers") {
+      if (subjects.length === 0) {
+        alert("You must create at least one Subject before adding a Paper.");
+        return;
+      }
+      setFormData({
+        exam_type: "WAEC",
+        year: new Date().getFullYear().toString(),
+        subject_id: subjects[0].id,
+      });
+    } else if (type === "topics") {
+      if (subjects.length === 0) {
+        alert("You must create at least one Subject before adding a Topic.");
+        return;
+      }
+      setFormData({
+        order: 1,
+        subject_id: subjects[0].id,
+      });
+    } else if (type === "users") {
+      setFormData({ role: "admin" });
+    } else {
+      setFormData({});
+    }
 
-        setIsEditorOpen(true);
-    };
+    setIsEditorOpen(true);
+  };
 
-    const handleDelete = async (id, type) => {
-        if (!window.confirm("Are you sure you want to delete this item? This cannot be undone.")) return;
+  const handleDelete = async (id, type) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this item? This cannot be undone.",
+      )
+    )
+      return;
 
-        try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            await axios.delete(`${baseUrl}/api/v1/${type}/${id}`, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            fetchData(); // Refresh
-        } catch (err) {
-            alert("Failed to delete item.");
-        }
-    };
+    try {
+      const baseUrl = API_BASE_URL;
+      await axios.delete(`${baseUrl}/api/v1/${type}/${id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      fetchData();
+    } catch {
+      alert("Failed to delete item.");
+    }
+  };
 
-    const handleFormSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            const url = `${baseUrl}/api/v1/${editType}${editorMode === 'edit' ? `/${formData.id}` : ''}`;
-            const method = editorMode === 'edit' ? 'put' : 'post';
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const baseUrl = API_BASE_URL;
+      const url = `${baseUrl}/api/v1/${editType}${editorMode === "edit" ? `/${formData.id}` : ""}`;
+      const method = editorMode === "edit" ? "put" : "post";
 
-            await axios({
-                method,
-                url,
-                data: formData,
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
+      await axios({
+        method,
+        url,
+        data: formData,
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
-            setIsEditorOpen(false);
-            fetchData();
-        } catch (err) {
-            console.error("Error saving item:", err);
-            alert("Failed to save item.");
-        }
-    };
+      setIsEditorOpen(false);
+      fetchData();
+    } catch (err) {
+      console.error("Error saving item:", err);
+      alert("Failed to save item.");
+    }
+  };
 
-    const handleRoleUpdate = async (userId, newRole) => {
-        try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            await axios.put(`${baseUrl}/api/v1/users/${userId}/role?role=${newRole}`, {}, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            fetchData();
-        } catch (err) {
-            console.error("Failed to update role:", err);
-            alert("Failed to update user role.");
-        }
-    };
+  const handleRoleUpdate = async (userId, newRole) => {
+    try {
+      const baseUrl = API_BASE_URL;
+      await axios.put(
+        `${baseUrl}/api/v1/users/${userId}/role?role=${newRole}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+      fetchData();
+    } catch (err) {
+      console.error("Failed to update role:", err);
+      alert("Failed to update user role.");
+    }
+  };
 
-    const handleManageDiagrams = (paper) => {
-        setSelectedPaperForDiagrams(paper);
-        setIsDiagramManagerOpen(true);
-    };
+  const handleManageDiagrams = (paper) => {
+    setSelectedPaperForDiagrams(paper);
+    setIsDiagramManagerOpen(true);
+  };
 
-    const handleDiagramUploaded = async () => {
-        // We need to fetch the specific paper's updated content, or refresh all
-        await fetchData();
-        // The modal will re-render automatically because `data` changes and we pass the updated paper down
-        // Wait, we need to update selectedPaperForDiagrams to the new paper data
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-        try {
-            const response = await axios.get(`${baseUrl}/api/v1/papers/${selectedPaperForDiagrams.id}`, {
-                headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            setSelectedPaperForDiagrams(response.data);
-        } catch (err) {
-            console.error("Failed to fetch updated paper:", err);
-        }
-    };
+  const handleDiagramUploaded = async () => {
+    await fetchData();
 
-    // Render Form Modal
-    const renderModal = () => {
-        if (!isEditorOpen) return null;
+    const baseUrl = API_BASE_URL;
+    try {
+      const response = await axios.get(
+        `${baseUrl}/api/v1/papers/${selectedPaperForDiagrams.id}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+      setSelectedPaperForDiagrams(response.data);
+    } catch (err) {
+      console.error("Failed to fetch updated paper:", err);
+    }
+  };
 
-        return (
-            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-md shadow-2xl w-full max-w-lg p-6 animate-fade-in relative">
-                    <button
-                        onClick={() => setIsEditorOpen(false)}
-                        className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
-                    >
-                        <X />
-                    </button>
-                    <h3 className="text-xl font-bold text-slate-900 mb-6">
-                        {editorMode === 'create' ? 'Add New' : 'Edit'} {editType === 'subjects' ? 'Subject' : 'Paper'}
-                    </h3>
-
-                    <form onSubmit={handleFormSubmit} className="space-y-4">
-                        {editType === 'subjects' && (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.name || ''}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                                    <textarea
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.description || ''}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        rows="3"
-                                    />
-                                </div>
-                            </>
-                        )}
-
-                        {editType === 'topics' && (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.title || ''}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        placeholder="e.g. Intro to Algebra"
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
-                                        <select
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
-                                            value={formData.subject_id || ''}
-                                            onChange={(e) => setFormData({ ...formData, subject_id: e.target.value })}
-                                            required
-                                        >
-                                            <option value="">Select a Subject</option>
-                                            {subjects.map(s => (
-                                                <option key={s.id} value={s.id}>{s.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Order</label>
-                                        <input
-                                            type="number"
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                            value={formData.order || 1}
-                                            onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) })}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Content</label>
-                                    <div className="flex items-center space-x-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowContentEditor(true)}
-                                            className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md text-sm font-medium flex items-center border border-slate-300"
-                                        >
-                                            <Edit className="mr-2" /> Open Content Editor
-                                        </button>
-                                        <span className="text-xs text-slate-500">
-                                            {formData.summary_content ? `${formData.summary_content.length} characters` : 'No content'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                        {editType === 'users' && (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.username || ''}
-                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                        placeholder="unique_username"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                                    <input
-                                        type="email"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.email || ''}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        placeholder="user@example.com"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                                    <input
-                                        type="password"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.password || ''}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        placeholder="******"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
-                                    <select
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.role || 'admin'}
-                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    >
-                                        <option value="admin">Administrator</option>
-                                        <option value="user">User</option>
-                                    </select>
-                                </div>
-                            </>
-                        )}
-
-                        {editType === 'papers' && (
-                            <>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.title || ''}
-                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        placeholder="e.g. Mathematics 2024"
-                                        required
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Year</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                            value={formData.year || ''}
-                                            onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Exam Type</label>
-                                        <select
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                            value={formData.exam_type || 'WAEC'}
-                                            onChange={(e) => setFormData({ ...formData, exam_type: e.target.value })}
-                                        >
-                                            <option value="WAEC">WAEC</option>
-                                            <option value="JAMB">JAMB</option>
-                                            <option value="NECO">NECO</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
-                                    <select
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
-                                        value={formData.subject_id || ''}
-                                        onChange={(e) => setFormData({ ...formData, subject_id: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Select a Subject</option>
-                                        {subjects.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Duration (Minutes)</label>
-                                    <input
-                                        type="number"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        value={formData.duration_minutes || 60}
-                                        onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Content</label>
-                                    <div className="flex items-center space-x-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowContentEditor(true)}
-                                            className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md text-sm font-medium flex items-center border border-slate-300"
-                                        >
-                                            <Edit className="mr-2" /> Open Content Editor
-                                        </button>
-                                        <span className="text-xs text-slate-500">
-                                            {formData.content ? `${formData.content.length} characters` : 'No content'}
-                                        </span>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
-                        <div className="flex justify-end gap-3 mt-6">
-                            <button
-                                type="button"
-                                onClick={() => setIsEditorOpen(false)}
-                                className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors font-medium"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-md shadow-md transition-colors font-bold"
-                            >
-                                {editorMode === 'create' ? 'Create' : 'Save Changes'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        );
-    };
-
-    const getFilteredData = () => {
-        let filtered = data;
-        
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(item => 
-                (item.title && item.title.toLowerCase().includes(query)) ||
-                (item.name && item.name.toLowerCase().includes(query)) ||
-                (item.username && item.username.toLowerCase().includes(query)) ||
-                (item.email && item.email.toLowerCase().includes(query))
-            );
-        }
-
-        if (activeTab === 'topics' && filterSubject) {
-            filtered = filtered.filter(item => item.subject_id === filterSubject);
-        }
-
-        if (activeTab === 'papers') {
-            if (filterSubject) filtered = filtered.filter(item => item.subject_id === filterSubject);
-            if (filterYear) filtered = filtered.filter(item => item.year === filterYear);
-            if (filterExamType) filtered = filtered.filter(item => item.exam_type === filterExamType);
-        }
-
-        return filtered;
-    };
-
-    const renderContent = () => {
-        if (loading) return <div className="p-8 text-center text-slate-500">Loading...</div>;
-        if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
-
-        switch (activeTab) {
-            case 'subjects':
-                const filteredSubjects = getFilteredData();
-                return (
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-800">Subjects</h2>
-                            <button
-                                onClick={() => handleCreate('subjects')}
-                                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
-                            >
-                                <Plus className="mr-2" /> Add Subject
-                            </button>
-                        </div>
-                        <div className="mb-4 relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                            <input
-                                type="text"
-                                placeholder="Search subjects..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
-                            />
-                        </div>
-                        <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
-                            <table className="w-full text-left text-sm text-slate-600">
-                                <thead className="bg-slate-50 border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-6 py-4 font-semibold">Name</th>
-                                        <th className="px-6 py-4 font-semibold">ID</th>
-                                        <th className="px-6 py-4 font-semibold">Papers</th>
-                                        <th className="px-6 py-4 font-semibold text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {filteredSubjects.length > 0 ? filteredSubjects.map((subject) => (
-                                        <tr key={subject.id} className="hover:bg-slate-50/50">
-                                            <td className="px-6 py-4 font-medium text-slate-900">{subject.name}</td>
-                                            <td className="px-6 py-4 font-mono text-xs text-slate-400">{subject.id}</td>
-                                            <td className="px-6 py-4">{subject.papers?.length || 0}</td>
-                                            <td className="px-6 py-4 text-right space-x-2">
-                                                <button
-                                                    onClick={() => handleEdit(subject, 'subjects')}
-                                                    className="text-blue-600 hover:text-blue-800"
-                                                    title="Edit"
-                                                >
-                                                    <Edit />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(subject.id, 'subjects')}
-                                                    className="text-red-500 hover:text-red-700"
-                                                    title="Delete"
-                                                >
-                                                    <Trash />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">No subjects found matching your criteria.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                );
-            case 'topics':
-                const filteredTopics = getFilteredData();
-                return (
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-800">Topics (Modules)</h2>
-                            <button
-                                onClick={() => handleCreate('topics')}
-                                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
-                            >
-                                <Plus className="mr-2" /> Add Topic
-                            </button>
-                        </div>
-                        <div className="mb-4 flex flex-col md:flex-row gap-4">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    placeholder="Search topics by title..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
-                                />
-                            </div>
-                            <div className="relative min-w-[200px]">
-                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                <select 
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
-                                    value={filterSubject}
-                                    onChange={(e) => setFilterSubject(e.target.value)}
-                                >
-                                    <option value="">All Subjects</option>
-                                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
-                            {/* Group topics by subject or show flat list with subject column */}
-                            <table className="w-full text-left text-sm text-slate-600">
-                                <thead className="bg-slate-50 border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-6 py-4 font-semibold">Title</th>
-                                        <th className="px-6 py-4 font-semibold">Subject</th>
-                                        <th className="px-6 py-4 font-semibold">Order</th>
-                                        <th className="px-6 py-4 font-semibold text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {filteredTopics.length > 0 ? filteredTopics.map((topic) => (
-                                        <tr key={topic.id} className="hover:bg-slate-50/50">
-                                            <td className="px-6 py-4 font-medium text-slate-900">{topic.title}</td>
-                                            <td className="px-6 py-4 font-mono text-xs text-slate-500">
-                                                {subjects.find(s => s.id === topic.subject_id)?.name || topic.subject_id}
-                                            </td>
-                                            <td className="px-6 py-4">{topic.order}</td>
-                                            <td className="px-6 py-4 text-right space-x-2">
-                                                <button
-                                                    onClick={() => handleEdit(topic, 'topics')}
-                                                    className="text-blue-600 hover:text-blue-800"
-                                                    title="Edit"
-                                                >
-                                                    <Edit />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(topic.id, 'topics')}
-                                                    className="text-red-500 hover:text-red-700"
-                                                    title="Delete"
-                                                >
-                                                    <Trash />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr><td colSpan="4" className="px-6 py-8 text-center text-slate-500">No topics found matching your criteria.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                );
-            case 'papers':
-                const filteredPapers = getFilteredData();
-                const availableYears = [...new Set(data.map(p => p.year))].sort((a,b) => b - a);
-                return (
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-800">Past Papers</h2>
-                            <button
-                                onClick={() => handleCreate('papers')}
-                                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
-                            >
-                                <Plus className="mr-2" /> Add Paper
-                            </button>
-                        </div>
-                        <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="relative md:col-span-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                <input
-                                    type="text"
-                                    placeholder="Search papers..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
-                                />
-                            </div>
-                            <div className="relative">
-                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                <select 
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
-                                    value={filterSubject}
-                                    onChange={(e) => setFilterSubject(e.target.value)}
-                                >
-                                    <option value="">All Subjects</option>
-                                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
-                            </div>
-                            <div className="relative">
-                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                <select 
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
-                                    value={filterExamType}
-                                    onChange={(e) => setFilterExamType(e.target.value)}
-                                >
-                                    <option value="">All Exam Types</option>
-                                    <option value="WAEC">WAEC</option>
-                                    <option value="JAMB">JAMB</option>
-                                    <option value="NECO">NECO</option>
-                                </select>
-                            </div>
-                            <div className="relative">
-                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                                <select 
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
-                                    value={filterYear}
-                                    onChange={(e) => setFilterYear(e.target.value)}
-                                >
-                                    <option value="">All Years</option>
-                                    {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-                                </select>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
-                            <table className="w-full text-left text-sm text-slate-600">
-                                <thead className="bg-slate-50 border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-6 py-4 font-semibold">Title</th>
-                                        <th className="px-6 py-4 font-semibold">Subject</th>
-                                        <th className="px-6 py-4 font-semibold">Year</th>
-                                        <th className="px-6 py-4 font-semibold">Type</th>
-                                        <th className="px-6 py-4 font-semibold text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {filteredPapers.length > 0 ? filteredPapers.map((paper) => (
-                                        <tr key={paper.id} className="hover:bg-slate-50/50">
-                                            <td className="px-6 py-4 font-medium text-slate-900">{paper.title}</td>
-                                            <td className="px-6 py-4 font-mono text-xs text-slate-500">
-                                                {subjects.find(s => s.id === paper.subject_id)?.name || paper.subject_id}
-                                            </td>
-                                            <td className="px-6 py-4">{paper.year}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${paper.exam_type === 'WAEC' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
-                                                    }`}>
-                                                    {paper.exam_type}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right space-x-2">
-                                                <button
-                                                    onClick={() => handleManageDiagrams(paper)}
-                                                    className="text-green-600 hover:text-green-800"
-                                                    title="Manage Diagrams"
-                                                >
-                                                    <ImageIcon />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(paper, 'papers')}
-                                                    className="text-blue-600 hover:text-blue-800"
-                                                    title="Edit"
-                                                >
-                                                    <Edit />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(paper.id, 'papers')}
-                                                    className="text-red-500 hover:text-red-700"
-                                                    title="Delete"
-                                                >
-                                                    <Trash />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-500">No papers found matching your criteria.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                );
-            case 'diagrams':
-                return (
-                    <GlobalDiagramManager 
-                        papers={data} 
-                        accessToken={accessToken} 
-                        onUploadSuccess={fetchDataSilently} 
-                    />
-                );
-            case 'admins':
-                const filteredAdmins = getFilteredData();
-                return (
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-800">Administrators & Users</h2>
-                            <button
-                                onClick={() => handleCreate('users')} // Reuse handleCreate with 'users' type
-                                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
-                            >
-                                <Plus className="mr-2" /> Add Administrator
-                            </button>
-                        </div>
-                        <div className="mb-4 relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                            <input
-                                type="text"
-                                placeholder="Search users by username or email..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
-                            />
-                        </div>
-                        <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
-                            <table className="w-full text-left text-sm text-slate-600">
-                                <thead className="bg-slate-50 border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-6 py-4 font-semibold">Email</th>
-                                        <th className="px-6 py-4 font-semibold">Username</th>
-                                        <th className="px-6 py-4 font-semibold">Role</th>
-                                        <th className="px-6 py-4 font-semibold">Status</th>
-                                        <th className="px-6 py-4 font-semibold text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {filteredAdmins.length > 0 ? filteredAdmins.map((u) => (
-                                        <tr key={u.id} className="hover:bg-slate-50/50">
-                                            <td className="px-6 py-4 font-medium text-slate-900">{u.email}</td>
-                                            <td className="px-6 py-4 text-slate-600">{u.username}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'
-                                                    }`}>
-                                                    {u.role}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${u.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                                    }`}>
-                                                    {u.is_active ? 'Active' : 'Inactive'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right space-x-2">
-                                                {u.email !== user.email && (
-                                                    <button
-                                                        onClick={() => handleRoleUpdate(u.id, u.role === 'admin' ? 'user' : 'admin')}
-                                                        className={`text-xs font-bold px-3 py-1 rounded border ${u.role === 'admin'
-                                                            ? 'border-red-200 text-red-600 hover:bg-red-50'
-                                                            : 'border-purple-200 text-purple-600 hover:bg-purple-50'
-                                                            }`}
-                                                    >
-                                                        {u.role === 'admin' ? 'Demote' : 'Promote'}
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr><td colSpan="5" className="px-6 py-8 text-center text-slate-500">No users found matching your search.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                );
-            default:
-                return <div>Select a category</div>;
-        }
-    };
+  const renderModal = () => {
+    if (!isEditorOpen) return null;
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
-            <Navbar />
-            <div className="container mx-auto px-4 py-24 flex-grow flex gap-8">
-                {/* Sidebar */}
-                <div className="w-64 flex-shrink-0">
-                    <div className="bg-white rounded-md shadow-sm border border-slate-100 p-4 sticky top-24">
-                        <div className="mb-6 px-2">
-                            <h1 className="text-xl font-bold text-slate-900">Admin Panel</h1>
-                            <p className="text-sm text-slate-500">Manage your content</p>
-                        </div>
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-md shadow-2xl w-full max-w-lg p-6 animate-fade-in relative">
+          <button
+            onClick={() => setIsEditorOpen(false)}
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+          >
+            <X />
+          </button>
+          <h3 className="text-xl font-bold text-slate-900 mb-6">
+            {editorMode === "create" ? "Add New" : "Edit"}{" "}
+            {editType === "subjects" ? "Subject" : "Paper"}
+          </h3>
 
-                        <nav className="space-y-1">
-                            <button
-                                onClick={() => setActiveTab('subjects')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'subjects'
-                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
-                            >
-                                <Layers className="mr-3" /> Subjects
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('topics')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'topics'
-                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
-                            >
-                                <Book className="mr-3" /> Topics
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('papers')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'papers'
-                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
-                            >
-                                <FileText className="mr-3" /> Past Papers
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('diagrams')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'diagrams'
-                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
-                            >
-                                <ImageIcon className="mr-3" /> Diagrams
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('admins')}
-                                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'admins'
-                                    ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
-                            >
-                                <ShieldAlert className="mr-3" /> Administrators
-                            </button>
-                        </nav>
-                    </div>
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            {editType === "subjects" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.name || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    required
+                  />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.description || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    rows="3"
+                  />
+                </div>
+              </>
+            )}
 
-                {/* Main Content */}
-                <div className="flex-grow">
-                    {renderContent()}
+            {editType === "topics" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.title || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    placeholder="e.g. Intro to Algebra"
+                    required
+                  />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Subject
+                    </label>
+                    <select
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                      value={formData.subject_id || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subject_id: e.target.value })
+                      }
+                      required
+                    >
+                      <option value="">Select a Subject</option>
+                      {subjects.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Order
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                      value={formData.order || 1}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          order: parseInt(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Content
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowContentEditor(true)}
+                      className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md text-sm font-medium flex items-center border border-slate-300"
+                    >
+                      <Edit className="mr-2" /> Open Content Editor
+                    </button>
+                    <span className="text-xs text-slate-500">
+                      {formData.summary_content
+                        ? `${formData.summary_content.length} characters`
+                        : "No content"}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+            {editType === "users" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.username || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, username: e.target.value })
+                    }
+                    placeholder="unique_username"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.email || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    placeholder="user@example.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.password || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    placeholder="******"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Role
+                  </label>
+                  <select
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.role || "admin"}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value })
+                    }
+                  >
+                    <option value="admin">Administrator</option>
+                    <option value="user">User</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {editType === "papers" && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.title || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    placeholder="e.g. Mathematics 2024"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Year
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                      value={formData.year || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, year: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Exam Type
+                    </label>
+                    <select
+                      className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                      value={formData.exam_type || "WAEC"}
+                      onChange={(e) =>
+                        setFormData({ ...formData, exam_type: e.target.value })
+                      }
+                    >
+                      <option value="WAEC">WAEC</option>
+                      <option value="JAMB">JAMB</option>
+                      <option value="NECO">NECO</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Subject
+                  </label>
+                  <select
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                    value={formData.subject_id || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, subject_id: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="">Select a Subject</option>
+                    {subjects.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Duration (Minutes)
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                    value={formData.duration_minutes || 60}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        duration_minutes: parseInt(e.target.value),
+                      })
+                    }
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Content
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowContentEditor(true)}
+                      className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md text-sm font-medium flex items-center border border-slate-300"
+                    >
+                      <Edit className="mr-2" /> Open Content Editor
+                    </button>
+                    <span className="text-xs text-slate-500">
+                      {formData.content
+                        ? `${formData.content.length} characters`
+                        : "No content"}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setIsEditorOpen(false)}
+                className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-md transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-md shadow-md transition-colors font-bold"
+              >
+                {editorMode === "create" ? "Create" : "Save Changes"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  const getFilteredData = () => {
+    let filtered = data;
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (item) =>
+          (item.title && item.title.toLowerCase().includes(query)) ||
+          (item.name && item.name.toLowerCase().includes(query)) ||
+          (item.username && item.username.toLowerCase().includes(query)) ||
+          (item.email && item.email.toLowerCase().includes(query)),
+      );
+    }
+
+    if (activeTab === "topics" && filterSubject) {
+      filtered = filtered.filter((item) => item.subject_id === filterSubject);
+    }
+
+    if (activeTab === "papers") {
+      if (filterSubject)
+        filtered = filtered.filter((item) => item.subject_id === filterSubject);
+      if (filterYear)
+        filtered = filtered.filter((item) => item.year === filterYear);
+      if (filterExamType)
+        filtered = filtered.filter((item) => item.exam_type === filterExamType);
+    }
+
+    return filtered;
+  };
+
+  const renderContent = () => {
+    if (loading)
+      return <div className="p-8 text-center text-slate-500">Loading...</div>;
+    if (error)
+      return <div className="p-8 text-center text-red-500">{error}</div>;
+
+    switch (activeTab) {
+      case "subjects": {
+        const filteredSubjects = getFilteredData();
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-slate-800">Subjects</h2>
+              <button
+                onClick={() => handleCreate("subjects")}
+                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
+              >
+                <Plus className="mr-2" /> Add Subject
+              </button>
+            </div>
+            <div className="mb-4 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search subjects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
+              />
+            </div>
+            <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Name</th>
+                    <th className="px-6 py-4 font-semibold">ID</th>
+                    <th className="px-6 py-4 font-semibold">Papers</th>
+                    <th className="px-6 py-4 font-semibold text-right">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredSubjects.length > 0 ? (
+                    filteredSubjects.map((subject) => (
+                      <tr key={subject.id} className="hover:bg-slate-50/50">
+                        <td className="px-6 py-4 font-medium text-slate-900">
+                          {subject.name}
+                        </td>
+                        <td className="px-6 py-4 font-mono text-xs text-slate-400">
+                          {subject.id}
+                        </td>
+                        <td className="px-6 py-4">
+                          {subject.papers?.length || 0}
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleEdit(subject, "subjects")}
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Edit"
+                          >
+                            <Edit />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(subject.id, "subjects")}
+                            className="text-red-500 hover:text-red-700"
+                            title="Delete"
+                          >
+                            <Trash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
+                        No subjects found matching your criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      }
+      case "topics": {
+        const filteredTopics = getFilteredData();
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-slate-800">
+                Topics (Modules)
+              </h2>
+              <button
+                onClick={() => handleCreate("topics")}
+                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
+              >
+                <Plus className="mr-2" /> Add Topic
+              </button>
+            </div>
+            <div className="mb-4 flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search topics by title..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
+                />
+              </div>
+              <div className="relative min-w-[200px]">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <select
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
+                  value={filterSubject}
+                  onChange={(e) => setFilterSubject(e.target.value)}
+                >
+                  <option value="">All Subjects</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Title</th>
+                    <th className="px-6 py-4 font-semibold">Subject</th>
+                    <th className="px-6 py-4 font-semibold">Order</th>
+                    <th className="px-6 py-4 font-semibold text-right">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredTopics.length > 0 ? (
+                    filteredTopics.map((topic) => (
+                      <tr key={topic.id} className="hover:bg-slate-50/50">
+                        <td className="px-6 py-4 font-medium text-slate-900">
+                          {topic.title}
+                        </td>
+                        <td className="px-6 py-4 font-mono text-xs text-slate-500">
+                          {subjects.find((s) => s.id === topic.subject_id)
+                            ?.name || topic.subject_id}
+                        </td>
+                        <td className="px-6 py-4">{topic.order}</td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleEdit(topic, "topics")}
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Edit"
+                          >
+                            <Edit />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(topic.id, "topics")}
+                            className="text-red-500 hover:text-red-700"
+                            title="Delete"
+                          >
+                            <Trash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
+                        No topics found matching your criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      }
+      case "papers": {
+        const filteredPapers = getFilteredData();
+        const availableYears = [...new Set(data.map((p) => p.year))].sort(
+          (a, b) => b - a,
+        );
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-slate-800">Past Papers</h2>
+              <button
+                onClick={() => handleCreate("papers")}
+                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
+              >
+                <Plus className="mr-2" /> Add Paper
+              </button>
+            </div>
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative md:col-span-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search papers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
+                />
+              </div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <select
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
+                  value={filterSubject}
+                  onChange={(e) => setFilterSubject(e.target.value)}
+                >
+                  <option value="">All Subjects</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <select
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
+                  value={filterExamType}
+                  onChange={(e) => setFilterExamType(e.target.value)}
+                >
+                  <option value="">All Exam Types</option>
+                  <option value="WAEC">WAEC</option>
+                  <option value="JAMB">JAMB</option>
+                  <option value="NECO">NECO</option>
+                </select>
+              </div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <select
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm appearance-none"
+                  value={filterYear}
+                  onChange={(e) => setFilterYear(e.target.value)}
+                >
+                  <option value="">All Years</option>
+                  {availableYears.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Title</th>
+                    <th className="px-6 py-4 font-semibold">Subject</th>
+                    <th className="px-6 py-4 font-semibold">Year</th>
+                    <th className="px-6 py-4 font-semibold">Type</th>
+                    <th className="px-6 py-4 font-semibold text-right">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredPapers.length > 0 ? (
+                    filteredPapers.map((paper) => (
+                      <tr key={paper.id} className="hover:bg-slate-50/50">
+                        <td className="px-6 py-4 font-medium text-slate-900">
+                          {paper.title}
+                        </td>
+                        <td className="px-6 py-4 font-mono text-xs text-slate-500">
+                          {subjects.find((s) => s.id === paper.subject_id)
+                            ?.name || paper.subject_id}
+                        </td>
+                        <td className="px-6 py-4">{paper.year}</td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-bold ${
+                              paper.exam_type === "WAEC"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-purple-100 text-purple-700"
+                            }`}
+                          >
+                            {paper.exam_type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleManageDiagrams(paper)}
+                            className="text-green-600 hover:text-green-800"
+                            title="Manage Diagrams"
+                          >
+                            <ImageIcon />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(paper, "papers")}
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Edit"
+                          >
+                            <Edit />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(paper.id, "papers")}
+                            className="text-red-500 hover:text-red-700"
+                            title="Delete"
+                          >
+                            <Trash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
+                        No papers found matching your criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      }
+      case "diagrams":
+        return (
+          <GlobalDiagramManager
+            papers={data}
+            accessToken={accessToken}
+            onUploadSuccess={fetchDataSilently}
+          />
+        );
+      case "admins": {
+        const filteredAdmins = getFilteredData();
+        return (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-slate-800">
+                Administrators & Users
+              </h2>
+              <button
+                onClick={() => handleCreate("users")}
+                className="px-4 py-2 bg-primary text-white rounded-md flex items-center text-sm hover:bg-primary-dark"
+              >
+                <Plus className="mr-2" /> Add Administrator
+              </button>
+            </div>
+            <div className="mb-4 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search users by username or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-white shadow-sm"
+              />
+            </div>
+            <div className="bg-white rounded-md shadow-sm border border-slate-100 overflow-hidden">
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Email</th>
+                    <th className="px-6 py-4 font-semibold">Username</th>
+                    <th className="px-6 py-4 font-semibold">Role</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                    <th className="px-6 py-4 font-semibold text-right">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredAdmins.length > 0 ? (
+                    filteredAdmins.map((u) => (
+                      <tr key={u.id} className="hover:bg-slate-50/50">
+                        <td className="px-6 py-4 font-medium text-slate-900">
+                          {u.email}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">
+                          {u.username}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-bold ${
+                              u.role === "admin"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-slate-100 text-slate-700"
+                            }`}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-bold ${
+                              u.is_active
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {u.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          {u.email !== user.email && (
+                            <button
+                              onClick={() =>
+                                handleRoleUpdate(
+                                  u.id,
+                                  u.role === "admin" ? "user" : "admin",
+                                )
+                              }
+                              className={`text-xs font-bold px-3 py-1 rounded border ${
+                                u.role === "admin"
+                                  ? "border-red-200 text-red-600 hover:bg-red-50"
+                                  : "border-purple-200 text-purple-600 hover:bg-purple-50"
+                              }`}
+                            >
+                              {u.role === "admin" ? "Demote" : "Promote"}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="px-6 py-8 text-center text-slate-500"
+                      >
+                        No users found matching your search.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      }
+      default:
+        return <div>Select a category</div>;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Navbar />
+      <div className="container mx-auto px-4 py-24 flex-grow flex gap-8">
+        <div className="w-64 flex-shrink-0">
+          <div className="bg-white rounded-md shadow-sm border border-slate-100 p-4 sticky top-24">
+            <div className="mb-6 px-2">
+              <h1 className="text-xl font-bold text-slate-900">Admin Panel</h1>
+              <p className="text-sm text-slate-500">Manage your content</p>
             </div>
 
-            {renderModal()}
-
-            {/* Full Screen Content Editor Overlay */}
-            {showContentEditor && (
-                <div className="fixed inset-0 bg-white z-[60] flex flex-col animate-fade-in p-4">
-                    <ContentEditor
-                        initialValue={editType === 'topics' ? (formData.summary_content || '') : (formData.content || '')}
-                        title={`Editing: ${formData.title || 'New Item'}`}
-                        enableTikz={editType === 'topics'}
-                        onSave={(content) => {
-                            const fieldName = editType === 'topics' ? 'summary_content' : 'content';
-                            setFormData({ ...formData, [fieldName]: content });
-                            setShowContentEditor(false);
-                        }}
-                        onCancel={() => setShowContentEditor(false)}
-                    />
-                </div>
-            )}
-            
-            <DiagramManagerModal 
-                isOpen={isDiagramManagerOpen}
-                onClose={() => setIsDiagramManagerOpen(false)}
-                paper={selectedPaperForDiagrams}
-                accessToken={accessToken}
-                onDiagramUploaded={handleDiagramUploaded}
-            />
-
-            <Footer />
+            <nav className="space-y-1">
+              <button
+                onClick={() => setActiveTab("subjects")}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "subjects"
+                    ? "bg-primary text-white shadow-md shadow-primary/30"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <Layers className="mr-3" /> Subjects
+              </button>
+              <button
+                onClick={() => setActiveTab("topics")}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "topics"
+                    ? "bg-primary text-white shadow-md shadow-primary/30"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <Book className="mr-3" /> Topics
+              </button>
+              <button
+                onClick={() => setActiveTab("papers")}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "papers"
+                    ? "bg-primary text-white shadow-md shadow-primary/30"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <FileText className="mr-3" /> Past Papers
+              </button>
+              <button
+                onClick={() => setActiveTab("diagrams")}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "diagrams"
+                    ? "bg-primary text-white shadow-md shadow-primary/30"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <ImageIcon className="mr-3" /> Diagrams
+              </button>
+              <button
+                onClick={() => setActiveTab("admins")}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
+                  activeTab === "admins"
+                    ? "bg-primary text-white shadow-md shadow-primary/30"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <ShieldAlert className="mr-3" /> Administrators
+              </button>
+            </nav>
+          </div>
         </div>
-    );
+
+        <div className="flex-grow">{renderContent()}</div>
+      </div>
+
+      {renderModal()}
+
+      {showContentEditor && (
+        <div className="fixed inset-0 bg-white z-[60] flex flex-col animate-fade-in p-4">
+          <ContentEditor
+            initialValue={
+              editType === "topics"
+                ? formData.summary_content || ""
+                : formData.content || ""
+            }
+            title={`Editing: ${formData.title || "New Item"}`}
+            enableTikz={editType === "topics"}
+            onSave={(content) => {
+              const fieldName =
+                editType === "topics" ? "summary_content" : "content";
+              setFormData({ ...formData, [fieldName]: content });
+              setShowContentEditor(false);
+            }}
+            onCancel={() => setShowContentEditor(false)}
+          />
+        </div>
+      )}
+
+      <DiagramManagerModal
+        isOpen={isDiagramManagerOpen}
+        onClose={() => setIsDiagramManagerOpen(false)}
+        paper={selectedPaperForDiagrams}
+        accessToken={accessToken}
+        onDiagramUploaded={handleDiagramUploaded}
+      />
+
+      <Footer />
+    </div>
+  );
 };
 
 export default AdminDashboard;

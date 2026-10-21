@@ -2,6 +2,7 @@
 WebSocket connection manager for real-time messaging.
 Handles connection tracking, message broadcasting, and online user tracking.
 """
+
 from typing import Dict, Iterable, List, Optional, Set
 from fastapi import WebSocket
 
@@ -10,7 +11,7 @@ class ConnectionManager:
     """Manages WebSocket connections for real-time messaging."""
 
     def __init__(self):
-        # Map of user_id -> all of that user's open sockets (one per tab/device)
+
         self.active_connections: Dict[str, Set[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, user_id: str):
@@ -18,12 +19,11 @@ class ConnectionManager:
         await websocket.accept()
         first_connection = user_id not in self.active_connections
         self.active_connections.setdefault(user_id, set()).add(websocket)
-        # Broadcast online status only when the user goes from offline -> online
+
         if first_connection:
-            await self.broadcast_all({
-                "type": "user_online",
-                "user_id": user_id
-            }, exclude_user=user_id)
+            await self.broadcast_all(
+                {"type": "user_online", "user_id": user_id}, exclude_user=user_id
+            )
 
     async def disconnect(self, user_id: str, websocket: Optional[WebSocket] = None):
         """Remove one of a user's WebSocket connections (or all of them if none given)."""
@@ -34,11 +34,8 @@ class ConnectionManager:
             sockets.discard(websocket)
         if websocket is None or not sockets:
             self.active_connections.pop(user_id, None)
-            # Broadcast offline status once the user's last tab closes
-            await self.broadcast_all({
-                "type": "user_offline",
-                "user_id": user_id
-            })
+
+            await self.broadcast_all({"type": "user_offline", "user_id": user_id})
 
     async def _send(self, user_id: str, message: dict):
         """Send to every socket of a user, dropping sockets that fail."""
@@ -76,5 +73,5 @@ class ConnectionManager:
     def online_users_list(self) -> List[str]:
         return list(self.active_connections.keys())
 
-# Global manager instance
+
 manager = ConnectionManager()

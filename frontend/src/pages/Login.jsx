@@ -1,57 +1,58 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../services/progressService';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext.jsx";
+import { API_BASE_URL } from "../services/progressService.js";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
 
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       setIsSubmitting(true);
-      // Send username (or email, backend handles both) directly
+
       const response = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, {
-        username: username, // field is named "username" in backend schema
+        username: username,
         password,
       });
 
       if (response.data.access_token) {
-        // We can store username/email if needed, but token is key
-        localStorage.setItem('userEmail', username);
+        localStorage.setItem("userEmail", username);
         await login(response.data.access_token);
       } else {
-        setError('Login response missing access token.');
+        setError("Login response missing access token.");
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response) {
-          setError(err.response.data.detail || 'Login failed. Please check your credentials.');
+          setError(
+            err.response.data.detail ||
+              "Login failed. Please check your credentials.",
+          );
         } else if (err.request) {
-          setError('No response from server. Please try again later.');
+          setError("No response from server. Please try again later.");
         } else {
-          setError('An unexpected error occurred. Please try again.');
+          setError("An unexpected error occurred. Please try again.");
         }
       } else {
-        setError('An unknown error occurred.');
+        setError("An unknown error occurred.");
       }
-      console.error('Login error:', err);
+      console.error("Login error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -71,13 +72,24 @@ const Login = () => {
             </p>
           </div>
 
-          {error && <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">{error}</div>}
-          {success && <div className="p-3 rounded-md bg-green-50 text-green-600 text-sm font-medium text-center border border-green-100">{success}</div>}
+          {error && (
+            <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-3 rounded-md bg-green-50 text-green-600 text-sm font-medium text-center border border-green-100">
+              {success}
+            </div>
+          )}
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-5">
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1">
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-slate-700 mb-1"
+                >
                   Username
                 </label>
                 <input
@@ -92,7 +104,10 @@ const Login = () => {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-slate-700 mb-1"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -120,7 +135,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm transition-all transform hover:-translate-y-0.5 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm transition-all transform hover:-translate-y-0.5 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
@@ -128,15 +143,18 @@ const Login = () => {
                     Signing in...
                   </span>
                 ) : (
-                  'Sign In'
+                  "Sign In"
                 )}
               </button>
             </div>
           </form>
 
           <p className="mt-4 text-center text-sm text-slate-600">
-            Don't have an account?{' '}
-            <Link to="/onboarding" className="font-medium text-primary hover:text-primary-dark transition-colors">
+            Don't have an account?{" "}
+            <Link
+              to="/onboarding"
+              className="font-medium text-primary hover:text-primary-dark transition-colors"
+            >
               Register now
             </Link>
           </p>

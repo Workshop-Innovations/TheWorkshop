@@ -1,22 +1,22 @@
+from ..schemas.users import UserCreateAdmin
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
+from sqlalchemy.exc import IntegrityError
 from typing import List
 from uuid import uuid4
 from ..database import get_session
-from ..schemas import User, UserResponse, UserUpdate
+from ..models import User
+from ..schemas import UserResponse, UserUpdate
 from ..dependencies import get_current_admin_user, get_current_user
 from ..utils import get_password_hash
-from pydantic import BaseModel, EmailStr
 
-router = APIRouter(
-    prefix="/api/v1/users",
-    tags=["users"]
-)
+router = APIRouter(prefix="/api/v1/users", tags=["users"])
+
 
 @router.get("/", response_model=List[UserResponse], summary="List all users (Admin)")
 async def list_users(
     session: Session = Depends(get_session),
-    current_admin: User = Depends(get_current_admin_user)
+    current_admin: User = Depends(get_current_admin_user),
 ):
     """
     List all users. Only accessible by admins.
@@ -24,20 +24,22 @@ async def list_users(
     users = session.exec(select(User)).all()
     return users
 
+
 @router.patch("/me", response_model=UserResponse, summary="Update current user profile")
 async def update_current_user(
     user_update: UserUpdate,
     session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
     """
     Update the current user's profile information.
     """
     user_data = user_update.model_dump(exclude_unset=True)
 
-    # Unique columns: return a clean 409 instead of an IntegrityError 500
     if user_data.get("username") and user_data["username"] != current_user.username:
-        if session.exec(select(User).where(User.username == user_data["username"])).first():
+        if session.exec(
+            select(User).where(User.username == user_data["username"])
+        ).first():
             raise HTTPException(status_code=409, detail="Username already taken")
     if user_data.get("email") and user_data["email"] != current_user.email:
         if session.exec(select(User).where(User.email == user_data["email"])).first():
@@ -45,18 +47,27 @@ async def update_current_user(
 
     for key, value in user_data.items():
         setattr(current_user, key, value)
-    
+
     session.add(current_user)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=409, detail="Username or email already registered"
+        )
     session.refresh(current_user)
     return current_user
 
-@router.put("/{user_id}/role", response_model=UserResponse, summary="Update user role (Admin)")
+
+@router.put(
+    "/{user_id}/role", response_model=UserResponse, summary="Update user role (Admin)"
+)
 async def update_user_role(
     user_id: str,
     role: str,
     session: Session = Depends(get_session),
-    current_admin: User = Depends(get_current_admin_user)
+    current_admin: User = Depends(get_current_admin_user),
 ):
     """
     Update a user's role (e.g. 'admin', 'user'). Only accessible by admins.
@@ -64,40 +75,48 @@ async def update_user_role(
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     if role not in ["admin", "user"]:
-        raise HTTPException(status_code=400, detail="Invalid role. Must be 'admin' or 'user'")
-        
+        raise HTTPException(
+            status_code=400, detail="Invalid role. Must be 'admin' or 'user'"
+        )
+
     user.role = role
     session.add(user)
     session.commit()
     session.refresh(user)
     return user
 
-class UserCreateAdmin(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    role: str = "user"
 
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED, summary="Create a new user (Admin)")
+@router.post(
+    "/",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new user (Admin)",
+)
 async def create_user(
     user_in: UserCreateAdmin,
     session: Session = Depends(get_session),
-    current_admin: User = Depends(get_current_admin_user)
+    current_admin: User = Depends(get_current_admin_user),
 ):
     """
     Create a new user with a specific role. Only accessible by admins.
     """
-    # Check if username or email exists
-    existing_user = session.exec(select(User).where(
-        (User.email == user_in.email) | (User.username == user_in.username)
-    )).first()
+
+    existing_user = session.exec(
+        select(User).where(
+            (User.email == user_in.email) | (User.username == user_in.username)
+        )
+    ).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="Username or Email already registered")
+        raise HTTPException(
+            status_code=400, detail="Username or Email already registered"
+        )
 
     if user_in.role not in ["admin", "user"]:
-        raise HTTPException(status_code=400, detail="Invalid role. Must be 'admin' or 'user'")
+        raise HTTPException(
+            status_code=400, detail="Invalid role. Must be 'admin' or 'user'"
+        )
 
     hashed_password = get_password_hash(user_in.password)
     user = User(
@@ -106,7 +125,7 @@ async def create_user(
         email=user_in.email,
         hashed_password=hashed_password,
         role=user_in.role,
-        is_active=True
+        is_active=True,
     )
     session.add(user)
     session.commit()

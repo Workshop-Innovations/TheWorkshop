@@ -1,223 +1,240 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
-  BookOpen, Bot, Users, Clock, ArrowRight,
-  CheckCircle2, Star, ChevronDown, ChevronUp, Sparkles
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+  ArrowRight,
+  BookOpen,
+  Clock,
+  Layers,
+  MessageSquare,
+  Check,
+  ArrowUpRight,
+} from "lucide-react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
 
-const Landing = () => {
+const tools = [
+  {
+    name: "Past papers",
+    description:
+      "Find a paper, work through the questions and review your answers.",
+    to: "/past-papers",
+    icon: BookOpen,
+    label: "Practice with purpose",
+  },
+  {
+    name: "Study suite",
+    description:
+      "Bring your notes together with explanations, quizzes and flashcards.",
+    to: "/study-suite",
+    icon: Layers,
+    label: "Understand the topic",
+  },
+  {
+    name: "Focus timer",
+    description:
+      "Set aside a distraction-free session and build a record of your effort.",
+    to: "/pomodoro",
+    icon: Clock,
+    label: "Make time to learn",
+  },
+  {
+    name: "Study community",
+    description:
+      "Discuss difficult questions and prepare alongside other learners.",
+    to: "/community",
+    icon: MessageSquare,
+    label: "Work it out together",
+  },
+];
+
+export default function Landing() {
   return (
-    <div className="min-h-screen w-full flex flex-col bg-slate-50 font-sans">
+    <div className="min-h-screen bg-white text-slate-900">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] bg-white p-3 rounded-lg"
+      >
+        Skip to content
+      </a>
       <Navbar />
-
-      {/* --- HERO SECTION --- */}
-      <section className="relative min-h-[calc(100dvh-1px)] pt-32 pb-24 px-6 flex items-center bg-white">
-
-        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16 relative z-10">
+      <main id="main-content">
+        <section className="relative overflow-hidden border-b border-slate-200 bg-[#f6f9fb] pt-32 pb-16 sm:pt-40 sm:pb-24">
           <div
-            className="w-full flex-1 text-center lg:text-left"
-          >
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 leading-[1.1] tracking-tighter mb-6">
-              Clear Explanations.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Actual Past Papers.</span>
-            </h1>
-
-            <p className="text-lg text-slate-500 mb-10 max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed tracking-tight">
-              A beautifully structured platform for serious students. Access verified past papers, detailed solutions, and focused study tools without the clutter.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <Link to="/onboarding" className="w-full sm:w-auto px-8 py-3.5 bg-primary text-white text-sm font-bold rounded-md shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
-                Start Practicing
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link to="/dashboard" className="w-full sm:w-auto px-8 py-3.5 bg-white text-slate-700 text-sm font-bold rounded-md shadow-sm border border-slate-200 hover:bg-slate-50 hover:shadow-md transition-all flex items-center justify-center active:scale-95">
-                View Features
-              </Link>
-            </div>
-          </div>
-
-          {/* Soft Premium Hero Visual */}
-          <div
-            className="hidden lg:block w-full flex-1 max-w-lg mx-auto lg:mx-0"
-          >
-            <div className="w-full bg-white/80 backdrop-blur-xl border border-white/50 p-8 rounded-md shadow-2xl shadow-slate-200/50">
-              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-                <div>
-                  <h3 className="font-extrabold text-slate-800 tracking-tight text-lg">Recent Papers</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] mt-1">Updated Today</p>
-                </div>
+            className="absolute right-0 top-0 h-full w-1/3 bg-teal-50/60 pointer-events-none"
+            aria-hidden="true"
+          />
+          <div className="relative max-w-7xl mx-auto px-5 sm:px-8 grid lg:grid-cols-[1.15fr_1fr] items-center gap-12 lg:gap-20">
+            <div>
+              <p className="text-xs font-bold tracking-[0.2em] uppercase text-teal-700 mb-6">
+                Your space to learn
+              </p>
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.07] max-w-2xl">
+                Less scattered.
+                <br />
+                <span className="text-primary">More prepared.</span>
+              </h1>
+              <p className="mt-7 text-lg leading-relaxed text-slate-600 max-w-xl">
+                Turn your next study session into a clear next step. Practice
+                past questions, understand your notes and make time for focused
+                work.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                <Link
+                  to="/register"
+                  className="inline-flex justify-center items-center gap-3 rounded-lg bg-primary text-white py-4 px-6 font-semibold hover:bg-primary-dark"
+                >
+                  Start studying <ArrowRight size={18} />
+                </Link>
+                <a
+                  href="#study-tools"
+                  className="inline-flex justify-center items-center gap-3 rounded-lg border border-slate-300 bg-white py-4 px-6 font-semibold text-slate-700 hover:border-primary"
+                >
+                  Explore the tools
+                </a>
               </div>
-              <div className="space-y-3">
+              <p className="mt-5 text-sm text-slate-500">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="font-semibold text-primary underline underline-offset-4"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-xl shadow-primary/5 overflow-hidden">
+              <div className="px-6 sm:px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+                <span className="font-bold text-lg">A session with a plan</span>
+                <BookOpen size={22} className="text-teal-600" />
+              </div>
+              <ol className="p-6 sm:p-8 space-y-7">
                 {[
-                  "WAEC Mathematics 2023",
-                  "UTME Physics 2022",
-                  "NECO English Language 2021"
-                ].map((examStr, i) => (
-                  <Link to="/onboarding" key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-md border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer group hover:shadow-sm">
-                    <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{examStr}</span>
-                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
-                  </Link>
+                  [
+                    "01",
+                    "Choose one topic",
+                    "Start with the part you want to understand.",
+                  ],
+                  [
+                    "02",
+                    "Give it your attention",
+                    "Open your notes or a paper. Set a focus timer.",
+                  ],
+                  [
+                    "03",
+                    "Check what you learned",
+                    "Review your answers and revisit the difficult parts.",
+                  ],
+                ].map(([number, title, description]) => (
+                  <li key={number} className="flex gap-4">
+                    <span className="shrink-0 grid place-items-center w-10 h-10 rounded-lg bg-slate-100 text-primary text-sm font-bold">
+                      {number}
+                    </span>
+                    <div>
+                      <h2 className="font-bold text-base">{title}</h2>
+                      <p className="mt-1 text-sm text-slate-500 leading-relaxed">
+                        {description}
+                      </p>
+                    </div>
+                  </li>
                 ))}
+              </ol>
+              <div className="px-6 sm:px-8 py-5 bg-primary text-white flex items-center gap-3 text-sm">
+                <Check size={18} className="text-teal-300" /> Small steps.
+                Steady progress.
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* --- PROBLEM / SOLUTION --- */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter mb-4">
-              Built for <span className="text-primary">focus.</span>
+        </section>
+        <section
+          id="study-tools"
+          className="max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-24 scroll-mt-24"
+        >
+          <div className="max-w-2xl mb-10">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-teal-700 mb-4">
+              Built around your study session
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+              The tools you need.
+              <br />
+              One place to return to.
             </h2>
-            <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium tracking-tight">
-              We eliminated distractions to provide a straightforward learning experience, wrapped in a premium interface.
+            <p className="text-slate-500 leading-relaxed mt-5">
+              Move from practice to understanding, then make a little more
+              progress tomorrow.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { title: "Structured Material", icon: <BookOpen className="w-7 h-7" />, desc: "Verified past papers and standardized solutions in one place.", solve: "Organized Library", color: "text-primary", bg: "bg-primary/10" },
-              { title: "Direct Answers", icon: <Bot className="w-7 h-7" />, desc: "Get straight-to-the-point explanations for complex problems.", solve: "Study Suite", color: "text-accent", bg: "bg-accent/10" },
-              { title: "No Distractions", icon: <Clock className="w-7 h-7" />, desc: "Built-in tools to manage your time and track actual progress.", solve: "Focus Timer", color: "text-slate-600", bg: "bg-slate-100" }
-            ].map((item, i) => (
-              <div key={i} className="p-8 bg-slate-50 rounded-md border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all card">
-                <h3 className="text-xl font-extrabold text-slate-800 mb-3 tracking-tight">{item.title}</h3>
-                <p className="text-sm text-slate-500 font-medium mb-8 leading-relaxed">{item.desc}</p>
-                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                  {item.solve}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {tools.map(({ name, description, to, icon: Icon, label }) => (
+              <Link
+                key={to}
+                to={to}
+                className="group rounded-xl border border-slate-200 p-6 hover:border-primary/40 hover:shadow-md transition-shadow"
+              >
+                <div className="flex justify-between items-center mb-8">
+                  <Icon size={24} className="text-primary" />
+                  <ArrowUpRight
+                    size={18}
+                    className="text-slate-400 group-hover:text-primary"
+                  />
                 </div>
-              </div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-teal-700 mb-2">
+                  {label}
+                </p>
+                <h3 className="text-xl font-bold">{name}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                  {description}
+                </p>
+              </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* --- FEATURE DEEP DIVES --- */}
-      <section className="py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-5">Verified Past Papers</h2>
-            <p className="text-lg text-slate-500 mb-8 leading-relaxed font-medium">
-              Stop relying on incomplete or blurry documents. Access a highly organized database of past examinations, complete with standardized marking schemes.
-            </p>
-            <ul className="space-y-4">
-              {['WAEC & JAMB Archives', 'Standardized Memos', 'Offline Access', 'Topic-based Search'].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-slate-700 font-bold text-base tracking-tight">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                  </div>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 border border-slate-100">
-            <div className="border-b border-slate-100 pb-5 mb-5 flex justify-between items-center">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Document Database</span>
-              <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">v1.2.0</span>
+        </section>
+        <section className="bg-primary text-white">
+          <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14 sm:py-20 grid md:grid-cols-[1fr_auto] gap-8 items-center">
+            <div>
+              <p className="text-teal-200 text-sm font-semibold mb-3">
+                Make room for what matters
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                Your next session starts here.
+              </h2>
+              <p className="text-white/70 mt-4 max-w-xl leading-relaxed">
+                You don’t need to do everything today. Choose one thing and give
+                it your attention.
+              </p>
             </div>
-            <div className="space-y-3">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-14 bg-slate-50 rounded-md border border-transparent flex items-center px-5">
-                  <div className="w-1/2 h-2 bg-slate-200 rounded-full"></div>
-                </div>
-              ))}
-            </div>
+            <Link
+              to="/register"
+              className="inline-flex justify-center items-center gap-3 rounded-lg bg-white text-primary font-bold px-6 py-4 hover:bg-teal-50"
+            >
+              Create your account <ArrowRight size={18} />
+            </Link>
           </div>
-        </div>
-      </section>
-
-      {/* --- HOW IT WORKS --- */}
-      <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-950" />
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tighter mb-4 text-white">The Process</h2>
-            <p className="text-slate-400 text-lg font-medium tracking-tight">Three steps to access the platform.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { step: "01", title: "Register", desc: "Create an account to save your progress." },
-              { step: "02", title: "Configure", desc: "Set your specific examination boards and subjects." },
-              { step: "03", title: "Execute", desc: "Begin accessing papers and utilizing the study suite." }
-            ].map((item, i) => (
-              <div key={i} className="p-8 flex flex-col items-center text-center bg-slate-800/50 backdrop-blur-md rounded-md border border-slate-700 hover:bg-slate-800 transition-colors">
-                <div className="text-[10px] font-bold text-primary mb-6 tracking-[0.2em] bg-primary/10 inline-block px-3 py-1.5 rounded-full">STEP {item.step}</div>
-                <h3 className="text-xl font-extrabold mb-3 tracking-tight text-white">{item.title}</h3>
-                <p className="text-slate-400 text-base font-medium leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* --- FAQ --- */}
-      <section className="py-24 bg-white">
-        <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl font-black mb-12 text-slate-900 tracking-tighter text-center">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            {[
-              { q: "Is the platform free?", a: "Core features including past paper access are free. Advanced study suite usage requires a subscription." },
-              { q: "Which curriculums are supported?", a: "We support major West African examination boards (WAEC, JAMB) for Grades 10-12." },
-              { q: "Are the marking schemes official?", a: "We provide standardized memos based on official marking guidelines." }
-            ].map((faq, i) => (
-              <FAQItem key={i} question={faq.q} answer={faq.a} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* --- CTA --- */}
-      <section className="py-24 px-6 bg-slate-50 text-center border-t border-slate-100">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-slate-900">Begin Practice.</h2>
-          <p className="text-lg text-slate-500 mb-10 font-medium tracking-tight">Join the standard platform for serious students.</p>
-          <Link to="/onboarding" className="inline-block px-8 py-4 bg-primary text-white text-base font-bold rounded-md shadow-lg shadow-primary/20 hover:bg-primary-dark hover:-translate-y-1 active:scale-95 transition-all">
-            Create Account
-          </Link>
-        </div>
-      </section>
-
+        </section>
+        <section className="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-24">
+          <h2 className="text-3xl font-bold mb-8">Before you get started</h2>
+          {[
+            [
+              "Where should I begin?",
+              "Choose a topic or an exam paper, then set aside a focus session. Your dashboard brings the main tools together.",
+            ],
+            [
+              "Can I study on my phone?",
+              "Yes. The web app adapts to smaller screens, including the collaboration center.",
+            ],
+            [
+              "Do I need AI to use WorkShop?",
+              "No. You can use past papers, revision notes, focus sessions and the community independently. AI features depend on service availability.",
+            ],
+          ].map(([q, a]) => (
+            <details key={q} className="border-b border-slate-200 py-5">
+              <summary className="cursor-pointer font-semibold pr-4">
+                {q}
+              </summary>
+              <p className="text-slate-500 text-sm leading-relaxed mt-4">{a}</p>
+            </details>
+          ))}
+        </section>
+      </main>
       <Footer />
     </div>
   );
-};
-
-// Helper Components
-const FAQItem = ({ question, answer }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <div className="bg-slate-50 rounded-md border border-slate-100 overflow-hidden">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-6 flex items-center justify-between text-left hover:bg-slate-100 transition-colors"
-      >
-        <span className="font-extrabold text-slate-800 tracking-tight text-base">{question}</span>
-        {isOpen ? <ChevronUp className="w-5 h-5 text-slate-400 shrink-0" /> : <ChevronDown className="w-5 h-5 text-slate-400 shrink-0" />}
-      </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="px-6 pb-6 text-slate-500 font-medium text-sm leading-relaxed">
-              {answer}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
 }
-
-export default Landing;

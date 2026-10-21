@@ -1,97 +1,150 @@
-import React, { useMemo } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { User, Mail, Calendar, Trash, Globe } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useState } from "react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
+import { User } from "lucide-react";
+import { useAuth } from "../context/AuthContext.jsx";
 
-const Profile = () => {
-  const { user, profilePic } = useAuth(); // fetch full user object and profile pic from context
-
-  // Fallback for rendering if user data isn't fully loaded yet
-  const displayUser = {
-    username: user?.username || 'User',
-    email: user?.email || 'Loading...',
-    role: user?.role || 'User'
-  };
-
+export default function Profile() {
+  const { user, profilePic, updateProfile } = useAuth();
+  const [username, setUsername] = useState(user.username);
+  const [email, setEmail] = useState(user.email);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const dirty =
+    username.trim() !== user.username || email.trim() !== user.email;
+  const expiryValue = user.subscription_expiry;
+  const expiry = expiryValue
+    ? new Date(
+        /Z$|[+-]\d{2}:\d{2}$/.test(expiryValue)
+          ? expiryValue
+          : `${expiryValue}Z`,
+      )
+    : null;
+  const tier =
+    expiry && expiry < new Date() ? "basic" : user.subscription_tier || "basic";
+  async function save(event) {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+    setSaving(true);
+    try {
+      const updated = await updateProfile({
+        username: username.trim(),
+        email: email.trim(),
+      });
+      setUsername(updated.username);
+      setEmail(updated.email);
+      setSuccess("Your profile has been saved.");
+    } catch (err) {
+      setError(err.message || "Unable to save. Please retry.");
+    } finally {
+      setSaving(false);
+    }
+  }
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+    <div className="min-h-screen bg-[#f6f9fb] text-slate-900">
       <Navbar />
-      <main className="container mx-auto px-4 pt-32 pb-24">
-        <header className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Profile & Settings</h1>
-          <p className="text-slate-500 mt-2 text-lg">Manage your account details and preferences.</p>
+      <main className="max-w-2xl mx-auto px-4 pt-28 pb-20">
+        <header className="mb-8">
+          <h1 className="text-3xl sm:text-4xl font-black">
+            Profile & Settings
+          </h1>
+          <p className="text-slate-500 mt-3">
+            Keep your account details up to date.
+          </p>
         </header>
-
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 mb-8 text-center border border-slate-100">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center border-4 border-blue-100 overflow-hidden relative">
-              {profilePic ? (
-                <img
-                  src={profilePic}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User className="text-4xl text-blue-600" />
-              )}
-            </div>
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900">{displayUser.username}</h2>
-              <p className="text-slate-400 font-medium">{displayUser.email}</p>
-            </div>
-            <div className="flex gap-2 mt-2">
-              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Free Plan</span>
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full capitalize">{displayUser.role}</span>
-            </div>
+        <section className="bg-white rounded-xl border border-slate-200 p-6 sm:p-8 mb-6 flex items-center gap-5">
+          <div className="w-20 h-20 shrink-0 rounded-full bg-blue-50 overflow-hidden grid place-items-center">
+            {profilePic ? (
+              <img
+                src={profilePic}
+                alt="Your profile"
+                width="80"
+                height="80"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="text-primary" size={32} />
+            )}
           </div>
-        </div>
-
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 border border-slate-100">
-          <h2 className="text-2xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">Personal Information</h2>
-          <div className="space-y-6">
-            <div className="flex items-center gap-5 p-4 rounded-md hover:bg-slate-50 transition-colors">
-              <div className="w-12 h-12 rounded-md bg-slate-100 flex items-center justify-center text-slate-500">
-                <User className="text-xl" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Username</p>
-                <p className="text-lg font-semibold text-slate-700">{displayUser.username}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-5 p-4 rounded-md hover:bg-slate-50 transition-colors">
-              <div className="w-12 h-12 rounded-md bg-slate-100 flex items-center justify-center text-slate-500">
-                <Mail className="text-xl" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Email</p>
-                <p className="text-lg font-semibold text-slate-700">{displayUser.email}</p>
-              </div>
-            </div>
+          <div className="min-w-0 break-words">
+            <h2 className="text-xl font-bold">{user.username}</h2>
+            <p className="text-slate-500">{user.email}</p>
+            <p className="mt-2 text-sm capitalize text-primary">
+              {tier} plan · {user.role}
+            </p>
           </div>
-          <button disabled className="mt-8 w-full py-4 bg-slate-200 text-slate-400 rounded-md font-bold cursor-not-allowed">
-            Edit Profile (Coming Soon)
+        </section>
+        <form
+          onSubmit={save}
+          className="bg-white rounded-xl border border-slate-200 p-6 sm:p-8 space-y-5"
+          aria-busy={saving}
+        >
+          <h2 className="text-xl font-bold">Personal information</h2>
+          <div>
+            <label
+              htmlFor="profile-username"
+              className="block font-semibold mb-2"
+            >
+              Username
+            </label>
+            <input
+              id="profile-username"
+              autoComplete="username"
+              required
+              maxLength={50}
+              disabled={saving}
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setSuccess("");
+              }}
+              className="w-full border border-slate-300 rounded-md p-3"
+            />
+          </div>
+          <div>
+            <label htmlFor="profile-email" className="block font-semibold mb-2">
+              Email
+            </label>
+            <input
+              id="profile-email"
+              autoComplete="email"
+              type="email"
+              required
+              maxLength={254}
+              disabled={saving}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setSuccess("");
+              }}
+              className="w-full border border-slate-300 rounded-md p-3"
+            />
+          </div>
+          {error && (
+            <p role="alert" className="text-red-700">
+              {error}
+            </p>
+          )}
+          {success && (
+            <p role="status" className="text-teal-700">
+              {success}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={saving || !dirty}
+            className="w-full bg-primary text-white rounded-md py-3 font-bold disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save changes"}
           </button>
-        </div>
-
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 mt-8 border border-slate-100">
-          <h2 className="text-2xl font-bold mb-6 text-slate-900 border-b border-slate-100 pb-4">Account Actions</h2>
-          <div className="space-y-4">
-            <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-slate-100 text-slate-400 rounded-md font-bold cursor-not-allowed">
-              <Globe className="text-slate-400" />
-              <span>Sync with Google (Coming Soon)</span>
-            </button>
-            <button disabled className="w-full flex items-center justify-center gap-3 py-4 bg-red-50/50 text-red-300 rounded-md font-bold cursor-not-allowed mt-4">
-              <Trash />
-              <span>Delete Account (Coming Soon)</span>
-            </button>
-          </div>
-        </div>
+        </form>
+        <p className="text-sm text-slate-500 mt-5">
+          You can customize your picture and earned rewards from the dashboard.
+        </p>
       </main>
       <Footer />
     </div>
   );
-};
-
-export default Profile;
-
+}

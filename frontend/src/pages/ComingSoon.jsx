@@ -1,6 +1,6 @@
-import { Trophy, Medal, LineChart, Shield, Lock } from 'lucide-react'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
+import { Trophy, Medal, LineChart, Shield, Lock } from "lucide-react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
 
 const ComingSoon = () => {
   return (
@@ -13,35 +13,36 @@ const ComingSoon = () => {
             Coming Soon
           </h1>
           <p className="text-lg text-slate-600 font-medium leading-relaxed">
-            We are continuously building out our study suite. Here is a preview of the structured features arriving in the next few updates.
+            We are continuously building out our study suite. Here is a preview
+            of the structured features arriving in the next few updates.
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           <FeatureCard
             icon={<Trophy className="w-5 h-5" />}
             title="Challenges"
             description="Complete daily and weekly challenges to earn rewards and boost your productivity streak."
           />
-          
+
           <FeatureCard
             icon={<Medal className="w-5 h-5" />}
             title="Leaderboard"
             description="Compete with other users and climb the ranks. Show off your productivity achievements!"
           />
-          
+
           <FeatureCard
             icon={<LineChart className="w-5 h-5" />}
             title="Habit Tracker"
             description="Build and maintain positive habits with our comprehensive tracking system and analytics."
           />
-          
+
           <FeatureCard
             icon={<Shield className="w-5 h-5" />}
             title="Levels & Experience"
             description="Gain experience points, level up, and unlock new features as you progress."
           />
-          
+
           <FeatureCard
             icon={<Lock className="w-5 h-5" />}
             title="Premium Features"
@@ -52,8 +53,8 @@ const ComingSoon = () => {
 
       <Footer />
     </div>
-  )
-}
+  );
+};
 
 const FeatureCard = ({ icon, title, description }) => {
   return (
@@ -62,14 +63,16 @@ const FeatureCard = ({ icon, title, description }) => {
         <div className="text-slate-900">{icon}</div>
         <h3 className="text-lg font-bold text-slate-900">{title}</h3>
       </div>
-      <p className="text-slate-600 text-sm font-medium mb-6 leading-relaxed">{description}</p>
+      <p className="text-slate-600 text-sm font-medium mb-6 leading-relaxed">
+        {description}
+      </p>
       <div>
         <span className="inline-block px-2 py-1 bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-600 rounded">
           In Development
         </span>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ComingSoon
+export default ComingSoon;

@@ -1,25 +1,39 @@
-import React from 'react';
-import { Building2, Users } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import ayanfeoluwaImg from '../assets/team/ayanfeoluwa.png';
-import davidImg from '../assets/team/david.png';
-import oluwatamilolaImg from '../assets/team/oluwatamilola.png';
-import chibuezeImg from '../assets/team/chibueze.png';
+import { Users } from "lucide-react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
+import ayanfeoluwaImg from "../assets/team/ayanfeoluwa.png";
+import davidImg from "../assets/team/david.png";
+import oluwatamilolaImg from "../assets/team/oluwatamilola.png";
+import chibuezeImg from "../assets/team/chibueze.png";
 
 const About = () => {
   const team = [
-    { name: "Ayanfeoluwa Ayanlade", role: "Chief Technology Officer", image: ayanfeoluwaImg },
-    { name: "Mesh-Masade David Omoafe", role: "Head of Growth", image: davidImg },
-    { name: "Akinbola Oluwatamilore Ayodeji-Mattew", role: "Head of Data Acquisition", image: oluwatamilolaImg },
-    { name: "Nwagwu Chibueze William", role: "Chief Operations Officer", image: chibuezeImg }
+    {
+      name: "Ayanfeoluwa Ayanlade",
+      role: "Chief Technology Officer",
+      image: ayanfeoluwaImg,
+    },
+    {
+      name: "Mesh-Masade David Omoafe",
+      role: "Head of Growth",
+      image: davidImg,
+    },
+    {
+      name: "Akinbola Oluwatamilore Ayodeji-Mattew",
+      role: "Head of Data Acquisition",
+      image: oluwatamilolaImg,
+    },
+    {
+      name: "Nwagwu Chibueze William",
+      role: "Chief Operations Officer",
+      image: chibuezeImg,
+    },
   ];
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-slate-50 font-sans">
       <Navbar />
 
-      {/* --- HERO SECTION --- */}
       <section className="relative pt-32 pb-24 px-6 flex items-center bg-white border-b border-slate-100">
         <div className="w-full max-w-4xl mx-auto text-center relative z-10">
           <div>
@@ -27,13 +41,14 @@ const About = () => {
               Workshop Innovations Ltd
             </h1>
             <p className="text-lg md:text-xl text-slate-500 max-w-3xl mx-auto font-medium leading-relaxed tracking-tight">
-              We are a passionate group who understand the difficulties faced by students in the West African education system and are committed to building solutions to fix them.
+              We are a passionate group who understand the difficulties faced by
+              students in the West African education system and are committed to
+              building solutions to fix them.
             </p>
           </div>
         </div>
       </section>
 
-      {/* --- TEAM SECTION --- */}
       <section className="py-24 bg-slate-50 flex-grow">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">

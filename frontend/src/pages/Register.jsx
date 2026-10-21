@@ -1,45 +1,48 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import axios from 'axios';
-import { API_BASE_URL } from '../services/progressService';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
+import axios from "axios";
+import { API_BASE_URL } from "../services/progressService.js";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match!');
+      setError("Passwords do not match!");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      const response = await axios.post(`${API_BASE_URL}/api/v1/auth/register`, {
-        username,
-        email,
-        password,
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/auth/register`,
+        {
+          username,
+          email,
+          password,
+        },
+      );
 
       if (response.status === 201) {
-        setSuccess('Registration successful! Redirecting to login...');
+        setSuccess("Registration successful! Redirecting to login...");
         setTimeout(() => {
-          navigate('/login');
+          navigate("/login");
         }, 1500);
       }
     } catch (err) {
@@ -47,20 +50,20 @@ const Register = () => {
         if (err.response) {
           const detail = err.response.data.detail;
           const message = Array.isArray(detail)
-            ? detail.map((d) => d.msg || JSON.stringify(d)).join(' | ')
-            : typeof detail === 'string'
-            ? detail
-            : 'Registration failed. Please try again.';
+            ? detail.map((d) => d.msg || JSON.stringify(d)).join(" | ")
+            : typeof detail === "string"
+              ? detail
+              : "Registration failed. Please try again.";
           setError(message);
         } else if (err.request) {
-          setError('No response from server. Please try again later.');
+          setError("No response from server. Please try again later.");
         } else {
-          setError('An unexpected error occurred. Please try again.');
+          setError("An unexpected error occurred. Please try again.");
         }
       } else {
-        setError('An unknown error occurred.');
+        setError("An unknown error occurred.");
       }
-      console.error('Registration error:', err);
+      console.error("Registration error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -81,12 +84,23 @@ const Register = () => {
             </p>
           </div>
 
-          {error && <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">{error}</div>}
-          {success && <div className="p-3 rounded-md bg-green-50 text-green-600 text-sm font-medium text-center border border-green-100">{success}</div>}
+          {error && (
+            <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-3 rounded-md bg-green-50 text-green-600 text-sm font-medium text-center border border-green-100">
+              {success}
+            </div>
+          )}
 
           <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
                 Username
               </label>
               <input
@@ -101,7 +115,10 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
                 Email
               </label>
               <input
@@ -116,7 +133,10 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
                 Password
               </label>
               <div className="relative">
@@ -140,7 +160,10 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
                 Confirm Password
               </label>
               <div className="relative">
@@ -160,7 +183,7 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm transition-all transform hover:-translate-y-0.5 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm transition-all transform hover:-translate-y-0.5 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
@@ -168,15 +191,18 @@ const Register = () => {
                     Creating Account...
                   </span>
                 ) : (
-                  'Create Account'
+                  "Create Account"
                 )}
               </button>
             </div>
           </form>
 
           <p className="mt-4 text-center text-sm text-slate-600">
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary hover:text-primary-dark transition-colors">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="font-medium text-primary hover:text-primary-dark transition-colors"
+            >
               Sign In
             </Link>
           </p>

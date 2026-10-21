@@ -1,26 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
 @theme {
-  /* Minimalist monochrome palette */
-  --color-primary: #154c79; /* Dark Blue from Logo */
-  --color-primary-dark: #103b5e; /* Hover/pressed state */
+  --color-primary: #154c79;
+  --color-primary-dark: #103b5e;
   --color-primary-light: #2a6aa0;
-  --color-secondary: #71717a; /* Zinc 500 */
-  --color-secondary-dark: #27272a; /* Zinc 800 */
-  
-  --color-accent: #0d9488; /* Teal from Logo */
+  --color-secondary: #71717a;
+  --color-secondary-dark: #27272a;
+
+  --color-accent: #0d9488;
 
   --color-background-main: #ffffff;
-  --color-background-secondary: #f4f4f5; /* Zinc 100 */
-  --color-background-tertiary: #e4e4e7; /* Zinc 200 */
+  --color-background-secondary: #f4f4f5;
+  --color-background-tertiary: #e4e4e7;
 
-  /* Font Family */
-  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
-/* Base styles */
 @layer base {
   :root {
     font-family: var(--font-sans);
@@ -28,7 +24,7 @@
     font-weight: 400;
 
     color-scheme: light;
-    color: #09090b; /* Zinc 950 */
+    color: #09090b;
     background-color: #ffffff;
 
     font-synthesis: none;
@@ -47,16 +43,19 @@
     background-color: var(--color-background-secondary);
   }
 
-
-
   ::selection {
     background-color: var(--color-primary);
     color: #ffffff;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     line-height: 1.1;
-    letter-spacing: -0.025em; /* tracking-tight */
+    letter-spacing: -0.025em;
     color: #09090b;
   }
 
@@ -65,13 +64,20 @@
     width: 100%;
   }
 
-  /* Micro-interaction transitions */
-  button, a, input, select, textarea, .card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  .card {
+    transition:
+      color 0.2s,
+      background-color 0.2s,
+      border-color 0.2s,
+      box-shadow 0.2s;
   }
 }
 
-/* Custom Skeleton Loader Animation */
 @keyframes skeleton-shimmer {
   0% {
     background-position: -200% 0;
@@ -88,7 +94,6 @@
     animation: skeleton-shimmer 1.5s infinite linear;
   }
 
-  /* Custom Scrollbar for Community Page */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -97,14 +102,13 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.2); /* slate-400 with opacity */
+    background: rgba(148, 163, 184, 0.2);
     border-radius: 3px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(148, 163, 184, 0.4);
   }
 
-  /* Hide scrollbar but keep scrolling */
   .no-scrollbar {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -114,14 +118,13 @@
   }
 }
 
-/* Custom React Toastify Styles — Minimalist */
 .Toastify__toast-container {
   width: auto !important;
   max-width: 360px;
 }
 .Toastify__toast {
   border-radius: 6px !important;
-  box-shadow: 0 4px 24px -4px rgba(0,0,0,0.10) !important;
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.1) !important;
   border: 1px solid #e4e4e7 !important;
   border-left: 3px solid #154c79 !important;
   font-family: var(--font-sans) !important;
@@ -161,4 +164,17 @@
 }
 .Toastify__progress-bar {
   display: none !important;
+}
+:focus-visible {
+  outline: 3px solid #0d9488;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

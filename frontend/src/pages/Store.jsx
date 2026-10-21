@@ -1,21 +1,25 @@
-import { useState, useEffect } from 'react'
-import { Plus, X, Clock, Coins } from 'lucide-react';
-import { getProgressData, createReward, redeemReward } from '../services/progressService';
-import { motion, AnimatePresence } from 'framer-motion'
-import { toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
+import { useState, useEffect } from "react";
+import { Plus, X, Clock, Coins } from "lucide-react";
+import {
+  getProgressData,
+  createReward,
+  redeemReward,
+} from "../services/progressService.js";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
 
 const Store = () => {
   const [rewards, setRewards] = useState([]);
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(false);
   const [newReward, setNewReward] = useState({
-    title: '',
-    description: '',
-    cost: '',
-    duration: '',
-    category: 'break'
+    title: "",
+    description: "",
+    cost: "",
+    duration: "",
+    category: "break",
   });
   const [coins, setCoins] = useState(0);
   const [activeReward, setActiveReward] = useState(null);
@@ -31,7 +35,7 @@ const Store = () => {
     if (!activeReward) return;
 
     const interval = setInterval(() => {
-      setTimeLeft(prevTime => {
+      setTimeLeft((prevTime) => {
         if (prevTime <= 1) {
           clearInterval(interval);
           toast.info(`Finished your break: ${activeReward.title}`);
@@ -58,26 +62,26 @@ const Store = () => {
     setRewards(updatedData.rewards);
     setShowModal(false);
     setNewReward({
-      title: '',
-      description: '',
-      cost: '',
-      duration: '',
-      category: 'break',
+      title: "",
+      description: "",
+      cost: "",
+      duration: "",
+      category: "break",
     });
-    toast.success(' New reward created!', {
-      position: 'top-right',
+    toast.success(" New reward created!", {
+      position: "top-right",
       autoClose: 3000,
     });
   };
 
   const handleRedeemReward = (reward) => {
     if (activeReward) {
-      toast.error('A reward is already active. Please wait for it to finish.');
+      toast.error("A reward is already active. Please wait for it to finish.");
       return;
     }
 
     if (coins < reward.cost) {
-      toast.error('Not enough coins to redeem this reward.');
+      toast.error("Not enough coins to redeem this reward.");
       return;
     }
 
@@ -85,7 +89,7 @@ const Store = () => {
     setCoins(updatedData.coins);
     setActiveReward(reward);
     setTimeLeft(reward.duration * 60);
-    toast.success('Reward redeemed! Enjoy your break!');
+    toast.success("Reward redeemed! Enjoy your break!");
   };
 
   return (
@@ -103,15 +107,21 @@ const Store = () => {
               >
                 <Coins className="text-yellow-500 text-4xl" />
                 <div>
-                  <span className="text-3xl font-bold text-slate-800">{coins}</span>
+                  <span className="text-3xl font-bold text-slate-800">
+                    {coins}
+                  </span>
                   <p className="text-sm text-slate-500">Coins Available</p>
                 </div>
               </motion.div>
             </div>
 
             <div className="flex-1 text-center">
-              <h1 className="text-4xl font-bold mb-2 text-slate-900">Reward Store</h1>
-              <p className="text-slate-500">Spend your hard-earned coins on well-deserved breaks.</p>
+              <h1 className="text-4xl font-bold mb-2 text-slate-900">
+                Reward Store
+              </h1>
+              <p className="text-slate-500">
+                Spend your hard-earned coins on well-deserved breaks.
+              </p>
             </div>
 
             <div className="flex-1 flex justify-end">
@@ -128,7 +138,7 @@ const Store = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {rewards.map(reward => (
+            {rewards.map((reward) => (
               <RewardCard
                 key={reward.id}
                 reward={reward}
@@ -156,7 +166,9 @@ const Store = () => {
               exit={{ opacity: 0, scale: 0.9 }}
             >
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-slate-800">Create New Reward</h2>
+                <h2 className="text-2xl font-bold text-slate-800">
+                  Create New Reward
+                </h2>
                 <button
                   onClick={() => setShowModal(false)}
                   className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -174,7 +186,9 @@ const Store = () => {
                     type="text"
                     required
                     value={newReward.title}
-                    onChange={(e) => setNewReward({ ...newReward, title: e.target.value })}
+                    onChange={(e) =>
+                      setNewReward({ ...newReward, title: e.target.value })
+                    }
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                     placeholder="Enter reward title"
                   />
@@ -186,7 +200,12 @@ const Store = () => {
                   </label>
                   <textarea
                     value={newReward.description}
-                    onChange={(e) => setNewReward({ ...newReward, description: e.target.value })}
+                    onChange={(e) =>
+                      setNewReward({
+                        ...newReward,
+                        description: e.target.value,
+                      })
+                    }
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary min-h-[100px] text-slate-800"
                     placeholder="Enter reward description"
                   />
@@ -202,7 +221,9 @@ const Store = () => {
                       required
                       min="1"
                       value={newReward.cost}
-                      onChange={(e) => setNewReward({ ...newReward, cost: e.target.value })}
+                      onChange={(e) =>
+                        setNewReward({ ...newReward, cost: e.target.value })
+                      }
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                     />
                   </div>
@@ -216,7 +237,9 @@ const Store = () => {
                       required
                       min="1"
                       value={newReward.duration}
-                      onChange={(e) => setNewReward({ ...newReward, duration: e.target.value })}
+                      onChange={(e) =>
+                        setNewReward({ ...newReward, duration: e.target.value })
+                      }
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                     />
                   </div>
@@ -228,7 +251,9 @@ const Store = () => {
                   </label>
                   <select
                     value={newReward.category}
-                    onChange={(e) => setNewReward({ ...newReward, category: e.target.value })}
+                    onChange={(e) =>
+                      setNewReward({ ...newReward, category: e.target.value })
+                    }
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-800"
                   >
                     <option value="break">Break Time</option>
@@ -266,7 +291,7 @@ const Store = () => {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
             <div>
               <p className="font-bold text-slate-800">{activeReward.title}</p>
@@ -274,7 +299,7 @@ const Store = () => {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-2xl font-bold tabular-nums text-primary">
-                {`${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`}
+                {`${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, "0")}`}
               </span>
               <button
                 onClick={() => setActiveReward(null)}
@@ -289,17 +314,17 @@ const Store = () => {
 
       <Footer />
     </div>
-  )
-}
+  );
+};
 
 const RewardCard = ({ reward, onRedeem, canAfford, isRewardActive }) => {
   const cannotRedeem = isRewardActive || !canAfford;
 
-  let buttonText = 'Redeem';
+  let buttonText = "Redeem";
   if (isRewardActive) {
-    buttonText = 'Reward active';
+    buttonText = "Reward active";
   } else if (!canAfford) {
-    buttonText = 'Not enough coins';
+    buttonText = "Not enough coins";
   }
 
   return (
@@ -311,7 +336,9 @@ const RewardCard = ({ reward, onRedeem, canAfford, isRewardActive }) => {
       transition={{ duration: 0.2 }}
     >
       <div className="mb-4">
-        <h3 className="text-xl font-semibold mb-2 text-slate-800">{reward.title}</h3>
+        <h3 className="text-xl font-semibold mb-2 text-slate-800">
+          {reward.title}
+        </h3>
         {reward.description && (
           <p className="text-slate-500 text-sm mb-4">{reward.description}</p>
         )}
@@ -330,17 +357,18 @@ const RewardCard = ({ reward, onRedeem, canAfford, isRewardActive }) => {
       <motion.button
         onClick={() => onRedeem(reward)}
         disabled={cannotRedeem}
-        className={`w-full py-2 rounded-md font-semibold transition-all duration-300 ${cannotRedeem
-            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-            : 'bg-primary text-white shadow-lg shadow-primary/20'
-          }`}
+        className={`w-full py-2 rounded-md font-semibold transition-all duration-300 ${
+          cannotRedeem
+            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+            : "bg-primary text-white shadow-lg shadow-primary/20"
+        }`}
         whileHover={!cannotRedeem ? { scale: 1.05 } : {}}
         whileTap={!cannotRedeem ? { scale: 0.95 } : {}}
       >
         {buttonText}
       </motion.button>
     </motion.div>
-  )
-}
+  );
+};
 
-export default Store
+export default Store;

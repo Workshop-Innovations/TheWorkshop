@@ -1,13 +1,13 @@
-import { Link } from 'react-router-dom';
-import { Home, ArrowLeft } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { Link } from "react-router-dom";
+import { Home, ArrowLeft } from "lucide-react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
 
 const NotFound = () => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
       <Navbar />
-      
+
       <main className="flex-grow flex items-center justify-center px-6 py-28">
         <div className="max-w-xl w-full">
           <div className="mb-8">
@@ -20,7 +20,7 @@ const NotFound = () => {
             Page Not Found
           </h2>
           <p className="text-lg text-slate-600 mb-10 leading-relaxed font-medium">
-            Looks like this page went on a study break and never came back. 
+            Looks like this page went on a study break and never came back.
             Let's get you back to learning!
           </p>
 

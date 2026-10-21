@@ -1,165 +1,170 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { Search, Download, BookOpen } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { API_BASE_URL } from "../services/api.js";
+import { useState, useEffect } from "react";
+import Navbar from "../components/layout/Navbar.jsx";
+import Footer from "../components/layout/Footer.jsx";
+import { Search, Download, BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const PastPapers = () => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState('ALL'); // ALL, WAEC, JAMB
-    const [papers, setPapers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [subjects, setSubjects] = useState([]); // To link to summaries
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("ALL");
+  const [papers, setPapers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [subjects, setSubjects] = useState([]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const apiUrl = API_BASE_URL;
 
-                // Fetch papers
-                const papersRes = await fetch(`${apiUrl}/api/v1/papers`);
-                if (papersRes.ok) {
-                    const papersData = await papersRes.json();
-                    setPapers(papersData);
-                }
+        const papersRes = await fetch(`${apiUrl}/api/v1/papers`);
+        if (papersRes.ok) {
+          const papersData = await papersRes.json();
+          setPapers(papersData);
+        }
 
-                // Fetch subjects for "Subject Summary" links
-                const subjectsRes = await fetch(`${apiUrl}/api/v1/subjects`);
-                if (subjectsRes.ok) {
-                    const subjectsData = await subjectsRes.json();
-                    setSubjects(subjectsData);
-                }
-
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    // Helper to find subject name for a paper
-    const getSubjectName = (subjectId) => {
-        const subject = subjects.find(s => s.id === subjectId);
-        return subject ? subject.name : 'Unknown Subject';
+        const subjectsRes = await fetch(`${apiUrl}/api/v1/subjects`);
+        if (subjectsRes.ok) {
+          const subjectsData = await subjectsRes.json();
+          setSubjects(subjectsData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const filteredPapers = papers.filter(paper => {
-        const subjectName = getSubjectName(paper.subject_id);
-        const matchesSearch = paper.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            subjectName.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesTab = activeTab === 'ALL' || paper.exam_type === activeTab;
-        return matchesSearch && matchesTab;
-    });
+    fetchData();
+  }, []);
 
-    const getUniqueSubjectNames = () => {
-        // Return unique subjects matching the current filter/search
-        // This is a bit complex, simplifying to just showing all available subjects
-        return subjects;
-    };
+  const getSubjectName = (subjectId) => {
+    const subject = subjects.find((s) => s.id === subjectId);
+    return subject ? subject.name : "Unknown Subject";
+  };
 
-    return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
-            <Navbar />
-            <div className="container mx-auto px-4 py-24 flex-grow">
-                <div className="max-w-5xl mx-auto">
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold text-slate-900 mb-4">WAEC & JAMB Past Papers</h1>
-                        <p className="text-slate-600 max-w-2xl mx-auto">
-                            Access a comprehensive collection of past questions to prepare for your West African Senior School Certificate Examination and Joint Admissions and Matriculation Board exams.
-                        </p>
-                    </div>
+  const filteredPapers = papers.filter((paper) => {
+    const subjectName = getSubjectName(paper.subject_id);
+    const matchesSearch =
+      paper.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      subjectName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTab = activeTab === "ALL" || paper.exam_type === activeTab;
+    return matchesSearch && matchesTab;
+  });
 
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <Navbar />
+      <div className="container mx-auto px-4 py-24 flex-grow">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-slate-900 mb-4">
+              WAEC & JAMB Past Papers
+            </h1>
+            <p className="text-slate-600 max-w-2xl mx-auto">
+              Access a comprehensive collection of past questions to prepare for
+              your West African Senior School Certificate Examination and Joint
+              Admissions and Matriculation Board exams.
+            </p>
+          </div>
 
-
-                    {/* Search and Filter Section */}
-                    <div className="bg-white p-6 rounded-md shadow-sm border border-slate-100 mb-8">
-                        {/* Tabs */}
-                        <div className="flex gap-4 mb-6 border-b border-slate-100 pb-4">
-                            {['ALL', 'WAEC', 'JAMB'].map((tab) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    className={`px-6 py-2 rounded-md font-bold transition-all ${activeTab === tab
-                                        ? 'bg-primary text-white shadow-md'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                        }`}
-                                >
-                                    {tab}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Search Bar */}
-                        <div className="flex gap-4">
-                            <div className="flex-grow flex items-center bg-slate-50 rounded-md px-4 border border-slate-200">
-                                <Search className="text-slate-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search by subject, year or exam..."
-                                    className="w-full bg-transparent p-3 focus:outline-none text-slate-800"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Results List */}
-                    <div className="space-y-4">
-                        {loading ? (
-                            <div className="text-center py-12">Loading papers...</div>
-                        ) : (
-                            <>
-                                {filteredPapers.map((paper) => (
-                                    <div key={paper.id} className="bg-white p-6 rounded-md shadow-sm border border-slate-100 flex justify-between items-center hover:shadow-md transition-shadow group">
-                                        <div className="flex items-start gap-4">
-                                            <div>
-                                                <h3 className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">{paper.title}</h3>
-                                                <div className="flex gap-2 mt-2">
-                                                    <span className={`px-2 py-1 text-xs font-bold rounded-md ${paper.exam_type === 'WAEC' ? 'bg-accent/10 text-accent border border-accent/20' : 'bg-primary/10 text-primary border border-primary/20'
-                                                        }`}>
-                                                        {paper.exam_type}
-                                                    </span>
-                                                    <span className="px-2 py-1 bg-slate-100 text-xs font-semibold text-slate-600 rounded-md border border-slate-200">{getSubjectName(paper.subject_id)}</span>
-                                                    <span className="px-2 py-1 bg-slate-100 text-xs font-semibold text-slate-600 rounded-md border border-slate-200">{paper.year}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {paper.content ? (
-                                            <Link
-                                                to={`/papers/${paper.id}`}
-                                                className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary-dark transition-all transform hover:scale-105 flex items-center"
-                                            >
-                                                <BookOpen className="mr-2" /> View Now
-                                            </Link>
-                                        ) : (
-                                            <a
-                                                href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/static/papers/${paper.file_path}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="p-3 bg-slate-50 text-slate-400 rounded-md hover:bg-primary hover:text-white transition-all transform hover:scale-110"
-                                            >
-                                                <Download />
-                                            </a>
-                                        )}
-                                    </div>
-                                ))}
-                                {filteredPapers.length === 0 && (
-                                    <div className="text-center py-12 text-slate-500">
-                                        Could not find any papers matching your search.
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </div>
-                </div>
+          <div className="bg-white p-6 rounded-md shadow-sm border border-slate-100 mb-8">
+            <div className="flex gap-4 mb-6 border-b border-slate-100 pb-4">
+              {["ALL", "WAEC", "JAMB"].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-6 py-2 rounded-md font-bold transition-all ${
+                    activeTab === tab
+                      ? "bg-primary text-white shadow-md"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
-            <Footer />
+
+            <div className="flex gap-4">
+              <div className="flex-grow flex items-center bg-slate-50 rounded-md px-4 border border-slate-200">
+                <Search className="text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search by subject, year or exam..."
+                  className="w-full bg-transparent p-3 focus:outline-none text-slate-800"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {loading ? (
+              <div className="text-center py-12">Loading papers...</div>
+            ) : (
+              <>
+                {filteredPapers.map((paper) => (
+                  <div
+                    key={paper.id}
+                    className="bg-white p-6 rounded-md shadow-sm border border-slate-100 flex justify-between items-center hover:shadow-md transition-shadow group"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div>
+                        <h3 className="font-bold text-lg text-slate-800 group-hover:text-primary transition-colors">
+                          {paper.title}
+                        </h3>
+                        <div className="flex gap-2 mt-2">
+                          <span
+                            className={`px-2 py-1 text-xs font-bold rounded-md ${
+                              paper.exam_type === "WAEC"
+                                ? "bg-accent/10 text-accent border border-accent/20"
+                                : "bg-primary/10 text-primary border border-primary/20"
+                            }`}
+                          >
+                            {paper.exam_type}
+                          </span>
+                          <span className="px-2 py-1 bg-slate-100 text-xs font-semibold text-slate-600 rounded-md border border-slate-200">
+                            {getSubjectName(paper.subject_id)}
+                          </span>
+                          <span className="px-2 py-1 bg-slate-100 text-xs font-semibold text-slate-600 rounded-md border border-slate-200">
+                            {paper.year}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {paper.content ? (
+                      <Link
+                        to={`/papers/${paper.id}`}
+                        className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary-dark transition-all transform hover:scale-105 flex items-center"
+                      >
+                        <BookOpen className="mr-2" /> View Now
+                      </Link>
+                    ) : (
+                      <a
+                        href={`${API_BASE_URL}/static/papers/${paper.file_path}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-3 bg-slate-50 text-slate-400 rounded-md hover:bg-primary hover:text-white transition-all transform hover:scale-110"
+                      >
+                        <Download />
+                      </a>
+                    )}
+                  </div>
+                ))}
+                {filteredPapers.length === 0 && (
+                  <div className="text-center py-12 text-slate-500">
+                    Could not find any papers matching your search.
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
-    );
+      </div>
+      <Footer />
+    </div>
+  );
 };
 
 export default PastPapers;

@@ -2,6 +2,7 @@
 Authentication dependencies and shared configuration for FastAPI.
 Separated from main.py to avoid circular imports with route modules.
 """
+
 import os
 import logging
 from typing import Optional
@@ -14,37 +15,63 @@ from sqlmodel import Session, select
 from pydantic import BaseModel
 
 from .database import get_session
-from .schemas import User
+from .models import User
 
 logger = logging.getLogger(__name__)
 
-# --- Unified Configuration Settings ---
+
 class Settings(BaseModel):
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-only-secret-change-in-production")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours for MVP (was 30 min)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./database.db")
-    FRONTEND_URLS: str = os.getenv("FRONTEND_URLS", "http://localhost:5173,http://localhost:3000")
+    FRONTEND_URLS: str = os.getenv(
+        "FRONTEND_URLS", "http://localhost:5173,http://localhost:3000"
+    )
+
 
 settings = Settings()
+if (
+    len(settings.SECRET_KEY) < 32
+    or settings.SECRET_KEY.startswith("CHANGE_ME")
+    or settings.SECRET_KEY == "dev-only-secret-change-in-production"
+):
+    raise RuntimeError("Set SECRET_KEY to a random value of at least 32 characters")
 
-# Warn if using default secret key
-if settings.SECRET_KEY == "dev-only-secret-change-in-production":
-    logger.warning("⚠️  Using default SECRET_KEY — set a strong key via environment variable for production!")
+if os.getenv("APP_ENV") == "production":
+    from urllib.parse import urlparse
 
-# --- OAuth2PasswordBearer for token extraction ---
+    if not settings.DATABASE_URL.startswith(("postgresql://", "postgres://")):
+        raise RuntimeError("Production requires a persistent PostgreSQL DATABASE_URL")
+    origins = settings.FRONTEND_URLS.split(",")
+    if not origins or any(
+        urlparse(origin.strip()).scheme != "https"
+        or not urlparse(origin.strip()).netloc
+        or "*" in origin
+        for origin in origins
+    ):
+        raise RuntimeError(
+            "Production FRONTEND_URLS must contain explicit HTTPS origins"
+        )
+
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
-# --- JWT Utility Functions ---
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})  # Pass datetime directly, not .timestamp()
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
     return encoded_jwt
+
 
 def get_user_from_token(session: Session, token: Optional[str]) -> Optional[User]:
     """
@@ -57,7 +84,9 @@ def get_user_from_token(session: Session, token: Optional[str]) -> Optional[User
     if not token:
         return None
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
     except JWTError:
         return None
 
@@ -74,10 +103,9 @@ def get_user_from_token(session: Session, token: Optional[str]) -> Optional[User
         return None
     return user
 
-# --- Dependency to get the current user from the token ---
+
 async def get_current_user(
-    session: Session = Depends(get_session),
-    token: str = Depends(oauth2_scheme)
+    session: Session = Depends(get_session), token: str = Depends(oauth2_scheme)
 ):
     user = get_user_from_token(session, token)
     if user is None:
@@ -88,6 +116,7 @@ async def get_current_user(
         )
     return user
 
+
 async def get_current_admin_user(current_user: User = Depends(get_current_user)):
     """
     Dependency to ensure the current user is an admin.
@@ -95,6 +124,6 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to access this resource"
+            detail="You do not have permission to access this resource",
         )
     return current_user
