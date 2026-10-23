@@ -14,7 +14,7 @@ const Footer = () => {
               <span className="text-xl font-bold text-primary">WorkShop</span>
             </Link>
             <p className="text-sm leading-relaxed mb-6">
-              The standard study platform for African students. Master your exams with structured tools and a focused community.
+              Free WAEC, NECO & JAMB past papers online with AI-powered tutoring and study tools for West African students.
             </p>
 
           </div>
@@ -56,7 +56,7 @@ const Footer = () => {
             &copy; {currentYear} WorkShop. All rights reserved.
           </p>
           <p className="text-xs text-zinc-400">
-            Built for students across Africa
+            WAEC, NECO & JAMB past papers online — built for West African students
           </p>
         </div>
       </div>

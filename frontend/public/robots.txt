@@ -2,5 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
+Disallow: /dashboard
+Disallow: /community
 
 Sitemap: https://workshop.com.ng/sitemap.xml
