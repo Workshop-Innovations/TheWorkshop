@@ -128,7 +128,7 @@ async def delete_subject(
     if not subject:
         raise HTTPException(status_code=404, detail="Subject not found")
 
-    # Delete children first — topics/papers/attempts have FKs to this subject,
+    # Delete children first, topics/papers/attempts have FKs to this subject,
     # so deleting the subject alone fails on Postgres once it has content.
     papers = session.exec(select(PastPaper).where(PastPaper.subject_id == subject_id)).all()
     for paper in papers:
@@ -280,7 +280,7 @@ async def grade_paper(
 
     # Call Modal AI grader endpoint
     modal_url = os.getenv("MODAL_GRADER_URL", "")
-    feedback_data = {"overall_feedback": "AI grading unavailable — no MODAL_GRADER_URL configured."}
+    feedback_data = {"overall_feedback": "AI grading unavailable, no MODAL_GRADER_URL configured."}
     score = 0.0
 
     if modal_url and rubric:

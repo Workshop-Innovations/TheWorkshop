@@ -19,7 +19,7 @@ export const KATEX_OPTIONS = {
     throwOnError: false,
     strict: false,
     // Content can be user-written (community notes), so only link/image commands
-    // with safe protocols are trusted — never `javascript:` URLs or raw HTML commands.
+    // with safe protocols are trusted, never `javascript:` URLs or raw HTML commands.
     trust: (context) => TRUSTED_KATEX_COMMANDS.has(context.command) && SAFE_PROTOCOLS.has(context.protocol),
 };
 

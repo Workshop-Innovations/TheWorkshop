@@ -48,7 +48,7 @@ def grade_paper_endpoint(data: dict, x_workshop_secret: Optional[str] = Header(d
 MARKING SCHEME / ANSWER BANK:
 {rubric}
 
-STUDENT ANSWERS (JSON — key is question number, value is their response):
+STUDENT ANSWERS (JSON, key is question number, value is their response):
 {json.dumps(user_answers, indent=2)}
 
 INSTRUCTIONS:
@@ -61,7 +61,7 @@ INSTRUCTIONS:
 
 OUTPUT: Return ONLY a valid JSON object with exactly this shape:
 {{
-  "total_score": <float — sum of all marks>,
+  "total_score": <float, sum of all marks>,
   "feedback": {{
     "<question_number>": "<one or two sentence feedback and mark awarded>"
   }}

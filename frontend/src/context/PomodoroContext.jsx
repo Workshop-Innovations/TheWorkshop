@@ -114,7 +114,7 @@ export const PomodoroProvider = ({ children }) => {
         if (savedState.endTime) {
             const remainingSeconds = Math.round((savedState.endTime - Date.now()) / 1000);
             // If the timer expired while the app was closed, restore it at 0 and let the
-            // interval effect complete it on the next render — by then `mode` is the saved
+            // interval effect complete it on the next render, by then `mode` is the saved
             // one. Calling handleCompletion directly here used the initial 'pomodoro' mode,
             // so an expired break was credited as a finished pomodoro.
             setTime(Math.max(remainingSeconds, 0));

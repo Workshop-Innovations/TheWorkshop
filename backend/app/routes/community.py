@@ -1523,7 +1523,7 @@ async def join_study_group(
     if existing:
         raise HTTPException(status_code=400, detail="Already a member of this group")
     
-    # Check member limit — count only approved members
+    # Check member limit, count only approved members
     current_members = session.exec(
         select(func.count(StudyGroupMember.id))
         .where(StudyGroupMember.group_id == group_id)

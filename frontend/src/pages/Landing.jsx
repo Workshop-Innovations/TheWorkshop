@@ -31,7 +31,7 @@ const Landing = () => {
             </h1>
 
             <p className="text-lg text-slate-500 mb-10 max-w-2xl mx-auto lg:mx-0 font-medium leading-relaxed tracking-tight">
-              Free access to verified WAEC past papers, NECO past questions, and JAMB CBT practice — with AI-powered explanations, marking schemes, and smart study tools built for West African students.
+              Free access to verified WAEC past papers, NECO past questions, and JAMB CBT practice, with AI-powered explanations, marking schemes, and smart study tools built for West African students.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
@@ -108,9 +108,9 @@ const Landing = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { title: "Verified Past Papers", icon: <BookOpen className="w-7 h-7" />, desc: "Complete archive of WAEC, NECO, and JAMB past papers with standardized marking schemes — no blurry scans or missing pages.", solve: "Organized by exam, year & subject" },
+              { title: "Verified Past Papers", icon: <BookOpen className="w-7 h-7" />, desc: "Complete archive of WAEC, NECO, and JAMB past papers with standardized marking schemes, no blurry scans or missing pages.", solve: "Organized by exam, year & subject" },
               { title: "AI Tutor & Explanations", icon: <Bot className="w-7 h-7" />, desc: "Get instant, step-by-step explanations for any past paper question. Our AI tutor breaks down complex problems in a way that makes sense.", solve: "24/7 AI-powered help" },
-              { title: "Smart Study Tools", icon: <Clock className="w-7 h-7" />, desc: "Auto-generated flashcards, practice quizzes, focus timer, and study groups — everything you need to prepare for WAEC, NECO, or JAMB.", solve: "Complete study suite" }
+              { title: "Smart Study Tools", icon: <Clock className="w-7 h-7" />, desc: "Auto-generated flashcards, practice quizzes, focus timer, and study groups, everything you need to prepare for WAEC, NECO, or JAMB.", solve: "Complete study suite" }
             ].map((item, i) => (
               <div key={i} className="p-8 bg-slate-50 rounded-md border border-slate-100 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all card">
                 <h3 className="text-xl font-extrabold text-slate-800 mb-3 tracking-tight">{item.title}</h3>
@@ -241,7 +241,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { step: "01", title: "Create Your Account", desc: "Sign up free with your email or Google account. No payment required to access past papers." },
-              { step: "02", title: "Choose Your Exams", desc: "Select WAEC, NECO, or JAMB and pick your subjects — Mathematics, English, Sciences, and more." },
+              { step: "02", title: "Choose Your Exams", desc: "Select WAEC, NECO, or JAMB and pick your subjects, Mathematics, English, Sciences, and more." },
               { step: "03", title: "Start Practicing", desc: "Access past papers, get AI explanations, generate quizzes, and track your progress." }
             ].map((item, i) => (
               <div key={i} className="p-8 flex flex-col items-center text-center bg-slate-800/50 backdrop-blur-md rounded-md border border-slate-700 hover:bg-slate-800 transition-colors">
@@ -262,7 +262,7 @@ const Landing = () => {
               Built for Students Across <span className="text-primary">West Africa</span>
             </h2>
             <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium tracking-tight">
-              Whether you're preparing for WAEC in Nigeria, WASSCE in Ghana, or JAMB UTME anywhere in West Africa — WorkShop has the past papers and study tools you need.
+              Whether you're preparing for WAEC in Nigeria, WASSCE in Ghana, or JAMB UTME anywhere in West Africa, WorkShop has the past papers and study tools you need.
             </p>
           </div>
 
@@ -270,7 +270,7 @@ const Landing = () => {
             {[
               { icon: <GraduationCap className="w-7 h-7 text-primary" />, title: "SS1 – SS3 Students", desc: "Preparing for WAEC WASSCE or NECO SSCE? Access past papers for every subject from Senior Secondary 1 through 3." },
               { icon: <FileText className="w-7 h-7 text-accent" />, title: "JAMB Candidates", desc: "Practicing for JAMB UTME? Get CBT-style past questions with instant AI-powered explanations and timed practice." },
-              { icon: <Globe className="w-7 h-7 text-emerald-500" />, title: "West African Students", desc: "Students in Nigeria, Ghana, Sierra Leone, Gambia, and Liberia — all WAEC member countries are fully supported." }
+              { icon: <Globe className="w-7 h-7 text-emerald-500" />, title: "West African Students", desc: "Students in Nigeria, Ghana, Sierra Leone, Gambia, and Liberia, all WAEC member countries are fully supported." }
             ].map((item, i) => (
               <div key={i} className="p-8 bg-white rounded-md border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all">
                 <div className="w-12 h-12 rounded-md bg-slate-50 flex items-center justify-center mb-5">
@@ -296,9 +296,9 @@ const Landing = () => {
               { q: "How does the AI tutor help with WAEC and JAMB preparation?", a: "Our AI tutor provides instant, detailed explanations for any past paper question. Upload a document or select a past paper, ask your question, and get a step-by-step breakdown. It can also generate practice quizzes and flashcards from your study material to help you revise more effectively." },
               { q: "Can I practice JAMB CBT questions online?", a: "Yes. WorkShop includes JAMB UTME past questions organized by subject and year. You can practice online, get AI-powered explanations for each answer, and generate timed quizzes to simulate the JAMB CBT exam experience." },
               { q: "Are the marking schemes and solutions verified?", a: "All marking schemes on WorkShop are standardized based on official WAEC and NECO marking guidelines. Solutions are verified for accuracy so you can trust the material you're studying from." },
-              { q: "Is WorkShop available for students outside Nigeria?", a: "Absolutely. WorkShop serves students across all WAEC member countries — Nigeria, Ghana, Sierra Leone, Gambia, and Liberia. Any student preparing for WAEC, NECO, or JAMB examinations can access the platform from anywhere with an internet connection." },
+              { q: "Is WorkShop available for students outside Nigeria?", a: "Absolutely. WorkShop serves students across all WAEC member countries, Nigeria, Ghana, Sierra Leone, Gambia, and Liberia. Any student preparing for WAEC, NECO, or JAMB examinations can access the platform from anywhere with an internet connection." },
               { q: "What subjects are available for WAEC and NECO past papers?", a: "WorkShop covers all major WAEC and NECO subjects including Mathematics, English Language, Physics, Chemistry, Biology, Economics, Government, Literature in English, Further Mathematics, Accounting, and more. New subjects and papers are added regularly." },
-              { q: "Do I need to pay to use WorkShop?", a: "No. Core features are completely free — including past paper access, marking schemes, and basic AI tutoring. Premium plans with unlimited AI queries and advanced study tools are available for students who want to go further." }
+              { q: "Do I need to pay to use WorkShop?", a: "No. Core features are completely free, including past paper access, marking schemes, and basic AI tutoring. Premium plans with unlimited AI queries and advanced study tools are available for students who want to go further." }
             ].map((faq, i) => (
               <FAQItem key={i} question={faq.q} answer={faq.a} />
             ))}
@@ -311,7 +311,7 @@ const Landing = () => {
         <div className="max-w-3xl mx-auto">
           <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-slate-900">Start Practicing Today.</h2>
           <p className="text-lg text-slate-500 mb-10 font-medium tracking-tight">
-            Join thousands of West African students using WorkShop to ace their WAEC, NECO & JAMB exams. Free to start — no credit card required.
+            Join thousands of West African students using WorkShop to ace their WAEC, NECO & JAMB exams. Free to start, no credit card required.
           </p>
           <Link to="/onboarding" className="inline-block px-8 py-4 bg-primary text-white text-base font-bold rounded-md shadow-lg shadow-primary/20 hover:bg-primary-dark hover:-translate-y-1 active:scale-95 transition-all">
             Access Free Past Papers

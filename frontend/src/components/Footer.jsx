@@ -56,7 +56,7 @@ const Footer = () => {
             &copy; {currentYear} WorkShop. All rights reserved.
           </p>
           <p className="text-xs text-zinc-400">
-            WAEC, NECO & JAMB past papers online — built for West African students
+            WAEC, NECO & JAMB past papers online, built for West African students
           </p>
         </div>
       </div>

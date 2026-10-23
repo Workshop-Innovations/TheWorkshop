@@ -50,7 +50,7 @@ const ProfilePictureGate = ({ children }) => {
         try {
             const cropped = await getCroppedImg(imageSrc, croppedAreaPixels);
             await updateProfilePic(cropped);
-            // profilePic will now be truthy — the gate will unmount itself and render children
+            // profilePic will now be truthy, the gate will unmount itself and render children
         } catch (err) {
             console.error('Crop error:', err);
             setError('Something went wrong. Please try again.');
@@ -98,7 +98,7 @@ const ProfilePictureGate = ({ children }) => {
                         {error && <p className="text-red-500 text-xs mt-4">{error}</p>}
 
                         <p className="text-slate-400 text-xs mt-6 pt-6 border-t border-slate-100">
-                            Hello, <span className="text-slate-700 font-semibold">{user?.username || user?.email?.split('@')[0]}</span> — your picture will be visible to all community members.
+                            Hello, <span className="text-slate-700 font-semibold">{user?.username || user?.email?.split('@')[0]}</span>, your picture will be visible to all community members.
                         </p>
                     </div>
                 )}

@@ -121,7 +121,7 @@ const StudySuite = () => {
                 toast.error(`Upload failed: ${err.detail || 'Unknown error'}`);
             }
         } catch {
-            toast.error('Upload failed — check your connection.');
+            toast.error('Upload failed, check your connection.');
         } finally {
             setIsUploading(false);
         }
@@ -154,13 +154,13 @@ const StudySuite = () => {
                 if (data.file_type === 'pdf') {
                     setIsLoadingPdf(true);
                     try {
-                        // Fetch as authenticated blob — avoids Supabase redirect/CSP blocking in iframes
+                        // Fetch as authenticated blob, avoids Supabase redirect/CSP blocking in iframes
                         const pdfRes = await fetch(
                             `${API_BASE}/api/v1/tutor/files/${docId}?token=${encodeURIComponent(token)}`
                         );
                         if (pdfRes.ok) {
                             const rawBlob = await pdfRes.blob();
-                            // Force application/pdf MIME type — the redirect chain (backend → Supabase)
+                            // Force application/pdf MIME type, the redirect chain (backend → Supabase)
                             // may return application/octet-stream or text/plain, which causes the
                             // browser to display raw PDF bytes as text instead of rendering the PDF.
                             const pdfBlob = new Blob([await rawBlob.arrayBuffer()], { type: 'application/pdf' });
@@ -219,7 +219,7 @@ const StudySuite = () => {
         setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
         setIsSending(true);
         try {
-            // Local error bubbles ("⚠️ Connection error…") aren't real model turns — don't send them as history
+            // Local error bubbles ("⚠️ Connection error…") aren't real model turns, don't send them as history
             const history = messages.filter(m => !m.isError).map(m => ({
                 role: m.role === 'user' ? 'user' : 'model',
                 parts: [m.content]
@@ -267,7 +267,7 @@ const StudySuite = () => {
                 setActiveTab('chat');
             }
         } catch {
-            toast.error('Quiz generation failed — check your connection.');
+            toast.error('Quiz generation failed, check your connection.');
             setActiveTab('chat');
         } finally {
             setIsGeneratingQuiz(false);
@@ -296,7 +296,7 @@ const StudySuite = () => {
                 setActiveTab('chat');
             }
         } catch {
-            toast.error('Flashcard generation failed — check your connection.');
+            toast.error('Flashcard generation failed, check your connection.');
             setActiveTab('chat');
         } finally {
             setIsGeneratingFlashcards(false);
@@ -346,7 +346,7 @@ const StudySuite = () => {
 
             <Navbar />
 
-            {/* Main content — fills viewport below navbar */}
+            {/* Main content, fills viewport below navbar */}
             <div className="flex flex-col" style={{ marginTop: '64px', height: 'calc(100vh - 64px)' }}>
 
                 {/* ── Top bar ─────────────────────────────────────────────── */}
@@ -486,7 +486,7 @@ const StudySuite = () => {
                                     <div className="flex flex-col items-center justify-center h-full gap-3 p-8 text-center">
                                         <FileText size={36} className="text-slate-200" />
                                         <p className="text-sm font-semibold text-slate-500">PDF preview unavailable</p>
-                                        <p className="text-xs text-slate-400">AI chat and generation features still work — use the panel on the right.</p>
+                                        <p className="text-xs text-slate-400">AI chat and generation features still work, use the panel on the right.</p>
                                     </div>
                                 )
                             ) : (

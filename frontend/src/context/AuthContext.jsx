@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
   const [user, setUser] = useState(null); // Store full user object including role
   const [loading, setLoading] = useState(true); // Loading state for user fetch
-  // Profile Picture Management — must be declared before fetchUserProfile which uses setProfilePic
+  // Profile Picture Management, must be declared before fetchUserProfile which uses setProfilePic
   const [profilePic, setProfilePic] = useState(() => localStorage.getItem('userProfilePic') || null);
 
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
-        // Sync profile pic from backend — the server is the source of truth, so a
+        // Sync profile pic from backend, the server is the source of truth, so a
         // picture cached from a previous account on this browser is cleared too.
         if (userData.profile_pic) {
           setProfilePic(userData.profile_pic);

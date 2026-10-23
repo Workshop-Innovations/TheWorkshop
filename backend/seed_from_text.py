@@ -68,7 +68,7 @@ def format_content(content):
     for kw in keywords_bold:
         content = re.sub(f'({kw})', r'\n\n**\1**', content)
         
-    # 4. Format Options (A. B. C. D.) — keep them as paragraphs not lists
+    # 4. Format Options (A. B. C. D.), keep them as paragraphs not lists
     content = re.sub(r'([\.\?!])([A-D]\.)', r'\1\n\n\2 ', content)
     content = re.sub(r'\s([A-D]\.)\s', r'\n\n\1 ', content)
 
@@ -79,10 +79,10 @@ def format_content(content):
     # 5. Fix specific known concatenations
     content = content.replace("Mathematics Stock Note", "")
     
-    # 6. Math/LaTeX spacing — only add newlines around display math ($$)
+    # 6. Math/LaTeX spacing, only add newlines around display math ($$)
     content = content.replace("$$", "\n\n$$\n\n")
     
-    # NOTE: Do NOT escape $ signs — they are LaTeX math delimiters.
+    # NOTE: Do NOT escape $ signs, they are LaTeX math delimiters.
     # The old regex \$(\d) -> \\$\1 was breaking all inline math.
 
     # 7. General definitions/terms: "Word: Definition" -> "**Word:** Definition"
@@ -99,7 +99,7 @@ def format_past_paper(content):
     Lightly format past paper content, preserving LaTeX math ($...$)
     and producing clean, readable Markdown.
 
-    The key rule: DO NOT escape or transform dollar signs — they are
+    The key rule: DO NOT escape or transform dollar signs, they are
     LaTeX inline-math delimiters and must reach the frontend unmodified.
     """
     # 1. Normalise line endings

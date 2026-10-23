@@ -30,7 +30,7 @@ settings = Settings()
 
 # Warn if using default secret key
 if settings.SECRET_KEY == "dev-only-secret-change-in-production":
-    logger.warning("⚠️  Using default SECRET_KEY — set a strong key via environment variable for production!")
+    logger.warning("⚠️  Using default SECRET_KEY, set a strong key via environment variable for production!")
 
 # --- OAuth2PasswordBearer for token extraction ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")

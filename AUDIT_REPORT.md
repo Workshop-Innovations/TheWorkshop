@@ -1,4 +1,4 @@
-# TheWorkshop — Full Codebase Audit Report & Fixes
+# TheWorkshop, Full Codebase Audit Report & Fixes
 
 **Date:** October 23, 2026  
 **Scope:** Complete backend + frontend audit  
@@ -7,7 +7,7 @@
 
 ---
 
-## Google Auth — Why No Client Secret?
+## Google Auth, Why No Client Secret?
 
 You asked why I never told you to put your Google Client Secret anywhere. Here's why:
 
@@ -27,14 +27,14 @@ You asked why I never told you to put your Google Client Secret anywhere. Here's
 
 ### Does it work with Supabase PostgreSQL?
 
-**Yes, fully.** Your Google auth endpoint (`backend/app/routes/google_auth.py`) uses **SQLModel** — the same ORM as every other route. It creates/finds users in the same `user` table in your Supabase PostgreSQL database. The flow:
+**Yes, fully.** Your Google auth endpoint (`backend/app/routes/google_auth.py`) uses **SQLModel**, the same ORM as every other route. It creates/finds users in the same `user` table in your Supabase PostgreSQL database. The flow:
 
 1. Frontend sends Google ID token → `/api/v1/auth/google`
 2. Backend verifies token with Google's public keys
 3. Backend finds or creates user in your Supabase PostgreSQL DB via SQLModel
 4. Backend returns a JWT access token (same as regular login)
 
-No Supabase Auth SDK involved — just your PostgreSQL database as storage.
+No Supabase Auth SDK involved, just your PostgreSQL database as storage.
 
 ---
 
@@ -44,10 +44,10 @@ No Supabase Auth SDK involved — just your PostgreSQL database as storage.
 **Dashboard:** https://supabase.com/dashboard/org/qtqxafsthktshirwqvzy
 
 TheWorkshop uses Supabase for:
-- **PostgreSQL database** — all user data, tasks, communities, messages, etc.
-- **Storage buckets** — `tutor_documents` (uploaded PDFs) and `diagrams` (generated diagrams)
+- **PostgreSQL database**, all user data, tasks, communities, messages, etc.
+- **Storage buckets**, `tutor_documents` (uploaded PDFs) and `diagrams` (generated diagrams)
 
-**NOT used:** Supabase Auth, Supabase Realtime, Supabase Edge Functions — you handle auth and realtime yourself with JWT + FastAPI WebSockets.
+**NOT used:** Supabase Auth, Supabase Realtime, Supabase Edge Functions, you handle auth and realtime yourself with JWT + FastAPI WebSockets.
 
 ---
 
@@ -55,8 +55,8 @@ TheWorkshop uses Supabase for:
 
 ### CRITICAL Issues
 
-#### Issue #1: `backend/app/routes/upload.py` — Import-Time Crash
-**Problem:** Supabase client was created at module level (`create_client()` at import time). If `SUPABASE_URL` or `SUPABASE_KEY` weren't set, the **entire backend would crash on startup** — not just the upload feature, everything.
+#### Issue #1: `backend/app/routes/upload.py`, Import-Time Crash
+**Problem:** Supabase client was created at module level (`create_client()` at import time). If `SUPABASE_URL` or `SUPABASE_KEY` weren't set, the **entire backend would crash on startup**, not just the upload feature, everything.
 
 **Fix:** Replaced with a lazy initialization pattern:
 ```python
@@ -77,7 +77,7 @@ Client is only created when first needed, and the app won't crash if Supabase is
 
 ---
 
-#### Issue #2: `backend/app/routes/flashcards.py` — Security Hole (Mass Assignment)
+#### Issue #2: `backend/app/routes/flashcards.py`, Security Hole (Mass Assignment)
 **Problem:** The `create_flashcard_set` and `create_flashcard` endpoints accepted the raw SQLModel table models (`FlashcardSetLegacy`, `FlashcardLegacy`) as API input. This means a malicious client could send `{"id": "someone-elses-id", "user_id": "admin-id", ...}` and **spoof ownership** of flashcard sets.
 
 **Fix:** Created dedicated Pydantic input schemas that only accept the fields users should control:
@@ -94,16 +94,16 @@ The endpoints now use these safe schemas. `id` and `user_id` are set server-side
 
 ---
 
-#### Issue #3: `frontend/src/context/AuthContext.jsx` — Google OAuth Users Skip Onboarding
+#### Issue #3: `frontend/src/context/AuthContext.jsx`, Google OAuth Users Skip Onboarding
 **Problem:** The `login()` function always navigated to `/dashboard` after storing the token. Google OAuth users (who are new and have no study goal or profile pic set) were **never sent to `/onboarding`**, missing the setup flow entirely.
 
-**Fix:** Made `login()` async — it now fetches the user profile first, then routes:
+**Fix:** Made `login()` async, it now fetches the user profile first, then routes:
 - **New users** (no `study_goal` AND no `profile_pic`) → `/onboarding`
 - **Existing users** → `/dashboard`
 
 ---
 
-#### Issue #4: `backend/.env.example` — Missing Environment Variables
+#### Issue #4: `backend/.env.example`, Missing Environment Variables
 **Problem:** `.env.example` was missing many required variables. Anyone setting up the project from scratch would have a broken deployment.
 
 **Fix:** Added all missing variables:
@@ -118,7 +118,7 @@ The endpoints now use these safe schemas. `id` and `user_id` are set server-side
 
 ### HIGH Issues
 
-#### Issue #5: `backend/app/routes/tutor.py` — AI Generation Has No Rate Limiting
+#### Issue #5: `backend/app/routes/tutor.py`, AI Generation Has No Rate Limiting
 **Problem:** The `/generate/quiz` and `/generate/flashcards` endpoints had **zero subscription limit checks**. Any user on any plan (including free/basic) could generate unlimited quizzes and flashcards, bypassing the daily AI query limits that the `/chat` endpoint enforced.
 
 **Fix:** Added the same subscription rate limiting pattern used by `/chat`:
@@ -136,7 +136,7 @@ Also added usage counter increments (`ai_queries_today += 1`) after successful g
 
 ---
 
-#### Issue #6: `backend/app/routes/community.py` — Leaderboard Period Mismatch
+#### Issue #6: `backend/app/routes/community.py`, Leaderboard Period Mismatch
 **Problem:** The leaderboard endpoint checked for `"this_week"` / `"this_month"` internally, but the API likely receives `"weekly"` / `"monthly"` from the frontend. Users requesting the leaderboard with those values got unfiltered (all-time) results instead of the correct period.
 
 **Fix:** Accept both naming conventions:
@@ -149,7 +149,7 @@ elif period in ("this_month", "monthly"):
 
 ### MEDIUM Issues
 
-#### Issue #7: `frontend/src/pages/Login.jsx` & `Register.jsx` — Google Script Lifecycle Bug
+#### Issue #7: `frontend/src/pages/Login.jsx` & `Register.jsx`, Google Script Lifecycle Bug
 **Problem:** The Google Identity Services script tag was **appended and removed from the DOM on every React effect re-run**. This caused:
 - Unnecessary network requests to reload the script
 - Stale callback references after the cleanup removed and re-added the script
@@ -159,13 +159,13 @@ elif period in ("this_month", "monthly"):
 1. If `window.google.accounts` already exists → just re-initialize with the new callback
 2. If the script tag exists but hasn't loaded yet → attach a load listener
 3. Only create and append a new script tag if neither condition is true
-4. No cleanup function removes the script — it stays loaded for the session
+4. No cleanup function removes the script, it stays loaded for the session
 
 Applied to both `Login.jsx` and `Register.jsx`.
 
 ---
 
-#### Issue #8: `.gitignore` — Duplicate Entries
+#### Issue #8: `.gitignore`, Duplicate Entries
 **Problem:** The `.gitignore` had accumulated duplicates from multiple editing sessions:
 - `.env` appeared 3 times
 - `.DS_Store` appeared 3 times
@@ -176,8 +176,8 @@ Applied to both `Login.jsx` and `Register.jsx`.
 
 ---
 
-#### Issue #9: `backend/app/routes/tutor.py` — Supabase Client Re-Created Every Request
-**Problem:** Three endpoints (upload, serve file, delete document) each called `create_client(url, key)` inline — creating a **brand new Supabase client on every single request**. This wastes memory and adds latency.
+#### Issue #9: `backend/app/routes/tutor.py`, Supabase Client Re-Created Every Request
+**Problem:** Three endpoints (upload, serve file, delete document) each called `create_client(url, key)` inline, creating a **brand new Supabase client on every single request**. This wastes memory and adds latency.
 
 **Fix:** Added the same lazy-cached singleton pattern used in `upload.py`:
 ```python
@@ -200,10 +200,10 @@ All three endpoints now call `_get_supabase()` instead of creating their own cli
 
 ### LOW Issues
 
-#### Issue #10: `backend/app/main.py` — Unused Endpoints
+#### Issue #10: `backend/app/main.py`, Unused Endpoints
 **Problem:** Two endpoints served no purpose:
-- `GET /` — returned `{"message": "Welcome to the WorkShop Backend API!"}`
-- `GET /api/message` — returned `{"content": "Hello from the FastAPI Python backend!"}`
+- `GET /`, returned `{"message": "Welcome to the WorkShop Backend API!"}`
+- `GET /api/message`, returned `{"content": "Hello from the FastAPI Python backend!"}`
 
 These are leftover boilerplate. The health check endpoint is at `/api/v1/system/health` (in `system.py`).
 
@@ -211,8 +211,8 @@ These are leftover boilerplate. The health check endpoint is at `/api/v1/system/
 
 ---
 
-#### Issue #11: `backend/app/main.py` — Startup Backfill Loads All Users
-**Problem:** On every startup, the backfill query did `select(User)).all()` — loading **every user object into memory** just to check community membership. As the user base grows, this becomes a memory and time problem.
+#### Issue #11: `backend/app/main.py`, Startup Backfill Loads All Users
+**Problem:** On every startup, the backfill query did `select(User)).all()`, loading **every user object into memory** just to check community membership. As the user base grows, this becomes a memory and time problem.
 
 **Fix:** Replaced with a subquery that only fetches IDs of non-member users:
 ```python
@@ -256,9 +256,9 @@ This runs a single efficient SQL query instead of loading full user objects.
 
 ## Action Items For You
 
-**Nothing code-related — all fixes are applied.** But double-check these deployment items:
+**Nothing code-related, all fixes are applied.** But double-check these deployment items:
 
-1. **Verify your `.env` has all the vars** listed in `backend/.env.example` — especially the ones that were previously undocumented
-2. **Test Google Sign-In flow** — sign in with Google on a fresh account and confirm you land on `/onboarding`, not `/dashboard`
-3. **Test quiz/flashcard generation** — confirm that a basic-tier user gets a 402 error after hitting their daily limit
-4. **Your Supabase storage buckets** (`tutor_documents` and `diagrams`) should already exist — if not, create them in your Supabase dashboard
+1. **Verify your `.env` has all the vars** listed in `backend/.env.example`, especially the ones that were previously undocumented
+2. **Test Google Sign-In flow**, sign in with Google on a fresh account and confirm you land on `/onboarding`, not `/dashboard`
+3. **Test quiz/flashcard generation**, confirm that a basic-tier user gets a 402 error after hitting their daily limit
+4. **Your Supabase storage buckets** (`tutor_documents` and `diagrams`) should already exist, if not, create them in your Supabase dashboard

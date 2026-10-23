@@ -50,7 +50,7 @@ PAST_PAPER_GUIDE = """
 
 ## 1. Comprehension Passages & Shared Text
 
-Since the file is markdown, you simply **write the passage as regular text**. Multiple paragraphs are supported — just leave a blank line between them, exactly as you would in any markdown document.
+Since the file is markdown, you simply **write the passage as regular text**. Multiple paragraphs are supported, just leave a blank line between them, exactly as you would in any markdown document.
 
 ### ⚠️ Critical: The A–F Paragraph Rule
 
@@ -64,7 +64,7 @@ The system has a special rule: any paragraph whose **first word starts with `A.`
 
 Write the question as a numbered item. List the options directly below, each starting with an uppercase letter (`A.` through `F.`) followed by a space. **Do not add blank lines between the question and its options.**
 
-The system will **automatically** detect the A–F pattern and convert them to interactive radio buttons — no special tag needed.
+The system will **automatically** detect the A–F pattern and convert them to interactive radio buttons, no special tag needed.
 
 ---
 
@@ -76,7 +76,7 @@ Use the `[ESSAY]` tag anywhere in the question line. This renders a large, resiz
 
 ## 4. Structured / Short Answer Questions
 
-Use the `[STRUCTURED]` tag for questions requiring a brief, specific answer — a name, a definition, a list of items in a single response.
+Use the `[STRUCTURED]` tag for questions requiring a brief, specific answer, a name, a definition, a list of items in a single response.
 
 ---
 
@@ -134,17 +134,17 @@ You must:
 5. Extract or generate the answers and place them at the very end of the file under the exact heading `## ANSWERS`.
 6. Ensure MCQ options immediately follow their question without blank lines, starting with A., B., C., D.
 
-CRITICAL ORDERING RULE — You MUST follow this without exception:
+CRITICAL ORDERING RULE, You MUST follow this without exception:
 - The entire QUESTIONS section must come first.
 - The `## ANSWERS` section must come LAST, after every single question.
 - Never interleave answers with questions.
 - This applies to ALL question types including fill-in-the-gap passages.
 
 FILL-IN-THE-GAP / CLOZE PASSAGE RULES:
-Some comprehension passages have numbered blanks inline (e.g. —75—, —76—, or [75], [76]).
+Some comprehension passages have numbered blanks inline (e.g.,75—,,76—, or [75], [76]).
 Each blank has its own set of MCQ options listed below the passage.
 You MUST format these as follows:
-- Write the full passage as regular text, keeping the numbered blank markers intact (e.g. —75—).
+- Write the full passage as regular text, keeping the numbered blank markers intact (e.g.,75—).
 - After the passage, write each blank as a numbered question with its MCQ options immediately below it.
   Example:
   ```
@@ -297,7 +297,7 @@ async def process_paper_endpoint(request: Request):
     Spawns the background task on the GPU class and returns immediately.
     """
     # When MODAL_SHARED_SECRET is set (in the "custom-secret" Modal secret and on the backend),
-    # only the backend can trigger processing — otherwise anyone with this URL could
+    # only the backend can trigger processing, otherwise anyone with this URL could
     # overwrite past paper content in the production database.
     expected_secret = os.environ.get("MODAL_SHARED_SECRET")
     if expected_secret:

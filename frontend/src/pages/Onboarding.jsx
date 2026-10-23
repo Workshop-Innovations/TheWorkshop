@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2, BookOpen, Target, GraduationCap, MoreHorizontal, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -7,6 +7,8 @@ import axios from 'axios';
 import { PLANS, formatPrice } from './Pricing';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../services/progressService';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const STUDY_GOALS = [
     { id: 'jamb', label: 'JAMB / UTME', description: 'Joint Admissions & Matriculation', icon: Target },
@@ -133,6 +135,52 @@ const Onboarding = () => {
             navigate('/pricing');
         }
     }, [searchParams, isAuthenticated, navigate]);
+
+    const handleGoogleResponse = useCallback(async (response) => {
+        try {
+            const res = await axios.post(`${API_BASE_URL}/api/v1/auth/google`, {
+                credential: response.credential,
+            });
+            if (res.data.access_token) {
+                await login(res.data.access_token);
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.detail || 'Google sign-up failed. Please try again.');
+        }
+    }, [login]);
+
+    useEffect(() => {
+        if (!GOOGLE_CLIENT_ID || step !== 2) return;
+
+        const initGoogle = () => {
+            window.google?.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleResponse,
+            });
+            window.google?.accounts.id.renderButton(
+                document.getElementById('google-signin-btn-onboarding'),
+                { theme: 'outline', size: 'large', width: '100%', text: 'signup_with' }
+            );
+        };
+
+        if (window.google?.accounts) {
+            initGoogle();
+            return;
+        }
+
+        const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+        if (existing) {
+            existing.addEventListener('load', initGoogle);
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = initGoogle;
+        document.head.appendChild(script);
+    }, [handleGoogleResponse, step]);
 
     const handleQuestionSubmit = (e) => {
         e.preventDefault();
@@ -263,13 +311,26 @@ const Onboarding = () => {
                                             <button type="submit" disabled={loading} className="w-full py-3.5 bg-primary text-white rounded-md font-bold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 active:scale-95">
                                                 {loading ? <Loader2 size={18} className="animate-spin" /> : 'Create Account'}
                                             </button>
-                                            <button type="button" onClick={() => setStep(1)} className="w-full py-3 text-slate-500 text-sm font-semibold hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5">
-                                                <ArrowLeft size={14} /> Back
-                                            </button>
                                         </div>
                                     </form>
 
-                                    <p className="text-center text-xs text-slate-400 font-medium mt-8">
+                                    {GOOGLE_CLIENT_ID && (
+                                        <>
+                                            <div className="relative my-6">
+                                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+                                                <div className="relative flex justify-center text-sm"><span className="px-3 bg-white text-slate-400 font-medium">or</span></div>
+                                            </div>
+                                            <div id="google-signin-btn-onboarding" className="flex justify-center" />
+                                        </>
+                                    )}
+
+                                    <div className="mt-4">
+                                        <button type="button" onClick={() => setStep(1)} className="w-full py-3 text-slate-500 text-sm font-semibold hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5">
+                                            <ArrowLeft size={14} /> Back
+                                        </button>
+                                    </div>
+
+                                    <p className="text-center text-xs text-slate-400 font-medium mt-4">
                                         By creating an account, you agree to our{' '}
                                         <span className="underline cursor-pointer hover:text-slate-600">Terms of Service</span> and{' '}
                                         <span className="underline cursor-pointer hover:text-slate-600">Privacy Policy</span>.

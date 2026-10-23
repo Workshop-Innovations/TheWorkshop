@@ -106,7 +106,7 @@ async def get_plans():
                 "id": "basic",
                 "name": "Basic",
                 "price": 0,
-                "description": "Entry — free forever",
+                "description": "Entry, free forever",
                 "features": [
                     "5 AI Tutor queries per day",
                     "Access to select Past Papers",

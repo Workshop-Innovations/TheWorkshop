@@ -1,4 +1,4 @@
-# WorkShop — SEO Optimization Report
+# WorkShop, SEO Optimization Report
 
 **Date:** October 23, 2026  
 **Target:** Rank #1 for West African exam past paper searches  
@@ -44,19 +44,19 @@
 
 ## What Changed
 
-### 1. `index.html` — Title & Meta Tags
+### 1. `index.html`, Title & Meta Tags
 
 **Before:**
 ```
-Title: WorkShop — The #1 Study Platform for African Students | WAEC & JAMB Past Papers
+Title: WorkShop, The #1 Study Platform for African Students | WAEC & JAMB Past Papers
 ```
 
 **After:**
 ```
-Title: WAEC, NECO & JAMB Past Papers Online — Free AI-Powered Study Platform | WorkShop
+Title: WAEC, NECO & JAMB Past Papers Online, Free AI-Powered Study Platform | WorkShop
 ```
 
-**Why:** The title now leads with the exact keywords people search (WAEC, NECO, JAMB past papers online). Google shows ~60 characters in results — the keywords are front-loaded. NECO was missing from the old title.
+**Why:** The title now leads with the exact keywords people search (WAEC, NECO, JAMB past papers online). Google shows ~60 characters in results, the keywords are front-loaded. NECO was missing from the old title.
 
 **Before:**
 ```
@@ -70,12 +70,12 @@ Description: Access free WAEC past papers, NECO past questions, and JAMB CBT pra
 
 **Why:** Hits every primary keyword in natural language. Mentions "free" (critical conversion word for students), "JAMB CBT practice" (high-intent keyword), and "West African students" (geographic targeting).
 
-### 2. `index.html` — Keywords Meta Tag
+### 2. `index.html`, Keywords Meta Tag
 
 **Before:** 12 keywords  
 **After:** 23 keywords including year-specific variations (WAEC 2024, NECO 2024, JAMB 2025), exam-type variations (WASSCE, SSCE, GCE, UTME, CBT), and subject-specific terms (mathematics past papers, physics past questions, chemistry past papers).
 
-### 3. `index.html` — Open Graph & Twitter Cards
+### 3. `index.html`, Open Graph & Twitter Cards
 
 - Changed `og:locale` from `en_US` to `en_NG` (Nigeria)
 - Changed OG image from `logo.png` to `og-image.png` (proper 1200x630 social image)
@@ -85,7 +85,7 @@ Description: Access free WAEC past papers, NECO past questions, and JAMB CBT pra
 - Added `max-snippet:-1, max-image-preview:large` to robots meta (tells Google to show full snippets)
 - Added `geo.region` and `geo.placename` meta tags for geographic targeting
 
-### 4. `index.html` — Structured Data (3 schemas added)
+### 4. `index.html`, Structured Data (3 schemas added)
 
 **Schema 1: WebApplication (enhanced)**
 - Added `alternateName: "WorkShop Nigeria"`
@@ -108,7 +108,7 @@ Description: Access free WAEC past papers, NECO past questions, and JAMB CBT pra
 - Every FAQ answer is loaded with target keywords
 - FAQ schema can trigger rich snippets in Google (the expandable Q&A blocks directly in search results)
 
-### 5. `Landing.jsx` — Complete Content Rewrite
+### 5. `Landing.jsx`, Complete Content Rewrite
 
 **H1 (most important on-page signal):**
 - Before: `"Clear Explanations. Actual Past Papers."`
@@ -116,12 +116,12 @@ Description: Access free WAEC past papers, NECO past questions, and JAMB CBT pra
 
 **Hero subtitle:**
 - Before: Generic text about "structured platform for serious students"
-- After: "Free access to verified WAEC past papers, NECO past questions, and JAMB CBT practice — with AI-powered explanations, marking schemes, and smart study tools built for West African students."
+- After: "Free access to verified WAEC past papers, NECO past questions, and JAMB CBT practice, with AI-powered explanations, marking schemes, and smart study tools built for West African students."
 
 **New sections added:**
-1. **"Exam Boards Covered"** — Displays WAEC/WASSCE, NECO SSCE & GCE, JAMB UTME/CBT, All Subjects with keyword-rich descriptions
-2. **"AI Study Tools"** section — Dedicated feature showcase with AI Tutor, Quiz Generator, Smart Flashcards, Study Community
-3. **"Who It's For"** section — SS1-SS3 Students, JAMB Candidates, West African Students with country-specific messaging
+1. **"Exam Boards Covered"**, Displays WAEC/WASSCE, NECO SSCE & GCE, JAMB UTME/CBT, All Subjects with keyword-rich descriptions
+2. **"AI Study Tools"** section, Dedicated feature showcase with AI Tutor, Quiz Generator, Smart Flashcards, Study Community
+3. **"Who It's For"** section, SS1-SS3 Students, JAMB Candidates, West African Students with country-specific messaging
 
 **Existing sections rewritten:**
 - "Built for focus" → "AI-Powered Learning for West African Students"
@@ -139,10 +139,10 @@ Description: Access free WAEC past papers, NECO past questions, and JAMB CBT pra
 - "New" badges on 2024 papers
 - "Free Access" badge
 
-### 6. `Footer.jsx` — Keyword Reinforcement
+### 6. `Footer.jsx`, Keyword Reinforcement
 
 - Brand description → "Free WAEC, NECO & JAMB past papers online with AI-powered tutoring and study tools for West African students."
-- Bottom tagline → "WAEC, NECO & JAMB past papers online — built for West African students"
+- Bottom tagline → "WAEC, NECO & JAMB past papers online, built for West African students"
 
 ### 7. `sitemap.xml`
 
@@ -152,7 +152,7 @@ Description: Access free WAEC past papers, NECO past questions, and JAMB CBT pra
 
 ### 8. `robots.txt`
 
-- Added `Disallow: /dashboard` and `Disallow: /community` (authenticated-only pages shouldn't be crawled — they'll show login walls which Google considers thin content)
+- Added `Disallow: /dashboard` and `Disallow: /community` (authenticated-only pages shouldn't be crawled, they'll show login walls which Google considers thin content)
 
 ---
 
@@ -175,27 +175,27 @@ How many times each primary keyword appears across the site:
 ## What You Need to Do After Deployment
 
 ### Immediate (this week)
-1. **Submit sitemap to Google Search Console** — Go to https://search.google.com/search-console, add `workshop.com.ng` as a property, verify ownership, then submit `https://workshop.com.ng/sitemap.xml`
-2. **Request indexing** — In Search Console, use "URL Inspection" on `https://workshop.com.ng/` and click "Request Indexing"
-3. **Verify OG image** — Make sure `og-image.png` is a proper 1200x630 social preview image (not just your logo). Test at https://www.opengraph.xyz/
+1. **Submit sitemap to Google Search Console**, Go to https://search.google.com/search-console, add `workshop.com.ng` as a property, verify ownership, then submit `https://workshop.com.ng/sitemap.xml`
+2. **Request indexing**, In Search Console, use "URL Inspection" on `https://workshop.com.ng/` and click "Request Indexing"
+3. **Verify OG image**, Make sure `og-image.png` is a proper 1200x630 social preview image (not just your logo). Test at https://www.opengraph.xyz/
 
 ### Soon (this month)
-4. **Google Business Profile** — If WorkShop has a physical address, create a Google Business Profile to boost local Nigerian search results
-5. **Social media profiles** — Create Twitter/X and Instagram accounts. Add them to the EducationalOrganization schema's `sameAs` array in `index.html`
-6. **Backlinks** — Get listed on Nigerian education directories, student forums (Nairaland education section), and education blogs
+4. **Google Business Profile**, If WorkShop has a physical address, create a Google Business Profile to boost local Nigerian search results
+5. **Social media profiles**, Create Twitter/X and Instagram accounts. Add them to the EducationalOrganization schema's `sameAs` array in `index.html`
+6. **Backlinks**, Get listed on Nigerian education directories, student forums (Nairaland education section), and education blogs
 
 ### Ongoing (content strategy)
-7. **Blog / content pages** — Consider adding a `/blog` with articles like:
-   - "WAEC Mathematics 2024 Past Paper — Full Solutions"
+7. **Blog / content pages**, Consider adding a `/blog` with articles like:
+   - "WAEC Mathematics 2024 Past Paper, Full Solutions"
    - "How to Pass JAMB 2025: Complete Study Guide"
-   - "NECO Past Questions for Physics — 2020 to 2024"
+   - "NECO Past Questions for Physics, 2020 to 2024"
    - "Best AI Study Tools for Nigerian Students"
    
    These pages target long-tail keywords and bring in organic traffic. Each article should link back to the main app.
 
-8. **Subject-specific landing pages** — If possible, create pages like `/waec-mathematics`, `/jamb-physics`, etc. that target subject-specific searches
+8. **Subject-specific landing pages**, If possible, create pages like `/waec-mathematics`, `/jamb-physics`, etc. that target subject-specific searches
 
-9. **Update sitemap** — Every time you add a new public page, add it to `sitemap.xml` with the current date
+9. **Update sitemap**, Every time you add a new public page, add it to `sitemap.xml` with the current date
 
 ---
 
@@ -229,7 +229,7 @@ The landing page now contains natural mentions of target keywords throughout:
 For a new domain like `workshop.com.ng`, rankings take time (typically 3-6 months for competitive keywords). The fastest wins will come from:
 1. Getting indexed via Search Console (days)
 2. FAQ rich snippets appearing (weeks)
-3. Long-tail keywords ranking first (1-2 months) — e.g., "NECO past papers online free", "AI study platform Nigeria"
-4. Primary keywords climbing (3-6 months) — e.g., "WAEC past papers online"
+3. Long-tail keywords ranking first (1-2 months), e.g., "NECO past papers online free", "AI study platform Nigeria"
+4. Primary keywords climbing (3-6 months), e.g., "WAEC past papers online"
 
 **The blog/content strategy in the "Ongoing" section above is the #1 thing that will accelerate rankings.** Past paper solution articles are extremely high-intent and shareable.

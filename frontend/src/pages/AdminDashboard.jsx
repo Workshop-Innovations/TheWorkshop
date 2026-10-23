@@ -110,7 +110,7 @@ const AdminDashboard = () => {
         }
     };
 
-    // Silent refresh — updates data in background without setting loading=true.
+    // Silent refresh, updates data in background without setting loading=true.
     // Used after diagram uploads so the page doesn't flash or reorder.
     const fetchDataSilently = async () => {
         try {

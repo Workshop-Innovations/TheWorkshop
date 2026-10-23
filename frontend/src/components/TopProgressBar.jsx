@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 /**
  * TopProgressBar
  * A thin, animated progress bar at the very top of the viewport that fires on
- * every route change. Purely CSS-driven — no overlay, no spinner, no blocking UI.
+ * every route change. Purely CSS-driven, no overlay, no spinner, no blocking UI.
  */
 const TopProgressBar = () => {
     const location = useLocation();

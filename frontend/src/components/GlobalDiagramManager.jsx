@@ -27,7 +27,7 @@ const GlobalDiagramManager = ({ papers, accessToken, onUploadSuccess }) => {
         setMissingDiagrams(missing);
     }, [papers]);
 
-    // Remove a single uploaded diagram from local state immediately —
+    // Remove a single uploaded diagram from local state immediately,
     // no full re-fetch needed (backend already updated the DB).
     // This keeps the list order stable and avoids the loading flash.
     const handleDiagramUploaded = (paperId, label) => {

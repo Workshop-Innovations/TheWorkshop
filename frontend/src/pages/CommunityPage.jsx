@@ -38,7 +38,7 @@ const CommunityPage = () => {
 
     return (
         <div className="flex w-screen h-screen bg-slate-50 overflow-hidden fixed inset-0 font-sans text-slate-800">
-            {/* Left Sidebar — Channels & DMs */}
+            {/* Left Sidebar, Channels & DMs */}
             <div className="flex flex-col bg-white w-72 shrink-0 h-full border-r border-slate-200 shadow-sm z-10 relative">
                 <ChannelList />
             </div>
@@ -48,7 +48,7 @@ const CommunityPage = () => {
                 <ChatArea />
             </div>
 
-            {/* Bug 11 fix: MemberSidebar was never rendered — added here */}
+            {/* Bug 11 fix: MemberSidebar was never rendered, added here */}
             <div className="flex flex-col bg-white w-56 shrink-0 h-full z-10 relative">
                 <MemberSidebar />
             </div>

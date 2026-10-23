@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 def verify_admin_token(x_admin_token: str = Header(...)):
-    # The token must come from the environment — never hardcode it in source control.
+    # The token must come from the environment, never hardcode it in source control.
     # If DATA_ENTRY_TOKEN is unset the endpoint is disabled (fail closed).
     expected = os.getenv("DATA_ENTRY_TOKEN")
     if not expected:

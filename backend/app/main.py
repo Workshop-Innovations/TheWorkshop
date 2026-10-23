@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     logger.info("Database tables created/checked.")
     
-    # Auto-promote admin user (only when ADMIN_EMAIL is explicitly configured —
+    # Auto-promote admin user (only when ADMIN_EMAIL is explicitly configured,
     # a hardcoded fallback would let anyone register that address and become admin)
     with Session(engine) as session:
         admin_email = os.getenv("ADMIN_EMAIL")

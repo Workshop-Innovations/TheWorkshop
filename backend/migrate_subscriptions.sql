@@ -1,5 +1,5 @@
 -- =======================================================
--- Subscription Migration — Run this in Supabase SQL Editor
+-- Subscription Migration, Run this in Supabase SQL Editor
 -- Go to: https://supabase.com/dashboard → SQL Editor
 -- =======================================================
 

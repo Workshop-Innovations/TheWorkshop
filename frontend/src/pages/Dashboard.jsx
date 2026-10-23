@@ -235,7 +235,7 @@ const Dashboard = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <QuickLink to="/past-papers" icon={<BookOpen />} title="Past Papers" desc="Access exam papers & memos" />
                             <QuickLink to="/revision-notes" icon={<GraduationCap />} title="Revision Notes" desc="Topic-by-topic subject notes" />
-                            <QuickLink to="/study-suite" icon={<Bot />} title="Study Suite" desc="AI tutor — chat, quiz & flashcards" />
+                            <QuickLink to="/study-suite" icon={<Bot />} title="Study Suite" desc="AI tutor, chat, quiz & flashcards" />
                             <QuickLink to="/community" icon={<MessageSquare />} title="Community" desc="Collaborate with peers" />
                         </div>
                     </div>

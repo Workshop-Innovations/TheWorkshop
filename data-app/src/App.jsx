@@ -125,7 +125,7 @@ function App() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Upload failed')
 
-      // Reset immediately — processing is fully async in the background
+      // Reset immediately, processing is fully async in the background
       setMessage({ type: 'success', text: `Queued for processing: "${formData.title}" (ID: ${data.paper_id})` })
       const firstSubject = subjects.length > 0 ? subjects[0].id : ''
       setFormData({ subject_id: firstSubject, title: '', year: new Date().getFullYear().toString(), exam_type: 'WAEC', duration_minutes: 60 })
@@ -172,7 +172,7 @@ function App() {
                   onChange={handleChange}
                   required
                 >
-                  <option value="">— Select a subject —</option>
+                  <option value="">— Select a subject,</option>
                   {subjects.map(s => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}

@@ -519,7 +519,7 @@ export const CommunityProvider = ({ children }) => {
                 } else if (data.type === 'user_offline') {
                     setOnlineUsers(prev => prev.filter(id => id !== data.user_id));
                 } else if (data.type === 'dm_message') {
-                    // Always deduplicate by ID — sender no longer adds to state locally
+                    // Always deduplicate by ID, sender no longer adds to state locally
                     if (data.conversation_id === currentDMRef.current?.id && viewModeRef.current === 'dms') {
                         setDmMessages(prev => {
                             if (prev.some(m => m.id === data.id)) return prev;
@@ -549,7 +549,7 @@ export const CommunityProvider = ({ children }) => {
 
         ws.onclose = (event) => {
             setIsConnected(false);
-            // Reconnect with exponential backoff — skip on intentional close (1000)
+            // Reconnect with exponential backoff, skip on intentional close (1000)
             // and on auth rejection (1008): retrying with the same bad token can't succeed
             if (event.code !== 1000 && event.code !== 1008 && token) {
                 const delay = wsReconnectDelay.current;
@@ -568,7 +568,7 @@ export const CommunityProvider = ({ children }) => {
         if (!token) return;
         connectWebSocket();
         return () => {
-            // Intentional teardown — signal onclose not to reconnect
+            // Intentional teardown, signal onclose not to reconnect
             if (wsReconnectTimeout.current) clearTimeout(wsReconnectTimeout.current);
             if (wsRef.current) {
                 wsRef.current.close(1000, 'Unmounting');

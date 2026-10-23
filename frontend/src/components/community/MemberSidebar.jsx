@@ -192,14 +192,14 @@ const MemberSidebar = () => {
     const [showLeaderboard, setShowLeaderboard] = useState(false);
     const [memberSearch, setMemberSearch] = useState("");
 
-    // Bug 1 fix: reputation cache — keyed by user_id, never evicted within a session
+    // Bug 1 fix: reputation cache, keyed by user_id, never evicted within a session
     const repCacheRef = useRef({});
 
     const handleCacheRep = useCallback((userId, data) => {
         repCacheRef.current[userId] = data;
     }, []);
 
-    // Bug 10 fix: sidebar now hidden in DM view (already correct) — light theme applied below
+    // Bug 10 fix: sidebar now hidden in DM view (already correct), light theme applied below
     if (viewMode === "dms" || !currentCommunity) return null;
 
     const handleStartDM = async (member) => {
@@ -250,7 +250,7 @@ const MemberSidebar = () => {
                     <div className="mb-3">
                         <div className="px-2 py-1 mb-1">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                Online — {onlineMembers.length}
+                                Online, {onlineMembers.length}
                             </span>
                         </div>
                         <div className="space-y-0.5">
@@ -274,7 +274,7 @@ const MemberSidebar = () => {
                     <div>
                         <div className="px-2 py-1 mb-1">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                Offline — {offlineMembers.length}
+                                Offline, {offlineMembers.length}
                             </span>
                         </div>
                         <div className="space-y-0.5">
