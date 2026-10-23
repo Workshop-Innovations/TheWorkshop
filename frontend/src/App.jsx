@@ -1,39 +1,43 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PomodoroProvider, usePomodoro } from './context/PomodoroContext';
 import { AuthProvider } from './context/AuthContext';
-import { CommunityProvider } from './context/CommunityContext';
+const CommunityProviderWrapper = lazy(() => import('./context/CommunityWrapper'));
 import MinimizedPomodoro from './components/MinimizedPomodoro';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 import ProfilePictureGate from './components/ProfilePictureGate';
-import Landing from './pages/Landing';
-import Dashboard from './pages/Dashboard';
-import Pomodoro from './pages/Pomodoro';
-import Tasks from './pages/Tasks';
-import Store from './pages/Store';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ComingSoon from './pages/ComingSoon';
-import Progress from './pages/Progress';
-import Profile from './pages/Profile';
-import Materials from './pages/Materials';
-import CommunityPage from './pages/CommunityPage';
-import PastPapers from './pages/PastPapers';
-import StudySuite from './pages/StudySuite';
-import AdminDashboard from './pages/AdminDashboard';
-import SubjectSummary from './pages/SubjectSummary';
-import RevisionNotes from './pages/RevisionNotes';
-import Pricing from './pages/Pricing';
-import Onboarding from './pages/Onboarding';
-import PaperViewer from './pages/PaperViewer';
-import NotFound from './pages/NotFound';
-import About from './pages/About';
-import FeedbackPage from './pages/FeedbackPage';
-
 import ScrollToTop from './components/ScrollToTop';
 import TopProgressBar from './components/TopProgressBar';
+import GlobalLoader from './components/GlobalLoader';
+
+const Landing = lazy(() => import('./pages/Landing'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Pomodoro = lazy(() => import('./pages/Pomodoro'));
+const Tasks = lazy(() => import('./pages/Tasks'));
+const Store = lazy(() => import('./pages/Store'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ComingSoon = lazy(() => import('./pages/ComingSoon'));
+const Progress = lazy(() => import('./pages/Progress'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Materials = lazy(() => import('./pages/Materials'));
+const CommunityPage = lazy(() => import('./pages/CommunityPage'));
+const PastPapers = lazy(() => import('./pages/PastPapers'));
+const StudySuite = lazy(() => import('./pages/StudySuite'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const SubjectSummary = lazy(() => import('./pages/SubjectSummary'));
+const RevisionNotes = lazy(() => import('./pages/RevisionNotes'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
+const PaperViewer = lazy(() => import('./pages/PaperViewer'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const About = lazy(() => import('./pages/About'));
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
 const AppContent = () => {
   const { isRunning } = usePomodoro();
@@ -44,6 +48,7 @@ const AppContent = () => {
     <div className="min-h-screen bg-background-secondary text-slate-900 font-sans selection:bg-primary-light selection:text-white">
       <ScrollToTop />
       <TopProgressBar />
+      <Suspense fallback={<GlobalLoader />}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -136,7 +141,9 @@ const AppContent = () => {
           element={
             <PrivateRoute>
               <ProfilePictureGate>
-                <CommunityPage />
+                <CommunityProviderWrapper>
+                  <CommunityPage />
+                </CommunityProviderWrapper>
               </ProfilePictureGate>
             </PrivateRoute>
           }
@@ -167,10 +174,13 @@ const AppContent = () => {
         />
 
         <Route path="/feedback" element={<FeedbackPage />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Catch-all 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
 
       {showMinimizedTimer && <MinimizedPomodoro />}
     </div>
@@ -182,9 +192,7 @@ function App() {
     <Router>
       <AuthProvider>
         <PomodoroProvider>
-          <CommunityProvider>
-            <AppContent />
-          </CommunityProvider>
+          <AppContent />
         </PomodoroProvider>
       </AuthProvider>
 

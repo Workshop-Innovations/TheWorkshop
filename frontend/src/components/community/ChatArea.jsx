@@ -24,6 +24,7 @@ const ChatArea = () => {
         createReply,
         getThread,
         markChannelAsRead,
+        isConnected,
     } = useCommunity();
 
     const [inputValue, setInputValue] = useState('');
@@ -61,6 +62,19 @@ const ChatArea = () => {
     }, [messages, dmMessages, optimisticMessages]);
 
     useEffect(() => {
+        if (optimisticMessages.length === 0) return;
+        setOptimisticMessages(prev => {
+            if (prev.length === 0) return prev;
+            return prev.filter(opt => {
+                if (opt.id.startsWith('optimistic-dm-')) {
+                    return !dmMessages.some(m => m.sender_id === opt.sender_id && m.content === opt.content);
+                }
+                return !messages.some(m => m.user_id === opt.user_id && m.content === opt.content);
+            });
+        });
+    }, [messages, dmMessages]);
+
+    useEffect(() => {
         threadEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [threadData]);
 
@@ -72,7 +86,7 @@ const ChatArea = () => {
         }
     }, [editingMessageId]);
 
-    const handleSend = async (e) => {
+    const handleSend = (e) => {
         e.preventDefault();
         if (!inputValue.trim() || sending) return;
 
@@ -81,11 +95,20 @@ const ChatArea = () => {
         setShowEmojiPicker(false);
 
         if (viewMode === 'dms' && currentDM) {
-            setSending(true);
-            await sendDMMessage(content);
-            setSending(false);
+            const tempId = `optimistic-dm-${Date.now()}`;
+            const optimisticMsg = {
+                id: tempId,
+                content,
+                sender_id: user?.id,
+                sender_email: user?.email,
+                sender_profile_pic: user?.profile_pic,
+                timestamp: new Date().toISOString(),
+                conversation_id: currentDM.id,
+                _pending: true,
+            };
+            setOptimisticMessages(prev => [...prev, optimisticMsg]);
+            sendDMMessage(content);
         } else if (currentChannel) {
-            // Optimistic: add message immediately with a temp id
             const tempId = `optimistic-${Date.now()}`;
             const optimisticMsg = {
                 id: tempId,
@@ -102,9 +125,7 @@ const ChatArea = () => {
                 _pending: true,
             };
             setOptimisticMessages(prev => [...prev, optimisticMsg]);
-            await sendMessage(content);
-            // The WS will confirm and add the real message; remove the optimistic one
-            setOptimisticMessages(prev => prev.filter(m => m.id !== tempId));
+            sendMessage(content);
         }
     };
 
@@ -409,6 +430,23 @@ const ChatArea = () => {
                             </div>
                         );
                     })}
+                    {optimisticMessages.filter(m => m.id.startsWith('optimistic-dm-')).map(msg => (
+                        <div key={msg.id} className="flex gap-3 flex-row-reverse opacity-60">
+                            <div className="w-9 h-9 rounded-md bg-slate-200 flex items-center justify-center text-slate-800 font-bold text-xs shrink-0 self-end overflow-hidden shadow-sm">
+                                {msg.sender_profile_pic ? (
+                                    <img src={msg.sender_profile_pic} alt={msg.sender_email} className="w-full h-full object-cover" />
+                                ) : (
+                                    msg.sender_email?.charAt(0).toUpperCase() || '?'
+                                )}
+                            </div>
+                            <div className="flex flex-col max-w-[70%] items-end">
+                                <div className="py-3 px-5 text-[15px] leading-relaxed shadow-lg bg-gradient-to-br from-primary to-primary/90 text-white rounded-md rounded-br-sm">
+                                    {msg.content}
+                                </div>
+                                <span className="text-[11px] italic text-slate-400 mt-1 px-1">Sending...</span>
+                            </div>
+                        </div>
+                    ))}
                     <div ref={messagesEndRef} />
                 </div>
 
@@ -466,6 +504,7 @@ const ChatArea = () => {
                                 <span className="text-[13px] font-medium text-slate-400 truncate max-w-sm hidden sm:block">{currentChannel.description}</span>
                             )}
                         </div>
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${isConnected ? 'bg-emerald-400' : 'bg-slate-300'}`} title={isConnected ? 'Connected' : 'Reconnecting...'} />
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                         <button
@@ -514,15 +553,10 @@ const ChatArea = () => {
                                                 <span className="text-[11px] font-medium text-primary ml-2 uppercase tracking-wider bg-primary/10 px-1.5 py-0.5 rounded">You</span>
                                             </span>
                                         </div>
-                                        <div className="text-slate-600 text-[15px] leading-relaxed whitespace-pre-wrap break-words flex items-end gap-2">
-                                            <span>{msg.content}</span>
-                                            <span className="shrink-0 mb-0.5">
-                                                <span className="inline-flex items-center gap-0.5">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-pulse inline-block" />
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-pulse inline-block" style={{animationDelay: '0.15s'}} />
-                                                </span>
-                                            </span>
+                                        <div className="text-slate-600 text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+                                            {msg.content}
                                         </div>
+                                        <span className="text-[11px] italic text-slate-400 mt-1">Sending...</span>
                                     </div>
                                 </div>
                             ))}

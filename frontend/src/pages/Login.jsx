@@ -1,11 +1,15 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../services/progressService';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+const prefetchDashboard = () => import('./Dashboard');
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,8 +19,56 @@ const Login = () => {
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-
   const { login } = useAuth();
+
+  useEffect(() => { prefetchDashboard(); }, []);
+
+  const handleGoogleResponse = useCallback(async (response) => {
+    setError('');
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/v1/auth/google`, {
+        credential: response.credential,
+      });
+      if (res.data.access_token) {
+        await login(res.data.access_token);
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Google sign-in failed. Please try again.');
+    }
+  }, [login]);
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+
+    const initGoogle = () => {
+      window.google?.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse,
+      });
+      window.google?.accounts.id.renderButton(
+        document.getElementById('google-signin-btn-login'),
+        { theme: 'outline', size: 'large', width: '100%', text: 'signin_with' }
+      );
+    };
+
+    if (window.google?.accounts) {
+      initGoogle();
+      return;
+    }
+
+    const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existing) {
+      existing.addEventListener('load', initGoogle);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = initGoogle;
+    document.head.appendChild(script);
+  }, [handleGoogleResponse]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,6 +185,16 @@ const Login = () => {
               </button>
             </div>
           </form>
+
+          {GOOGLE_CLIENT_ID && (
+            <>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+                <div className="relative flex justify-center text-sm"><span className="px-3 bg-white text-slate-400 font-medium">or</span></div>
+              </div>
+              <div id="google-signin-btn-login" className="flex justify-center" />
+            </>
+          )}
 
           <p className="mt-4 text-center text-sm text-slate-600">
             Don't have an account?{' '}

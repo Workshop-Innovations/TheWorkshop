@@ -59,12 +59,37 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // 1. LOGIN
-  const login = useCallback((token) => {
+  const login = useCallback(async (token) => {
     localStorage.setItem('accessToken', token);
     setAccessToken(token);
-    // Fetch user profile immediately
-    fetchUserProfile(token);
 
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+        if (userData.profile_pic) {
+          setProfilePic(userData.profile_pic);
+          localStorage.setItem('userProfilePic', userData.profile_pic);
+        } else {
+          setProfilePic(null);
+          localStorage.removeItem('userProfilePic');
+        }
+        toast.success("Login successful!");
+        if (!userData.study_goal && !userData.profile_pic) {
+          navigate('/onboarding', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching user profile on login:", error);
+    }
+
+    fetchUserProfile(token);
     toast.success("Login successful!");
     navigate('/dashboard', { replace: true });
   }, [navigate, fetchUserProfile]);

@@ -226,25 +226,17 @@ export const CommunityProvider = ({ children }) => {
         }
     };
 
-    const sendMessage = async (content) => {
+    const sendMessage = (content) => {
         if (!currentChannel || !content.trim()) return;
 
-        try {
-            // We deliberately do NOT add the message to state here.
-            // The backend broadcasts via WebSocket to all clients including the sender,
-            // and the WS onmessage handler handles deduplication.
-            // Adding it locally first creates a race-condition that causes duplicates.
-            await fetch(`${API_BASE}/channels/${currentChannel.id}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ content })
-            });
-        } catch (error) {
-            console.error("Failed to send message", error);
-        }
+        fetch(`${API_BASE}/channels/${currentChannel.id}/messages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ content })
+        }).catch(error => console.error("Failed to send message", error));
     };
 
     const editMessage = async (messageId, content) => {
@@ -402,26 +394,17 @@ export const CommunityProvider = ({ children }) => {
         }
     };
 
-    const sendDMMessage = async (content) => {
+    const sendDMMessage = (content) => {
         if (!currentDM || !content.trim()) return;
-        try {
-            const response = await fetch(`${API_BASE}/dms/${currentDM.id}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ content })
-            });
-            if (response.ok) {
-                // Do NOT add the message to local state here.
-                // The backend sends it back via WebSocket (dm_message event),
-                // and the WS handler deduplicates by ID to prevent doubles.
-                await response.json();
-            }
-        } catch (error) {
-            console.error("Failed to send DM", error);
-        }
+
+        fetch(`${API_BASE}/dms/${currentDM.id}/messages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ content })
+        }).catch(error => console.error("Failed to send DM", error));
     };
 
     // ==================== ONLINE USERS ====================

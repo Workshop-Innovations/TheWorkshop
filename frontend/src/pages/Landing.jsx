@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookOpen, Bot, Users, Clock, ArrowRight,
@@ -9,8 +9,12 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const Landing = () => {
+  useEffect(() => {
+    import('./Login');
+    import('./Register');
+  }, []);
   return (
-    <div className="min-h-screen w-full flex flex-col bg-slate-50 font-sans">
+    <div className="min-h-screen w-full flex flex-col bg-slate-50 font-sans" role="main">
       <Navbar />
 
       {/* --- HERO SECTION --- */}

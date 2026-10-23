@@ -3,8 +3,8 @@ import hmac
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File, Form
 from sqlmodel import Session
-from app.database import get_session
-from app.schemas import PastPaper
+from ..database import get_session
+from ..schemas import PastPaper
 
 router = APIRouter(
     prefix="/api/v1/data-entry",

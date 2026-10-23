@@ -5,9 +5,16 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-
-  // FIX: This ensures all assets (JS, CSS) are loaded using relative paths 
-  // (e.g., './assets/...' instead of '/assets/...') so the app works 
-  // on deployment platforms like Render that use URL rewrites.
   base: '/',
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['framer-motion', 'lucide-react'],
+          'toast': ['react-toastify'],
+        }
+      }
+    }
+  }
 })

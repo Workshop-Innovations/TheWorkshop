@@ -18,7 +18,7 @@ from .database import engine, create_db_and_tables, get_session
 
 # --- IMPORTANT: Ensure you have a 'schemas.py' file in the same directory (app/)
 from .schemas import (
-    UserCreate, UserLogin, UserResponse, Token, User, GenericMessage,
+    UserCreate, UserLogin, UserResponse, Token, User,
     Task, TaskCreate, TaskUpdate, TaskResponse,
     SessionLog, SessionLogCreate, SessionLogResponse,
     # Community Models
@@ -30,7 +30,7 @@ from .schemas import (
     DMConversationResponse, DMMessageCreate, DMMessageResponse,
 )
 
-from .routes import community, websocket, flashcards, tutor, subjects, users, system, subscriptions, upload, data_entry
+from .routes import community, websocket, flashcards, tutor, subjects, users, system, subscriptions, upload, data_entry, google_auth
 from .dependencies import get_current_user, settings, create_access_token
 
 # --- Password Utility Functions ---
@@ -116,24 +116,24 @@ async def lifespan(app: FastAPI):
 
         # Backfill: add any existing users who are not yet members of The Workshop
         if workshop:
-            all_users = session.exec(select(User)).all()
-            existing_member_ids = {
-                m.user_id for m in session.exec(
-                    select(CommunityMember).where(CommunityMember.community_id == workshop.id)
-                ).all()
-            }
-            added = 0
-            for u in all_users:
-                if u.id not in existing_member_ids:
-                    session.add(CommunityMember(
-                        community_id=workshop.id,
-                        user_id=u.id,
-                        role="member"
-                    ))
-                    added += 1
-            if added:
+            result = session.exec(
+                select(User.id).where(
+                    User.id.not_in(
+                        select(CommunityMember.user_id).where(
+                            CommunityMember.community_id == workshop.id
+                        )
+                    )
+                )
+            ).all()
+            for uid in result:
+                session.add(CommunityMember(
+                    community_id=workshop.id,
+                    user_id=uid,
+                    role="member"
+                ))
+            if result:
                 session.commit()
-                logger.info(f"Backfilled {added} existing user(s) into The Workshop.")
+                logger.info(f"Backfilled {len(result)} existing user(s) into The Workshop.")
 
     logger.info("All routers loaded. Application ready.")
     
@@ -176,6 +176,7 @@ app.include_router(system.router)
 app.include_router(subscriptions.router)
 app.include_router(upload.router)
 app.include_router(data_entry.router)
+app.include_router(google_auth.router)
 
 # --- Mount Static Files ---
 static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
@@ -183,16 +184,6 @@ if not os.path.exists(static_dir):
     os.makedirs(static_dir)
 
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-# --- API Endpoints (Routes) ---
-
-@app.get("/", summary="Root endpoint")
-async def read_root():
-    return {"message": "Welcome to the WorkShop Backend API!"}
-
-@app.get("/api/message", response_model=GenericMessage, summary="Get a simple message")
-async def get_simple_message():
-    return {"content": "Hello from the FastAPI Python backend!"}
 
 # --- User Authentication Endpoints (Using Database) ---
 

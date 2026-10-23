@@ -31,6 +31,20 @@ if GEMINI_API_KEY:
 else:
     print("WARNING: GEMINI_API_KEY not set. AI Tutor features will not work.")
 
+# Lazy-cached Supabase client
+_supabase_client = None
+
+def _get_supabase():
+    global _supabase_client
+    if _supabase_client is None:
+        from supabase import create_client
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_KEY")
+        if not url or not key:
+            return None
+        _supabase_client = create_client(url, key)
+    return _supabase_client
+
 # Removed local uploads directory creation
 
 # Max chat turns from the client's history forwarded to the model per request
@@ -86,19 +100,16 @@ async def upload_document(
             doc_id = str(uuid4())
             file_path = f"{doc_id}_{file.filename}"
             
-            from supabase import create_client, Client
-            url = os.getenv("SUPABASE_URL")
-            key = os.getenv("SUPABASE_KEY")
-            if url and key:
-                supabase: Client = create_client(url, key)
-                supabase.storage.from_("tutor_documents").upload(
+            sb = _get_supabase()
+            if sb:
+                sb.storage.from_("tutor_documents").upload(
                     file_path,
                     content_bytes,
                     file_options={"cache-control": "3600", "upsert": "true"}
                 )
             else:
                 print("WARNING: Supabase not configured. Tutor docs won't be saved.")
-            
+
             # Extract text for AI processing
             try:
                 pdf_reader = pypdf.PdfReader(io.BytesIO(content_bytes))
@@ -108,9 +119,8 @@ async def upload_document(
                         content += text + "\n"
             except Exception as e:
                 print(f"PDF Extraction Error: {e}")
-                # Delete the saved file if extraction fails
-                if url and key:
-                    supabase.storage.from_("tutor_documents").remove([file_path])
+                if sb:
+                    sb.storage.from_("tutor_documents").remove([file_path])
                 raise HTTPException(status_code=400, detail="Could not extract text from PDF.")
         else:
             # Assume text/markdown
@@ -200,17 +210,12 @@ async def serve_document_file(
     if not doc.file_path:
         raise HTTPException(status_code=404, detail="File path not found for document.")
     
-    from supabase import create_client, Client
-    url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_KEY")
-    
-    if not url or not key:
+    sb = _get_supabase()
+    if not sb:
         raise HTTPException(status_code=500, detail="Supabase not configured.")
-        
-    supabase: Client = create_client(url, key)
-    
+
     # Generate signed url valid for 60 seconds
-    res = supabase.storage.from_("tutor_documents").create_signed_url(doc.file_path, 60)
+    res = sb.storage.from_("tutor_documents").create_signed_url(doc.file_path, 60)
     
     # create_signed_url returns a dict like {'signedURL': '...'} or {'error': '...'} in python client
     if isinstance(res, dict) and "signedURL" in res:
@@ -246,12 +251,9 @@ async def delete_document(
     # Delete from Supabase storage if it's a PDF
     if doc.file_path:
         try:
-            from supabase import create_client, Client
-            url = os.getenv("SUPABASE_URL")
-            key = os.getenv("SUPABASE_KEY")
-            if url and key:
-                supabase: Client = create_client(url, key)
-                supabase.storage.from_("tutor_documents").remove([doc.file_path])
+            sb = _get_supabase()
+            if sb:
+                sb.storage.from_("tutor_documents").remove([doc.file_path])
         except Exception as e:
             print(f"Warning: Could not delete file from storage: {e}")
 
@@ -345,8 +347,20 @@ async def generate_quiz(
     """Generate a multiple-choice quiz from the document content."""
     if not client:
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail="AI Quiz generator is not configured. Please contact the administrator."
+        )
+
+    tier = effective_tier(current_user)
+    daily_limit = PLAN_LIMITS[tier]["ai_queries_daily"]
+    today = datetime.now(timezone.utc).date()
+    if current_user.last_ai_query_date != today:
+        current_user.ai_queries_today = 0
+        current_user.last_ai_query_date = today
+    if daily_limit != -1 and current_user.ai_queries_today >= daily_limit:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Daily AI query limit reached ({daily_limit}/day on {tier.title()} plan). Upgrade your plan to get more queries."
         )
 
     doc = session.exec(
@@ -378,7 +392,11 @@ async def generate_quiz(
                 quiz_data = quiz_data["questions"]
             else:
                 raise ValueError("Expected a list of questions")
-        
+
+        current_user.ai_queries_today += 1
+        session.add(current_user)
+        session.commit()
+
         return QuizResponse(questions=[QuizQuestion(**q) for q in quiz_data])
     except Exception as e:
         print(f"Quiz Generation Error: {e}")
@@ -394,8 +412,20 @@ async def generate_flashcards(
     """Generate flashcards (term/definition pairs) from the document content."""
     if not client:
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail="AI Flashcard generator is not configured. Please contact the administrator."
+        )
+
+    tier = effective_tier(current_user)
+    daily_limit = PLAN_LIMITS[tier]["ai_queries_daily"]
+    today = datetime.now(timezone.utc).date()
+    if current_user.last_ai_query_date != today:
+        current_user.ai_queries_today = 0
+        current_user.last_ai_query_date = today
+    if daily_limit != -1 and current_user.ai_queries_today >= daily_limit:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Daily AI query limit reached ({daily_limit}/day on {tier.title()} plan). Upgrade your plan to get more queries."
         )
 
     doc = session.exec(
@@ -427,7 +457,11 @@ async def generate_flashcards(
                 flashcards_data = flashcards_data["flashcards"]
             else:
                 raise ValueError("Expected a list of flashcards")
-        
+
+        current_user.ai_queries_today += 1
+        session.add(current_user)
+        session.commit()
+
         return FlashcardsResponse(flashcards=[FlashcardItem(**f) for f in flashcards_data])
     except Exception as e:
         print(f"Flashcard Generation Error: {e}")

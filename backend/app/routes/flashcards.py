@@ -6,6 +6,7 @@ from google import genai
 from uuid import uuid4
 from datetime import datetime, timezone
 
+from pydantic import BaseModel as PydanticBaseModel
 from ..database import get_session
 from ..dependencies import get_current_user
 from ..schemas import (
@@ -17,6 +18,16 @@ from ..schemas import (
 import tempfile
 import shutil
 import json
+
+
+class FlashcardSetCreateInput(PydanticBaseModel):
+    title: str
+    category: str
+
+
+class FlashcardCardCreateInput(PydanticBaseModel):
+    question: str
+    answer: str
 
 router = APIRouter(
     prefix="/api/v1/flashcards",
@@ -194,7 +205,7 @@ async def generate_flashcards_from_file(
 
 @router.post("/sets", response_model=FlashcardSetResponse, status_code=status.HTTP_201_CREATED)
 async def create_flashcard_set(
-    flashcard_set_data: FlashcardSetLegacy, 
+    flashcard_set_data: FlashcardSetCreateInput,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -205,7 +216,7 @@ async def create_flashcard_set(
         user_id=current_user.id,
         created_at=datetime.now(timezone.utc)
     )
-    
+
     session.add(new_set)
     session.commit()
     session.refresh(new_set)
@@ -233,7 +244,7 @@ async def get_flashcard_set(
 @router.post("/sets/{set_id}/cards", response_model=FlashcardLegacyResponse, status_code=status.HTTP_201_CREATED)
 async def create_flashcard(
     set_id: str,
-    flashcard_data: FlashcardLegacy,
+    flashcard_data: FlashcardCardCreateInput,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):

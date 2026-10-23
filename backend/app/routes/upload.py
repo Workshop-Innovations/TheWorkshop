@@ -4,17 +4,24 @@ from uuid import uuid4
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, status
 from sqlmodel import Session
-from supabase import create_client, Client
 from ..database import get_session
 from ..schemas import User, PastPaper
 from ..dependencies import get_current_admin_user
 
 router = APIRouter(prefix="/api/v1", tags=["Uploads"])
 
-# Initialize Supabase client
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+_supabase_client = None
+
+def _get_supabase():
+    global _supabase_client
+    if _supabase_client is None:
+        from supabase import create_client
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_KEY")
+        if not url or not key:
+            return None
+        _supabase_client = create_client(url, key)
+    return _supabase_client
 
 MODAL_UPSCALER_URL = os.getenv("MODAL_UPSCALER_URL")
 
@@ -39,7 +46,7 @@ async def upscale_and_replace_image(image_bytes: bytes, file_path: str):
                 upscaled_bytes = response.content
                 print(f"Successfully upscaled {file_path}. Uploading to Supabase...")
                 # Overwrite in Supabase
-                res = supabase.storage.from_("diagrams").upload(
+                res = _get_supabase().storage.from_("diagrams").upload(
                     file_path,
                     upscaled_bytes,
                     file_options={"cache-control": "3600", "upsert": "true"}
@@ -63,6 +70,7 @@ async def upload_diagram(
     Uploads an image for a diagram placeholder in a Past Paper and replaces the placeholder 
     in the markdown content with the actual image URL.
     """
+    supabase = _get_supabase()
     if not supabase:
         raise HTTPException(status_code=500, detail="Supabase Storage not configured.")
 

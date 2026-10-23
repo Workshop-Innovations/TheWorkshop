@@ -250,10 +250,10 @@ async def get_user_communities(
         session.add(membership)
         session.commit()
 
-    member_count = len(session.exec(
-        select(CommunityMember).where(CommunityMember.community_id == main_comm.id)
-    ).all())
-    
+    member_count = session.exec(
+        select(func.count(CommunityMember.id)).where(CommunityMember.community_id == main_comm.id)
+    ).one()
+
     return [CommunityResponse(
         id=main_comm.id,
         name=main_comm.name,
@@ -309,10 +309,10 @@ async def get_community(
     if not community:
         raise HTTPException(status_code=404, detail="Community not found")
     
-    member_count = len(session.exec(
-        select(CommunityMember).where(CommunityMember.community_id == community.id)
-    ).all())
-    
+    member_count = session.exec(
+        select(func.count(CommunityMember.id)).where(CommunityMember.community_id == community.id)
+    ).one()
+
     return CommunityResponse(
         id=community.id,
         name=community.name,
@@ -1152,16 +1152,15 @@ async def get_leaderboard(
     # Full implementation: filter users who sent messages in the period.
     now = datetime.now(timezone.utc)
     
-    if period == "this_week":
+    if period in ("this_week", "weekly"):
         since = now - timedelta(days=7)
-        # Get user IDs who sent messages in the last 7 days
         active_user_ids = session.exec(
             select(Message.user_id)
             .where(Message.timestamp >= since)
             .distinct()
         ).all()
         base_query = base_query.where(User.id.in_(active_user_ids))
-    elif period == "this_month":
+    elif period in ("this_month", "monthly"):
         since = now - timedelta(days=30)
         active_user_ids = session.exec(
             select(Message.user_id)
@@ -1535,22 +1534,21 @@ async def join_study_group(
         raise HTTPException(status_code=400, detail="Study group is full")
     
     # Check if group is public
-    status = "approved"
+    join_status = "approved"
     if not group.is_public:
-        status = "pending"
-        # raise HTTPException(status_code=403, detail="This is a private group")
-    
+        join_status = "pending"
+
     membership = StudyGroupMember(
         group_id=group_id,
         user_id=current_user.id,
         role="member",
-        status=status
+        status=join_status
     )
     session.add(membership)
     session.commit()
-    
-    message = "Successfully joined study group" if status == "approved" else "Request to join sent"
-    return {"message": message, "group_id": group_id, "status": status}
+
+    message = "Successfully joined study group" if join_status == "approved" else "Request to join sent"
+    return {"message": message, "group_id": group_id, "status": join_status}
 
 @router.put("/groups/{group_id}/members/{user_id}")
 async def update_group_member_status(
