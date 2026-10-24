@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Search, Download, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../config';
 
 const PastPapers = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -12,25 +13,20 @@ const PastPapers = () => {
     const [subjects, setSubjects] = useState([]); // To link to summaries
 
     useEffect(() => {
+        const controller = new AbortController();
         const fetchData = async () => {
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
-                // Fetch papers
-                const papersRes = await fetch(`${apiUrl}/api/v1/papers`);
+                const papersRes = await fetch(`${API_BASE_URL}/api/v1/papers`, { signal: controller.signal });
                 if (papersRes.ok) {
-                    const papersData = await papersRes.json();
-                    setPapers(papersData);
+                    setPapers(await papersRes.json());
                 }
 
-                // Fetch subjects for "Subject Summary" links
-                const subjectsRes = await fetch(`${apiUrl}/api/v1/subjects`);
+                const subjectsRes = await fetch(`${API_BASE_URL}/api/v1/subjects`, { signal: controller.signal });
                 if (subjectsRes.ok) {
-                    const subjectsData = await subjectsRes.json();
-                    setSubjects(subjectsData);
+                    setSubjects(await subjectsRes.json());
                 }
-
             } catch (error) {
+                if (error.name === 'AbortError') return;
                 console.error("Error fetching data:", error);
             } finally {
                 setLoading(false);
@@ -38,6 +34,7 @@ const PastPapers = () => {
         };
 
         fetchData();
+        return () => controller.abort();
     }, []);
 
     // Helper to find subject name for a paper
@@ -137,7 +134,7 @@ const PastPapers = () => {
                                             </Link>
                                         ) : (
                                             <a
-                                                href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/static/papers/${paper.file_path}`}
+                                                href={`${API_BASE_URL}/static/papers/${paper.file_path}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="p-3 bg-slate-50 text-slate-400 rounded-md hover:bg-primary hover:text-white transition-all transform hover:scale-110"

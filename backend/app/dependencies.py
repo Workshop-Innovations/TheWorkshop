@@ -18,19 +18,24 @@ from .schemas import User
 
 logger = logging.getLogger(__name__)
 
+_DEV_SECRET = "dev-only-secret-change-in-production"
+
 # --- Unified Configuration Settings ---
 class Settings(BaseModel):
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-only-secret-change-in-production")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", _DEV_SECRET)
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours for MVP (was 30 min)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./database.db")
     FRONTEND_URLS: str = os.getenv("FRONTEND_URLS", "http://localhost:5173,http://localhost:3000")
 
 settings = Settings()
 
-# Warn if using default secret key
-if settings.SECRET_KEY == "dev-only-secret-change-in-production":
-    logger.warning("⚠️  Using default SECRET_KEY, set a strong key via environment variable for production!")
+_is_production = os.getenv("RENDER") or os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("FLY_APP_NAME") or os.getenv("ENV", "").lower() == "production"
+if settings.SECRET_KEY == _DEV_SECRET:
+    if _is_production:
+        raise RuntimeError("SECRET_KEY is not set or is the dev default. Refusing to start in production.")
+    logger.warning("⚠️  Using default SECRET_KEY — set a strong key via environment variable for production!")
 
 # --- OAuth2PasswordBearer for token extraction ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
@@ -42,7 +47,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})  # Pass datetime directly, not .timestamp()
+    to_encode.update({"exp": expire, "type": "access"})
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
+
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire, "type": "refresh"})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 

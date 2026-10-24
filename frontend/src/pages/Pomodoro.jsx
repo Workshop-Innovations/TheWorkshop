@@ -123,20 +123,23 @@ const Pomodoro = () => {
   }
 
   const handleSettingsSave = () => {
-    setSettings(tempSettings);
-    localStorage.setItem('pomodoroSettings', JSON.stringify(tempSettings));
+    const clamped = {
+      ...tempSettings,
+      pomodoro: Math.max(1, Math.min(120, tempSettings.pomodoro || 1)),
+      shortBreak: Math.max(1, Math.min(60, tempSettings.shortBreak || 1)),
+      longBreak: Math.max(1, Math.min(60, tempSettings.longBreak || 1)),
+      pomodorosUntilLongBreak: Math.max(1, Math.min(20, tempSettings.pomodorosUntilLongBreak || 4)),
+      coinsPerPomodoro: Math.max(0, Math.min(100, tempSettings.coinsPerPomodoro || 10)),
+    };
+    setSettings(clamped);
+    localStorage.setItem('pomodoroSettings', JSON.stringify(clamped));
+    if (!isRunning) {
+      const durations = { pomodoro: clamped.pomodoro, shortBreak: clamped.shortBreak, longBreak: clamped.longBreak };
+      setTime((durations[mode] || clamped.pomodoro) * 60);
+    }
     setShowSettings(false);
     setTempSettings(null);
-    toast.success('Settings saved!', {
-      position: "bottom-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-    });
+    toast.success('Settings saved!', { position: "bottom-right", autoClose: 3000, theme: "light" });
   };
 
   const modeColors = {

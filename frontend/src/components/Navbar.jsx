@@ -66,7 +66,7 @@ const Navbar = () => {
                   <button onClick={handleLogout} className="text-sm font-bold text-slate-500 hover:text-slate-900 px-4 py-2 rounded-md hover:bg-slate-50 transition-colors">
                     Sign Out
                   </button>
-                  <Link to="/profile" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-primary text-xs font-bold overflow-hidden hover:shadow-md hover:border-primary/50 transition-all ml-2">
+                  <Link to="/profile" aria-label="My profile" className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-primary text-xs font-bold overflow-hidden hover:shadow-md hover:border-primary/50 transition-all ml-2">
                     {profilePic ? (
                       <img src={profilePic} alt="Me" className="w-full h-full object-cover" />
                     ) : (
@@ -122,7 +122,7 @@ const Navbar = () => {
               {/* Mobile Menu Header */}
               <div className="flex items-center justify-between p-8 border-b border-slate-100 bg-slate-50">
                 <span className="text-xl font-black text-slate-900 tracking-tight">Navigation</span>
-                <button onClick={closeMobile} className="p-3 hover:bg-slate-200 rounded-md transition-colors bg-white shadow-sm">
+                <button onClick={closeMobile} aria-label="Close menu" className="p-3 hover:bg-slate-200 rounded-md transition-colors bg-white shadow-sm">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>

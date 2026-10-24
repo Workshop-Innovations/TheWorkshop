@@ -67,6 +67,8 @@ async def google_login(body: GoogleLoginRequest, session: Session = Depends(get_
             username = f"{base_username}{counter}"
             counter += 1
 
+        # TODO: Add auth_provider="google" field to User model so OAuth-only
+        # accounts can be distinguished and prevented from email/password login.
         user = User(
             id=str(uuid4()),
             username=username,

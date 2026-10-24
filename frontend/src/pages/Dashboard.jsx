@@ -7,20 +7,15 @@ import GlobalLoader from '../components/GlobalLoader';
 import { useAuth } from '../context/AuthContext';
 import { usePomodoro } from '../context/PomodoroContext';
 import { REWARDS } from '../constants/rewardConstants';
-import { API_BASE_URL } from '../services/progressService';
 import ImageUploaderModal from '../components/ImageUploaderModal';
 
 const Dashboard = () => {
     // Hooks and Context
-    const { user, profilePic: contextProfilePic, updateProfilePic } = useAuth();
-    const { userStats } = usePomodoro();
+    const { user, loading, profilePic: contextProfilePic, updateProfilePic } = useAuth();
+    const { userStats, settings: pomodoroSettings } = usePomodoro();
     const navigate = useNavigate();
 
     // State
-    const [userEmail, setUserEmail] = useState(null);
-    const [userName, setUserName] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Profile Customization States
@@ -71,68 +66,19 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        const controller = new AbortController();
-        const signal = controller.signal;
-
-        const fetchUserData = async () => {
-            const token = localStorage.getItem('accessToken');
-            if (!token) {
-                navigate('/login');
-                return;
-            }
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    signal: signal
-                });
-                if (!response.ok) {
-                    if (response.status === 401 || response.status === 403) {
-                        localStorage.removeItem('accessToken');
-                        navigate('/login');
-                    }
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                setUserEmail(data.email);
-                setUserName(data.username);
-            } catch (err) {
-                if (err.name === 'AbortError') return;
-                setError(err.message || "Failed to load user data.");
-                localStorage.removeItem('accessToken');
-                navigate('/login');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUserData();
-        return () => controller.abort();
-    }, [navigate]);
+        if (!loading && !user) {
+            navigate('/login');
+        }
+    }, [loading, user, navigate]);
 
     if (loading) return <GlobalLoader message="Loading Dashboard..." />;
+    if (!user) return null;
 
-    if (error) return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="bg-white p-12 rounded-md shadow-lg max-w-md w-full text-center">
-                <div className="text-red-500 text-5xl mb-6 flex justify-center"><X /></div>
-                <h2 className="text-2xl font-bold text-slate-800 mb-3">Connection Lost</h2>
-                <p className="text-slate-500 mb-8">{error}</p>
-                <button onClick={() => window.location.reload()} className="px-8 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors font-bold">
-                    Retry Connection
-                </button>
-            </div>
-        </div>
-    );
-
-    const currentUsername = userName || user?.username || userEmail || "User";
+    const currentUsername = user?.username || user?.email || "User";
     const totalPomodoros = userStats?.totalCompletedPomodoros || 0;
     const totalTasks = totalUnlockedRewards;
-    const totalFocusTime = totalPomodoros * 30 * 60;
+    const pomoDurationMinutes = pomodoroSettings?.pomodoro || 30;
+    const totalFocusTime = totalPomodoros * pomoDurationMinutes * 60;
     const focusHours = Math.floor(totalFocusTime / 3600);
     const focusMinutes = Math.floor((totalFocusTime % 3600) / 60);
 

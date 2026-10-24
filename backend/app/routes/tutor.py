@@ -5,6 +5,7 @@ from typing import List, Optional
 import os
 import json
 import io
+import logging
 import pypdf
 from google import genai
 from uuid import uuid4
@@ -16,7 +17,10 @@ from pathlib import Path
 from ..database import get_session
 from ..dependencies import get_current_user, get_user_from_token
 from ..schemas import User, TutorDocument, TutorChatRequest, TutorChatResponse
+from ..utils import get_supabase
 from .subscriptions import PLAN_LIMITS, effective_tier
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/api/v1/tutor",
@@ -29,26 +33,47 @@ client = None
 if GEMINI_API_KEY:
     client = genai.Client(api_key=GEMINI_API_KEY)
 else:
-    print("WARNING: GEMINI_API_KEY not set. AI Tutor features will not work.")
+    logger.warning("GEMINI_API_KEY not set. AI Tutor features will not work.")
 
-# Lazy-cached Supabase client
-_supabase_client = None
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
 
-def _get_supabase():
-    global _supabase_client
-    if _supabase_client is None:
-        from supabase import create_client
-        url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_KEY")
-        if not url or not key:
-            return None
-        _supabase_client = create_client(url, key)
-    return _supabase_client
+_get_supabase = get_supabase
 
 # Removed local uploads directory creation
 
 # Max chat turns from the client's history forwarded to the model per request
 MAX_HISTORY_TURNS = 20
+
+
+def check_ai_query_limit(session: Session, user: User) -> None:
+    """Check and enforce the daily AI query limit. Increments the counter
+    BEFORE the AI call to prevent race-condition bypass."""
+    tier = effective_tier(user)
+    daily_limit = PLAN_LIMITS[tier]["ai_queries_daily"]
+    today = datetime.now(timezone.utc).date()
+
+    if user.last_ai_query_date != today:
+        user.ai_queries_today = 0
+        user.last_ai_query_date = today
+
+    if daily_limit != -1 and user.ai_queries_today >= daily_limit:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Daily AI query limit reached ({daily_limit}/day on {tier.title()} plan). Upgrade your plan to get more queries."
+        )
+
+    # Increment BEFORE the AI call to prevent concurrent-request bypass
+    user.ai_queries_today += 1
+    session.add(user)
+    session.commit()
+
+
+def rollback_ai_query(session: Session, user: User) -> None:
+    """Decrement the counter if the AI call failed after we incremented it."""
+    if user.ai_queries_today > 0:
+        user.ai_queries_today -= 1
+        session.add(user)
+        session.commit()
 
 # --- Request/Response Schemas for Generation ---
 class GenerateRequest(BaseModel):
@@ -93,6 +118,8 @@ async def upload_document(
 
     try:
         content_bytes = await file.read()
+        if len(content_bytes) > MAX_UPLOAD_SIZE:
+            raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
         
         if filename.endswith(".pdf"):
             file_type = "pdf"
@@ -108,7 +135,7 @@ async def upload_document(
                     file_options={"cache-control": "3600", "upsert": "true"}
                 )
             else:
-                print("WARNING: Supabase not configured. Tutor docs won't be saved.")
+                logger.warning("Supabase not configured. Tutor docs won't be saved.")
 
             # Extract text for AI processing
             try:
@@ -118,7 +145,7 @@ async def upload_document(
                     if text:
                         content += text + "\n"
             except Exception as e:
-                print(f"PDF Extraction Error: {e}")
+                logger.exception("PDF extraction failed")
                 if sb:
                     sb.storage.from_("tutor_documents").remove([file_path])
                 raise HTTPException(status_code=400, detail="Could not extract text from PDF.")
@@ -255,7 +282,7 @@ async def delete_document(
             if sb:
                 sb.storage.from_("tutor_documents").remove([doc.file_path])
         except Exception as e:
-            print(f"Warning: Could not delete file from storage: {e}")
+            logger.warning("Could not delete file from storage: %s", e)
 
     session.delete(doc)
     session.commit()
@@ -274,21 +301,8 @@ async def chat_with_tutor(
             detail="AI Tutor is not configured. Please contact the administrator."
         )
 
-    # --- Subscription Limit Check ---
-    tier = effective_tier(current_user)  # expired plans count as basic
-    daily_limit = PLAN_LIMITS[tier]["ai_queries_daily"]
-    today = datetime.now(timezone.utc).date()
-
-    # Reset counter if it's a new day
-    if current_user.last_ai_query_date != today:
-        current_user.ai_queries_today = 0
-        current_user.last_ai_query_date = today
-
-    if daily_limit != -1 and current_user.ai_queries_today >= daily_limit:
-        raise HTTPException(
-            status_code=402,
-            detail=f"Daily AI query limit reached ({daily_limit}/day on {tier.title()} plan). Upgrade your plan to get more queries."
-        )
+    # --- Subscription Limit Check (increments counter before AI call) ---
+    check_ai_query_limit(session, current_user)
 
     doc = session.exec(
         select(TutorDocument).where(
@@ -297,6 +311,7 @@ async def chat_with_tutor(
         )
     ).first()
     if not doc:
+        rollback_ai_query(session, current_user)
         raise HTTPException(status_code=404, detail="Document not found.")
 
     context_prompt = (
@@ -317,24 +332,15 @@ async def chat_with_tutor(
         formatted_history.append({"role": role, "parts": text_parts})
 
     try:
-        # Use the async client: a blocking call here would freeze the whole event loop
-        # (every other user's request) for the duration of the model call.
         chat = client.aio.chats.create(model='gemini-2.5-flash', history=formatted_history)
         response = await chat.send_message(context_prompt + f"Question: {request.message}")
-
-        # Increment usage counter
-        current_user.ai_queries_today += 1
-        session.add(current_user)
-        session.commit()
-
         return TutorChatResponse(response=response.text)
     except Exception as e:
-        print(f"Chat error: {e}")
-        print(f"Error type: {type(e).__name__}")
-        print(f"Error details: {str(e)}")
+        logger.exception("AI chat failed")
+        rollback_ai_query(session, current_user)
         raise HTTPException(
             status_code=500,
-            detail=f"AI chat failed: {str(e)}"
+            detail="An error occurred processing your request. Please try again."
         )
 
 
@@ -351,17 +357,7 @@ async def generate_quiz(
             detail="AI Quiz generator is not configured. Please contact the administrator."
         )
 
-    tier = effective_tier(current_user)
-    daily_limit = PLAN_LIMITS[tier]["ai_queries_daily"]
-    today = datetime.now(timezone.utc).date()
-    if current_user.last_ai_query_date != today:
-        current_user.ai_queries_today = 0
-        current_user.last_ai_query_date = today
-    if daily_limit != -1 and current_user.ai_queries_today >= daily_limit:
-        raise HTTPException(
-            status_code=402,
-            detail=f"Daily AI query limit reached ({daily_limit}/day on {tier.title()} plan). Upgrade your plan to get more queries."
-        )
+    check_ai_query_limit(session, current_user)
 
     doc = session.exec(
         select(TutorDocument).where(
@@ -370,8 +366,9 @@ async def generate_quiz(
         )
     ).first()
     if not doc:
+        rollback_ai_query(session, current_user)
         raise HTTPException(status_code=404, detail="Document not found.")
-    
+
     prompt = (
         f"Based on the following document content, generate exactly 10 multiple-choice quiz questions. "
         f"Each question MUST have exactly 4 options (A, B, C, D) and one correct answer. "
@@ -386,21 +383,20 @@ async def generate_quiz(
             config={"response_mime_type": "application/json"}
         )
         quiz_data = json.loads(response.text)
-        
+
         if not isinstance(quiz_data, list):
             if "questions" in quiz_data:
                 quiz_data = quiz_data["questions"]
             else:
                 raise ValueError("Expected a list of questions")
 
-        current_user.ai_queries_today += 1
-        session.add(current_user)
-        session.commit()
-
         return QuizResponse(questions=[QuizQuestion(**q) for q in quiz_data])
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Quiz Generation Error: {e}")
-        raise HTTPException(status_code=500, detail=f"AI Quiz generation failed: {str(e)}")
+        logger.exception("AI quiz generation failed")
+        rollback_ai_query(session, current_user)
+        raise HTTPException(status_code=500, detail="AI quiz generation failed. Please try again.")
 
 
 @router.post("/generate/flashcards", response_model=FlashcardsResponse)
@@ -416,17 +412,7 @@ async def generate_flashcards(
             detail="AI Flashcard generator is not configured. Please contact the administrator."
         )
 
-    tier = effective_tier(current_user)
-    daily_limit = PLAN_LIMITS[tier]["ai_queries_daily"]
-    today = datetime.now(timezone.utc).date()
-    if current_user.last_ai_query_date != today:
-        current_user.ai_queries_today = 0
-        current_user.last_ai_query_date = today
-    if daily_limit != -1 and current_user.ai_queries_today >= daily_limit:
-        raise HTTPException(
-            status_code=402,
-            detail=f"Daily AI query limit reached ({daily_limit}/day on {tier.title()} plan). Upgrade your plan to get more queries."
-        )
+    check_ai_query_limit(session, current_user)
 
     doc = session.exec(
         select(TutorDocument).where(
@@ -435,6 +421,7 @@ async def generate_flashcards(
         )
     ).first()
     if not doc:
+        rollback_ai_query(session, current_user)
         raise HTTPException(status_code=404, detail="Document not found.")
 
     prompt = (
@@ -451,18 +438,17 @@ async def generate_flashcards(
             config={"response_mime_type": "application/json"}
         )
         flashcards_data = json.loads(response.text)
-        
+
         if not isinstance(flashcards_data, list):
             if "flashcards" in flashcards_data:
                 flashcards_data = flashcards_data["flashcards"]
             else:
                 raise ValueError("Expected a list of flashcards")
 
-        current_user.ai_queries_today += 1
-        session.add(current_user)
-        session.commit()
-
         return FlashcardsResponse(flashcards=[FlashcardItem(**f) for f in flashcards_data])
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Flashcard Generation Error: {e}")
-        raise HTTPException(status_code=500, detail=f"AI Flashcard generation failed: {str(e)}")
+        logger.exception("AI flashcard generation failed")
+        rollback_ai_query(session, current_user)
+        raise HTTPException(status_code=500, detail="AI flashcard generation failed. Please try again.")

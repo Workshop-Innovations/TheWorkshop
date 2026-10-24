@@ -7,7 +7,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import API_BASE_URL from '../config';
+
 
 export const PLANS = [
     {
@@ -219,7 +220,7 @@ const Pricing = () => {
         if (!accessToken) return;
         setVerifying(true);
         try {
-            const response = await fetch(`${API_BASE}/api/v1/subscriptions/verify/${reference}`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/verify/${reference}`, {
                 headers: { Authorization: `Bearer ${accessToken}` },
             });
             const data = await response.json();
@@ -262,7 +263,7 @@ const Pricing = () => {
 
         setLoadingPlan(planId);
         try {
-            const response = await fetch(`${API_BASE}/api/v1/subscriptions/initialize`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/initialize`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

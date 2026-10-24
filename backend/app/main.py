@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 import os
@@ -9,8 +9,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from uuid import uuid4
-from datetime import datetime, timedelta, timezone 
+from datetime import datetime, timedelta, timezone
 from contextlib import asynccontextmanager
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # SQLModel imports
 from sqlmodel import Field, Session, SQLModel, select
@@ -31,7 +35,7 @@ from .schemas import (
 )
 
 from .routes import community, websocket, flashcards, tutor, subjects, users, system, subscriptions, upload, data_entry, google_auth
-from .dependencies import get_current_user, settings, create_access_token
+from .dependencies import get_current_user, settings, create_access_token, create_refresh_token
 
 # --- Password Utility Functions ---
 from .utils import verify_password, get_password_hash
@@ -143,6 +147,9 @@ async def lifespan(app: FastAPI):
     logger.info("Application shutdown.")
 
 
+# --- Rate Limiter ---
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
 # --- FastAPI App Initialization ---
 app = FastAPI(
     title="WorkShop Backend API",
@@ -151,16 +158,18 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # --- CORS Configuration ---
-# Convert the comma-separated string of FRONTEND_URLS into a list of strings
 allowed_origins = [url.strip() for url in settings.FRONTEND_URLS.split(',')]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins, # Allow your frontend origin(s) from settings
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
 
 from fastapi.staticfiles import StaticFiles
@@ -188,7 +197,8 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 # --- User Authentication Endpoints (Using Database) ---
 
 @app.post("/api/v1/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, summary="Register a new user")
-async def register_user(user_data: UserCreate, session: Session = Depends(get_session)):
+@limiter.limit("3/minute")
+async def register_user(request: Request, user_data: UserCreate, session: Session = Depends(get_session)):
     """
     Registers a new user with the provided username, email and password, storing in the database.
     Auto-adds the user to The Workshop community.
@@ -243,7 +253,8 @@ async def register_user(user_data: UserCreate, session: Session = Depends(get_se
     return db_user
 
 @app.post("/api/v1/auth/login", response_model=Token, summary="Login user and get access token")
-async def login_for_access_token(user_data: UserLogin, session: Session = Depends(get_session)):
+@limiter.limit("5/minute")
+async def login_for_access_token(request: Request, user_data: UserLogin, session: Session = Depends(get_session)):
     # Allow login with either username or email (flexible)
     user = session.exec(select(User).where(
         (User.username == user_data.username) | (User.email == user_data.username)
@@ -263,18 +274,51 @@ async def login_for_access_token(user_data: UserLogin, session: Session = Depend
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    # "uid" is the immutable user id used for auth; "sub" keeps the username for older clients.
-    access_token = create_access_token(
-        data={"sub": user.username, "uid": user.id}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+    token_data = {"sub": user.username, "uid": user.id}
+    access_token = create_access_token(data=token_data, expires_delta=access_token_expires)
+    refresh_token = create_refresh_token(data=token_data)
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @app.get("/api/v1/users/me", response_model=UserResponse, summary="Get current authenticated user")
 async def read_users_me(current_user: User = Depends(get_current_user)):
     """
     Retrieves the details of the currently authenticated user. Requires a valid JWT token.
     """
-    return current_user # current_user is already a User model instance from the database
+    return current_user
+
+from jose import JWTError, jwt as jose_jwt
+from pydantic import BaseModel as _BaseModel
+
+class RefreshRequest(_BaseModel):
+    refresh_token: str
+
+@app.post("/api/v1/auth/refresh", response_model=Token, summary="Refresh access token")
+async def refresh_access_token(body: RefreshRequest, session: Session = Depends(get_session)):
+    try:
+        payload = jose_jwt.decode(body.refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
+
+    user_id = payload.get("uid")
+    username = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+
+    user = session.get(User, user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
+
+    token_data = {"sub": user.username, "uid": user.id}
+    new_access = create_access_token(data=token_data)
+    new_refresh = create_refresh_token(data=token_data)
+    return {"access_token": new_access, "refresh_token": new_refresh, "token_type": "bearer"}
+
+@app.post("/api/v1/auth/logout", status_code=status.HTTP_200_OK, summary="Logout (client should discard tokens)")
+async def logout():
+    return {"detail": "Logged out successfully"}
 
 # --- Pomodoro Session Logging Endpoints ---
 @app.post(
@@ -313,16 +357,19 @@ async def log_pomodoro_session(
     
     return db_log
 
-@app.get("/api/v1/log/sessions", response_model=List[SessionLogResponse], summary="Get all session logs for the current user")
+@app.get("/api/v1/log/sessions", response_model=List[SessionLogResponse], summary="Get session logs for the current user")
 async def get_session_logs(
     current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
 ):
-    """
-    Retrieves all session logs for the current user, useful for progress tracking.
-    """
     logs = session.exec(
-        select(SessionLog).where(SessionLog.user_id == current_user.id)
+        select(SessionLog)
+        .where(SessionLog.user_id == current_user.id)
+        .order_by(SessionLog.completion_time.desc())
+        .offset(offset)
+        .limit(limit)
     ).all()
     return logs
 

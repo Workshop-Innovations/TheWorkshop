@@ -18,8 +18,8 @@ h11==0.16.0
 httptools==0.6.4
 httpx==0.28.1
 idna==3.10
-litellm
-modal
+litellm==1.40.0
+modal==0.64.0
 packaging==25.0
 passlib==1.7.4
 psycopg2-binary==2.9.10
@@ -44,4 +44,5 @@ typing_extensions==4.13.2
 uvicorn==0.34.2
 watchfiles==1.0.5
 websockets==15.0.1
-supabase
+slowapi==0.1.9
+supabase==2.7.0

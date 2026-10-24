@@ -3,6 +3,7 @@ from typing import List, Optional
 import json
 import re
 import os
+import logging
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlmodel import Session, select, desc
@@ -13,7 +14,9 @@ from ..schemas import (
     SubjectCreate, SubjectUpdate, TopicCreate, TopicUpdate, PastPaperCreate, PastPaperUpdate,
     TestAttempt, TestAttemptCreate, TestAttemptResponse
 )
-from ..dependencies import get_current_user, get_current_admin_user # Import admin dependency
+from ..dependencies import get_current_user, get_current_admin_user
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["Subjects & Content"])
 
@@ -300,8 +303,8 @@ async def grade_paper(
         except httpx.TimeoutException:
             feedback_data = {"overall_feedback": "AI grader timed out. Your answers have been saved."}
         except Exception as e:
-            print(f"[grade_paper] Modal call failed: {e}")
-            feedback_data = {"overall_feedback": f"AI grading failed: {str(e)}. Your answers have been saved."}
+            logger.exception("Modal grading call failed")
+            feedback_data = {"overall_feedback": "AI grading failed. Your answers have been saved."}
     
     db_attempt = TestAttempt(
         user_id=current_user.id,

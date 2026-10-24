@@ -7,35 +7,14 @@ import {
     Zap, Brain, Sparkles
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { API_BASE_URL } from '../services/progressService';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import API_BASE_URL from '../config';
 import { useAuth } from '../context/AuthContext';
 
 const API_BASE = API_BASE_URL;
-
-// ── Lightweight markdown → HTML renderer ─────────────────────────────────────
-const renderMarkdown = (text) => {
-    if (!text) return '';
-    // Escape HTML first
-    let t = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-    // Bold / italic / code
-    t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    t = t.replace(/`(.+?)`/g, '<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono text-primary">$1</code>');
-    // Headers
-    t = t.replace(/^### (.+)$/gm, '<h3 class="font-bold text-[13px] text-slate-800 mt-3 mb-1">$1</h3>');
-    t = t.replace(/^## (.+)$/gm, '<h2 class="font-bold text-sm text-slate-800 mt-3 mb-1">$1</h2>');
-    t = t.replace(/^# (.+)$/gm, '<h1 class="font-bold text-base text-slate-800 mt-3 mb-1">$1</h1>');
-    // Lists
-    t = t.replace(/^[-*] (.+)$/gm, '<li class="ml-3 list-disc text-slate-700 mb-0.5 text-sm">$1</li>');
-    t = t.replace(/^\d+\. (.+)$/gm, '<li class="ml-3 list-decimal text-slate-700 mb-0.5 text-sm">$1</li>');
-    // Paragraphs
-    t = t.replace(/\n\n+/g, '</p><p class="mb-2 text-sm text-slate-700 leading-relaxed">');
-    t = t.replace(/\n/g, '<br/>');
-    return `<p class="mb-2 text-sm text-slate-700 leading-relaxed">${t}</p>`;
-};
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
@@ -568,10 +547,14 @@ const StudySuite = () => {
                                                 {msg.role === 'user' ? (
                                                     <p className="text-xs leading-relaxed">{msg.content}</p>
                                                 ) : (
-                                                    <div
-                                                        className="chat-prose"
-                                                        dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
-                                                    />
+                                                    <div className="chat-prose text-sm text-slate-700 leading-relaxed">
+                                                        <ReactMarkdown
+                                                            remarkPlugins={[remarkGfm, remarkMath]}
+                                                            rehypePlugins={[rehypeKatex]}
+                                                        >
+                                                            {msg.content}
+                                                        </ReactMarkdown>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

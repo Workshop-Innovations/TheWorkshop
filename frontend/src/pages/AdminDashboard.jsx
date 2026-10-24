@@ -9,6 +9,7 @@ import ContentEditor from '../components/ContentEditor';
 import DiagramManagerModal from '../components/DiagramManagerModal';
 import { Image as ImageIcon } from 'lucide-react';
 import GlobalDiagramManager from '../components/GlobalDiagramManager';
+import API_BASE_URL from '../config';
 
 const AdminDashboard = () => {
     const { user, accessToken } = useAuth();
@@ -35,7 +36,7 @@ const AdminDashboard = () => {
     // Fetch subjects to populate dropdowns and lookups
     const fetchSubjects = async () => {
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const baseUrl = API_BASE_URL;
             const response = await axios.get(`${baseUrl}/api/v1/subjects`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
@@ -75,7 +76,7 @@ const AdminDashboard = () => {
         try {
             if (accessToken) await fetchSubjects(); // Ensure subjects list is always fresh
 
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const baseUrl = API_BASE_URL;
             let url = '';
 
             switch (activeTab) {
@@ -114,7 +115,7 @@ const AdminDashboard = () => {
     // Used after diagram uploads so the page doesn't flash or reorder.
     const fetchDataSilently = async () => {
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const baseUrl = API_BASE_URL;
             const url = `${baseUrl}/api/v1/papers`;
             const response = await axios.get(url, {
                 headers: { Authorization: `Bearer ${accessToken}` }
@@ -171,7 +172,7 @@ const AdminDashboard = () => {
         if (!window.confirm("Are you sure you want to delete this item? This cannot be undone.")) return;
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const baseUrl = API_BASE_URL;
             await axios.delete(`${baseUrl}/api/v1/${type}/${id}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
@@ -184,7 +185,7 @@ const AdminDashboard = () => {
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const baseUrl = API_BASE_URL;
             const url = `${baseUrl}/api/v1/${editType}${editorMode === 'edit' ? `/${formData.id}` : ''}`;
             const method = editorMode === 'edit' ? 'put' : 'post';
 
@@ -205,7 +206,7 @@ const AdminDashboard = () => {
 
     const handleRoleUpdate = async (userId, newRole) => {
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const baseUrl = API_BASE_URL;
             await axios.put(`${baseUrl}/api/v1/users/${userId}/role?role=${newRole}`, {}, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
@@ -226,7 +227,7 @@ const AdminDashboard = () => {
         await fetchData();
         // The modal will re-render automatically because `data` changes and we pass the updated paper down
         // Wait, we need to update selectedPaperForDiagrams to the new paper data
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const baseUrl = API_BASE_URL;
         try {
             const response = await axios.get(`${baseUrl}/api/v1/papers/${selectedPaperForDiagrams.id}`, {
                 headers: { Authorization: `Bearer ${accessToken}` }

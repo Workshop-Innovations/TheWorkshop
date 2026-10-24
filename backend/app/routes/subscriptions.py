@@ -284,15 +284,18 @@ async def verify_payment(
     if amount < PLAN_PRICES[plan] or tx.get("currency", "NGN") != "NGN":
         raise HTTPException(status_code=400, detail="Payment amount does not match the selected plan")
 
-    _apply_payment(
+    applied = _apply_payment(
         session, current_user, tx.get("reference") or reference, plan, amount,
         (tx.get("customer") or {}).get("customer_code"),
     )
 
+    if not applied:
+        session.refresh(current_user)
+
     return {
         "status": "success",
         "message": f"Payment verified. Your plan has been upgraded to {plan}.",
-        "tier": plan,
+        "tier": current_user.subscription_tier,
         "expiry": current_user.subscription_expiry,
     }
 
@@ -343,9 +346,13 @@ async def paystack_webhook(request: Request, session: Session = Depends(get_sess
         user = None
         if user_id:
             user = session.exec(select(User).where(User.id == user_id)).first()
-        if not user and customer_email:
-            # Fallback for recurring charges that might drop custom metadata
-            user = session.exec(select(User).where(User.email == customer_email)).first()
+        if not user:
+            # Try matching by stored Paystack customer ID for recurring charges
+            customer_code = (data.get("customer") or {}).get("customer_code")
+            if customer_code:
+                user = session.exec(
+                    select(User).where(User.paystack_customer_id == customer_code)
+                ).first()
 
         if user:
             # Determine plan from paystack plan code if metadata plan_id is missing

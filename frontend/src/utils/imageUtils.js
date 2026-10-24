@@ -1,3 +1,5 @@
+import API_BASE_URL from '../config';
+
 /**
  * Creates a new HTMLImageElement from a URL (or base64 string).
  */
@@ -111,7 +113,7 @@ export const compressImage = async (base64Str, maxSizeKB = 500) => {
 export const resolveImageUrl = (src) => {
     if (!src) return null;
     if (src.startsWith('/')) {
-        return `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${src}`;
+        return `${API_BASE_URL}${src}`;
     }
     return src;
 };

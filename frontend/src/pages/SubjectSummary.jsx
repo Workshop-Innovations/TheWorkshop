@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import { TikzAwarePre } from '../components/TikzDiagram';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { REMARK_PLUGINS, REHYPE_PLUGINS, normalizeMarkdown } from '../utils/markdownMath';
+import API_BASE_URL from '../config';
 
 const QUESTIONS_SEPARATOR = '---EXAMPLE QUESTIONS---';
 // Revision notes support Markdown, LaTeX and TikZ (```tikz blocks or bare tikzpicture environments).
@@ -27,7 +28,7 @@ const SubjectSummary = () => {
     useEffect(() => {
         const fetchSubject = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/subjects/${subjectId}`);
+                const response = await fetch(`${API_BASE_URL}/api/v1/subjects/${subjectId}`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch subject details');
                 }
@@ -59,7 +60,7 @@ const SubjectSummary = () => {
             setActiveTab('summary');
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/topics/${activeTopicId}`,
+                    `${API_BASE_URL}/api/v1/topics/${activeTopicId}`,
                     { signal: controller.signal }
                 );
                 if (!response.ok) {

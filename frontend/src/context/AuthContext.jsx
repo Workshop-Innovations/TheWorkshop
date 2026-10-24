@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import API_BASE_URL from '../config';
 
 const AuthContext = createContext(null);
 
@@ -13,20 +14,17 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  // Initialize state from localStorage
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
-  const [user, setUser] = useState(null); // Store full user object including role
-  const [loading, setLoading] = useState(true); // Loading state for user fetch
-  // Profile Picture Management, must be declared before fetchUserProfile which uses setProfilePic
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [profilePic, setProfilePic] = useState(() => localStorage.getItem('userProfilePic') || null);
 
   const navigate = useNavigate();
 
-  // Function to fetch user profile
   const fetchUserProfile = useCallback(async (token) => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/me`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -35,8 +33,6 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
-        // Sync profile pic from backend, the server is the source of truth, so a
-        // picture cached from a previous account on this browser is cleared too.
         if (userData.profile_pic) {
           setProfilePic(userData.profile_pic);
           localStorage.setItem('userProfilePic', userData.profile_pic);
@@ -44,27 +40,28 @@ export const AuthProvider = ({ children }) => {
           setProfilePic(null);
           localStorage.removeItem('userProfilePic');
         }
+        return userData;
       } else {
-        // If token is invalid, logout (but maybe don't redirect strictly yet)
         console.error("Failed to fetch user profile");
         setAccessToken(null);
         localStorage.removeItem('accessToken');
         setUser(null);
+        return null;
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      return null;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // 1. LOGIN
   const login = useCallback(async (token) => {
     localStorage.setItem('accessToken', token);
     setAccessToken(token);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/me`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -89,18 +86,18 @@ export const AuthProvider = ({ children }) => {
       console.error("Error fetching user profile on login:", error);
     }
 
-    fetchUserProfile(token);
-    toast.success("Login successful!");
-    navigate('/dashboard', { replace: true });
-  }, [navigate, fetchUserProfile]);
+    // Profile fetch failed — don't show success, clean up and notify user
+    setAccessToken(null);
+    localStorage.removeItem('accessToken');
+    setUser(null);
+    toast.error("Login failed: could not load your profile. Please try again.");
+  }, [navigate]);
 
   const logout = useCallback(() => {
     setAccessToken(null);
     localStorage.removeItem('accessToken');
     setUser(null);
-    localStorage.removeItem('username'); // Clean up legacy
-    // Otherwise the next account on this browser shows this user's avatar
-    // and skips the community profile-picture gate
+    localStorage.removeItem('username');
     setProfilePic(null);
     localStorage.removeItem('userProfilePic');
 
@@ -108,7 +105,6 @@ export const AuthProvider = ({ children }) => {
     navigate('/login');
   }, [navigate]);
 
-  // 2. INITIALIZATION EFFECT
   useEffect(() => {
     const storedToken = localStorage.getItem('accessToken');
     if (storedToken) {
@@ -120,7 +116,6 @@ export const AuthProvider = ({ children }) => {
   }, [fetchUserProfile]);
 
   const updateProfilePic = useCallback(async (newPicBase64) => {
-    // 1. Optimistic Update (Local)
     if (newPicBase64) {
       setProfilePic(newPicBase64);
       localStorage.setItem('userProfilePic', newPicBase64);
@@ -129,15 +124,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('userProfilePic');
     }
 
-    // 2. Sync with Backend
-    const token = localStorage.getItem('accessToken');
-    if (token) {
+    if (accessToken) {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/users/me`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${accessToken}`
           },
           body: JSON.stringify({ profile_pic: newPicBase64 })
         });
@@ -145,14 +138,13 @@ export const AuthProvider = ({ children }) => {
         if (!response.ok) {
           console.error("Failed to save profile picture to server:", await response.text());
           toast.error("Failed to save profile picture to server.");
-          // Optional: Revert local state if critically needed, but keep it simple for now
         }
       } catch (error) {
         console.error("Error saving profile picture:", error);
         toast.error("Network error while saving profile picture.");
       }
     }
-  }, []);
+  }, [accessToken]);
 
   const authContextValue = {
     accessToken,
@@ -161,8 +153,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated: !!accessToken,
-    profilePic,      // Expose profilePic
-    updateProfilePic // Expose updater function
+    profilePic,
+    updateProfilePic
   };
 
   return (

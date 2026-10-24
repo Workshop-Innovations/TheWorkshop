@@ -1,12 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
+import API_BASE_URL from '../config';
 
 const CommunityContext = createContext();
 
 export const useCommunity = () => useContext(CommunityContext);
 
-const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/community`;
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = `${API_BASE_URL}/api/v1/community`;
+const BASE_URL = API_BASE_URL;
 
 export const CommunityProvider = ({ children }) => {
     const { accessToken, logout } = useAuth();
@@ -462,7 +463,7 @@ export const CommunityProvider = ({ children }) => {
     const connectWebSocket = useCallback(() => {
         if (!token) return;
 
-        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const apiBase = API_BASE_URL;
         const wsBase = apiBase.replace(/^http/, 'ws');
         const wsUrl = `${wsBase}/ws/community/global?token=${token}`;
 
@@ -957,101 +958,46 @@ export const CommunityProvider = ({ children }) => {
         return [];
     };
 
-    // ==================== CONTEXT VALUE ====================
-    const value = {
-        // User
-        user,
-
-        // Communities
-        communities,
-        currentCommunity,
-        setCurrentCommunity,
-        createCommunity,
-        joinCommunity,
-        getCommunityJoinCode,
-
-        // Channels
-        channels,
-        currentChannel,
-        setCurrentChannel,
-        createChannel,
-        updateChannel,
-        deleteChannel,
-
-        // Study Groups
-        fetchStudyGroups,
-        createStudyGroup,
-        joinStudyGroup,
-        leaveStudyGroup,
-        fetchStudyGroupDetails,
-        removeGroupMember,
-        updateStudyGroup,
-        deleteStudyGroup,
-
-        // Notes
-        fetchChannelNotes,
-        createNote,
-        updateNote,
-
-        // Peer Reviews
-        fetchSubmissions,
-        createSubmission,
-        submitFeedback,
-        fetchSubmissionFeedback,
-
-        // Messages
-        messages,
-        sendMessage,
-        editMessage,
-        deleteMessage,
-        voteMessage,
-
-        // Threading
-        createReply,
-        getThread,
-
-        // Members
-        members,
-
-        // DMs
-        dmConversations,
-        currentDM,
-        setCurrentDM,
-        dmMessages,
-        startDM,
-        sendDMMessage,
-        fetchDMConversations,
-
-        // User Search
+    // ==================== CONTEXT VALUE (MEMOIZED) ====================
+    // Store latest function references in a ref so stable wrappers always call the current version.
+    const fnsRef = useRef({});
+    fnsRef.current = {
+        createCommunity, joinCommunity, getCommunityJoinCode,
+        createChannel, updateChannel, deleteChannel,
+        fetchStudyGroups, createStudyGroup, joinStudyGroup, leaveStudyGroup,
+        fetchStudyGroupDetails, removeGroupMember, updateStudyGroup, deleteStudyGroup,
+        fetchChannelNotes, createNote, updateNote,
+        fetchSubmissions, createSubmission, submitFeedback, fetchSubmissionFeedback,
+        sendMessage, editMessage, deleteMessage, voteMessage,
+        createReply, getThread,
+        startDM, sendDMMessage, fetchDMConversations,
         searchUsers,
-
-        // View mode
-        viewMode,
-        setViewMode,
-
-        // Connection
-        onlineUsers,
-        isConnected,
-        loading,
-        error,
-
-        // Unread tracking
-        unreadChannels,
-        unreadDMs,
-        markChannelAsRead,
-
-        // Refresh functions
-        fetchCommunities,
-        fetchChannels,
-        fetchMembers,
-
-        // Gamification
-        fetchLeaderboard,
-        fetchMyReputation,
-        fetchUserReputation,
-        fetchAllBadges,
-        seedBadges
+        fetchCommunities, fetchChannels, fetchMembers,
+        fetchLeaderboard, fetchMyReputation, fetchUserReputation, fetchAllBadges, seedBadges,
     };
+
+    const stableFns = useMemo(() =>
+        Object.fromEntries(
+            Object.keys(fnsRef.current).map(k => [k, (...args) => fnsRef.current[k](...args)])
+        ),
+    []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const value = useMemo(() => ({
+        user,
+        communities, currentCommunity, setCurrentCommunity,
+        channels, currentChannel, setCurrentChannel,
+        messages, members,
+        dmConversations, currentDM, setCurrentDM, dmMessages,
+        viewMode, setViewMode,
+        onlineUsers, isConnected, loading, error,
+        unreadChannels, unreadDMs, markChannelAsRead,
+        ...stableFns,
+    }), [
+        user, communities, currentCommunity, channels, currentChannel,
+        messages, members, dmConversations, currentDM, dmMessages,
+        viewMode, onlineUsers, isConnected, loading, error,
+        unreadChannels, unreadDMs, markChannelAsRead, stableFns,
+    ]);
 
     return (
         <CommunityContext.Provider value={value}>

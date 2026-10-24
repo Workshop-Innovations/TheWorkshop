@@ -59,7 +59,7 @@ const Login = () => {
     const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
     if (existing) {
       existing.addEventListener('load', initGoogle);
-      return;
+      return () => existing.removeEventListener('load', initGoogle);
     }
 
     const script = document.createElement('script');
@@ -68,6 +68,7 @@ const Login = () => {
     script.defer = true;
     script.onload = initGoogle;
     document.head.appendChild(script);
+    return () => { script.remove(); };
   }, [handleGoogleResponse]);
 
   const handleSubmit = async (e) => {

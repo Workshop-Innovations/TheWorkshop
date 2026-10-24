@@ -1,12 +1,10 @@
+import API_BASE_URL from '../config';
+
+// Re-export for any remaining consumers (prefer importing from config.js directly)
+export { API_BASE_URL };
+
 // --- Global State for API Logging Guard ---
 let lastLoggedSessionKey;
-
-//  UPDATED FIX: Use Vite Environment Variables (import.meta.env)
-// The VITE_API_BASE_URL will be set by:
-// 1. .env.local (for local development)
-// 2. Render Environment Variables (for production deployment)
-// The fallback (||) ensures local development works even if the .env file is missing.
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Helper function to retrieve the authentication token
 const getAuthToken = () => {

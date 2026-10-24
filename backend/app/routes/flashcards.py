@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlmodel import Session, select
 from typing import List
 import os
+import logging
 from google import genai
 from uuid import uuid4
 from datetime import datetime, timezone
@@ -18,6 +19,10 @@ from ..schemas import (
 import tempfile
 import shutil
 import json
+
+logger = logging.getLogger(__name__)
+
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 class FlashcardSetCreateInput(PydanticBaseModel):
@@ -83,61 +88,55 @@ async def generate_flashcards_from_file(
             detail="Gemini API Key not configured."
         )
 
-    # Validate file type
-    # For now, Gemini supports PDF, text, images, etc. We'll focus on PDF and text.
-    supported_types = ["application/pdf", "text/plain", "text/csv", "application/json"]
-    if file.content_type not in supported_types and not file.content_type.startswith("image/"):
+    # Validate file type by extension (client-supplied content_type can be spoofed)
+    allowed_extensions = {'.pdf', '.txt', '.csv', '.json', '.png', '.jpg', '.jpeg', '.gif', '.webp'}
+    file_ext = f".{file.filename.split('.')[-1].lower()}" if '.' in file.filename else ""
+    if file_ext not in allowed_extensions:
          raise HTTPException(
              status_code=status.HTTP_400_BAD_REQUEST,
-             detail=f"Unsupported file type: {file.content_type}. Supported types: PDF, text, CSV, JSON, and images."
+             detail=f"Unsupported file type: '{file_ext}'. Supported: PDF, text, CSV, JSON, and images."
          )
 
     # Save uploaded file to a temporary file because genai.upload_file requires a path
-    suffix = f".{file.filename.split('.')[-1]}" if '.' in file.filename else ".tmp"
-    
+    suffix = file_ext or ".tmp"
+    tmp_path = None
+
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
             shutil.copyfileobj(file.file, tmp_file)
             tmp_path = tmp_file.name
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save temporary file: {str(e)}")
 
-    try:
-        # Upload to Gemini (google-genai >= 1.0 takes `file=`; `path=` was removed).
-        # Async client so the event loop isn't blocked during upload/generation.
+        # Check file size after writing
+        if os.path.getsize(tmp_path) > MAX_UPLOAD_SIZE:
+            raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
+
         uploaded_file = await client.aio.files.upload(file=tmp_path, config={'mime_type': file.content_type})
-        
+
         prompt = (
             "Generate exactly 20 question-and-answer pairs based on the content of the attached file. "
             "Return the output strictly as a JSON list of objects, where each object has 'question' and 'answer' keys. "
             "Example: [{\"question\": \"What is X?\", \"answer\": \"X is Y\"}]"
         )
-        
-        # Generate content with file and prompt
+
         response = await client.aio.models.generate_content(
             model='gemini-2.5-flash',
             contents=[uploaded_file, prompt],
             config={"response_mime_type": "application/json"}
         )
-        
+
         generated_text = response.text
-        
-        # Clean up Gemini file (optional)
-        # client.files.delete(name=uploaded_file.name) 
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Gemini API Error: {e}")
-        try:
-            os.remove(tmp_path)
-        except:
-            pass
-        raise HTTPException(status_code=500, detail=f"AI Generation failed: {str(e)}")
-    
-    # Clean up local temp file
-    try:
-        os.remove(tmp_path)
-    except:
-        pass
+        logger.exception("Gemini API error during flashcard generation")
+        raise HTTPException(status_code=500, detail="AI generation failed. Please try again.")
+    finally:
+        if tmp_path:
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
 
     # Parse JSON
     try:
@@ -157,7 +156,7 @@ async def generate_flashcards_from_file(
              raise ValueError("JSON output is not a list")
 
     except Exception as e:
-        print(f"JSON Parsing Error: {e}, Content: {generated_text}")
+        logger.exception("JSON parsing error for flashcard generation")
         raise HTTPException(status_code=500, detail="Failed to parse AI response. Please try again.")
 
     if not flashcards_data:

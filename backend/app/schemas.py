@@ -3,6 +3,8 @@ from sqlmodel import Field, SQLModel, Relationship # Import Relationship
 from pydantic import EmailStr, BaseModel, field_validator
 from datetime import datetime, timezone, date
 from uuid import uuid4 # Import uuid4 for generating UUIDs
+import re
+import secrets
 
 # --- User Models ---
 
@@ -47,6 +49,16 @@ class UserCreate(BaseModel): # Inherit from BaseModel for input validation
     password: str
     study_goal: Optional[str] = None
 
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v):
+        v = v.strip()
+        if len(v) < 3 or len(v) > 30:
+            raise ValueError('Username must be between 3 and 30 characters')
+        if not re.match(r'^[a-zA-Z0-9_]+$', v):
+            raise ValueError('Username can only contain letters, numbers, and underscores')
+        return v
+
     @field_validator('password')
     @classmethod
     def password_strength(cls, v):
@@ -65,6 +77,35 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     profile_pic: Optional[str] = None
 
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v):
+        if v is None:
+            return v
+        v = v.strip()
+        if len(v) < 3 or len(v) > 30:
+            raise ValueError('Username must be between 3 and 30 characters')
+        if not re.match(r'^[a-zA-Z0-9_]+$', v):
+            raise ValueError('Username can only contain letters, numbers, and underscores')
+        return v
+
+    @field_validator('profile_pic')
+    @classmethod
+    def validate_profile_pic(cls, v):
+        if v is None:
+            return v
+        MAX_PROFILE_PIC_LENGTH = 512_000  # ~500KB
+        if len(v) > MAX_PROFILE_PIC_LENGTH:
+            raise ValueError('Profile picture data is too large (max 500KB)')
+        if v.startswith('data:'):
+            if not v.startswith('data:image/'):
+                raise ValueError('Profile picture must be an image data URI')
+        elif v.startswith('http://') or v.startswith('https://'):
+            pass  # valid URL
+        else:
+            raise ValueError('Profile picture must be a data:image/ URI or an HTTPS URL')
+        return v
+
 # Schema for user response (what the backend sends back after creation/retrieval)
 class UserResponse(BaseModel): # Inherit from BaseModel for API response
     id: str
@@ -82,8 +123,9 @@ class UserResponse(BaseModel): # Inherit from BaseModel for API response
 
 
 # Schema for JWT token response
-class Token(BaseModel): # Inherit from BaseModel
+class Token(BaseModel):
     access_token: str
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
 
 # Schema for generic messages (e.g., error messages)
@@ -198,7 +240,7 @@ class Community(SQLModel, table=True):
     name: str = Field(index=True)
     icon: Optional[str] = None  # URL to icon image
     owner_id: str = Field(foreign_key="user.id", index=True)
-    join_code: str = Field(default_factory=lambda: str(uuid4())[:8], unique=True, index=True)
+    join_code: str = Field(default_factory=lambda: secrets.token_urlsafe(12), unique=True, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     channels: List["Channel"] = Relationship(back_populates="community")
@@ -277,7 +319,7 @@ class DMMessage(SQLModel, table=True):
 # --- Pydantic Schemas for Community ---
 
 class CommunityCreate(BaseModel):
-    name: str
+    name: str = Field(max_length=100)
     icon: Optional[str] = None
 
 class CommunityResponse(BaseModel):
@@ -541,8 +583,8 @@ class SharedNote(SQLModel, table=True):
     creator: Optional[User] = Relationship()
 
 class SharedNoteCreate(BaseModel):
-    title: str
-    content: Optional[str] = ""
+    title: str = Field(max_length=200)
+    content: Optional[str] = Field(default="", max_length=50000)
 
 class SharedNoteUpdate(BaseModel):
     title: Optional[str] = None
@@ -596,7 +638,7 @@ class PeerReviewSubmissionCreate(BaseModel):
 
 class PeerReviewFeedbackCreate(BaseModel):
     rating: int
-    comments: str
+    comments: str = Field(max_length=5000)
 
 class PeerReviewFeedbackResponse(BaseModel):
     id: str
@@ -728,8 +770,8 @@ class TutorDocument(SQLModel, table=True):
 
 class TutorChatRequest(BaseModel):
     document_id: str
-    message: str
-    history: List[dict] = [] # List of {role: "user"|"model", parts: ["text"]}
+    message: str = Field(max_length=10000)
+    history: List[dict] = Field(default_factory=list, max_length=50)
 
 class TutorChatResponse(BaseModel):
     response: str

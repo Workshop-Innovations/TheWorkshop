@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, UploadCloud, CheckCircle, Image as ImageIcon } from 'lucide-react';
 import axios from 'axios';
+import API_BASE_URL from '../config';
 
 const DiagramManagerModal = ({ isOpen, onClose, paper, accessToken, onDiagramUploaded }) => {
     const [missingDiagrams, setMissingDiagrams] = useState([]);
@@ -62,7 +63,7 @@ const DiagramManagerModal = ({ isOpen, onClose, paper, accessToken, onDiagramUpl
         formData.append('file', file);
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const baseUrl = API_BASE_URL;
             const response = await axios.post(
                 `${baseUrl}/api/v1/papers/${paper.id}/diagram/${placeholder}`,
                 formData,
@@ -171,7 +172,7 @@ const DiagramManagerModal = ({ isOpen, onClose, paper, accessToken, onDiagramUpl
                                         <div className="p-4 flex-grow flex items-center justify-center bg-slate-50">
                                             {/* Note: In a real app, you might need to prepend the API base URL if the image URL is relative and served by the backend, but since the frontend runs on a different port in dev, we should prepend VITE_API_URL */}
                                             <img 
-                                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${item.url}`} 
+                                                src={`${API_BASE_URL}${item.url}`} 
                                                 alt={item.label} 
                                                 className="max-h-32 object-contain rounded"
                                             />

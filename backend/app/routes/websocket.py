@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, status
 from sqlmodel import Session
 
@@ -5,7 +6,13 @@ from ..websocket_manager import manager
 from ..database import engine
 from ..dependencies import get_user_from_token
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
+
+# TODO: Migrate to ticket-based auth — exchange JWT for a short-lived
+# one-time ticket via a REST endpoint, then pass only the ticket in the
+# query string. This avoids logging long-lived JWTs in server/proxy logs.
 
 @router.websocket("/ws/community/global")
 async def websocket_endpoint(
@@ -17,9 +24,6 @@ async def websocket_endpoint(
     Authenticates user via token query parameter and manages connection.
     Tracks user as online while connected.
     """
-    # Authenticate with a short-lived session. Using Depends(get_session) here would
-    # hold a pooled DB connection open for the whole lifetime of the socket, and a
-    # handful of open tabs would exhaust the pool for every HTTP request.
     with Session(engine) as session:
         user = get_user_from_token(session, token)
         user_id = user.id if user else None

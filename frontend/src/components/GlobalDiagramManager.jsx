@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { UploadCloud, Image as ImageIcon, CheckCircle } from 'lucide-react';
+import API_BASE_URL from '../config';
 
 const GlobalDiagramManager = ({ papers, accessToken, onUploadSuccess }) => {
     const [missingDiagrams, setMissingDiagrams] = useState([]);
@@ -88,7 +89,7 @@ const DiagramDropzone = ({ diagram, accessToken, onSuccess }) => {
         formData.append('file', file);
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const baseUrl = API_BASE_URL;
             await axios.post(
                 `${baseUrl}/api/v1/papers/${diagram.paperId}/diagram/${diagram.label}`,
                 formData,

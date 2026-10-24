@@ -330,23 +330,23 @@ async def get_community_members(
     current_user: User = Depends(get_current_user)
 ):
     """Get all members of a community."""
-    members = session.exec(
-        select(CommunityMember).where(CommunityMember.community_id == community_id)
+    rows = session.exec(
+        select(CommunityMember, User)
+        .join(User, CommunityMember.user_id == User.id)
+        .where(CommunityMember.community_id == community_id)
     ).all()
-    
-    result = []
-    for member in members:
-        user = session.get(User, member.user_id)
-        result.append(CommunityMemberResponse(
+
+    return [
+        CommunityMemberResponse(
             id=member.id,
             user_id=member.user_id,
-            user_email=user.email if user else None,
-            user_profile_pic=user.profile_pic if user else None,
+            user_email=user.email,
+            user_profile_pic=user.profile_pic,
             role=member.role,
             joined_at=member.joined_at
-        ))
-    
-    return result
+        )
+        for member, user in rows
+    ]
 
 # ==================== CHANNEL ENDPOINTS ====================
 
@@ -434,25 +434,40 @@ async def create_channel(
 async def get_channel_messages(
     channel_id: str,
     limit: int = 100,
+    before: Optional[int] = None,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """Get messages from a channel."""
+    """Get messages from a channel. Use `before` (message ID) for cursor pagination."""
     get_accessible_channel(session, channel_id, current_user)
 
-    messages = session.exec(
-        select(Message)
+    query = (
+        select(Message, User)
+        .join(User, Message.user_id == User.id)
         .where(Message.channel_id == channel_id)
-        .order_by(Message.timestamp.desc())
-        .limit(_clamp_limit(limit))
-    ).all()
-    
+    )
+    if before is not None:
+        query = query.where(Message.id < before)
+    query = query.order_by(Message.timestamp.desc()).limit(_clamp_limit(limit))
+
+    rows = session.exec(query).all()
+
+    # Batch-fetch votes for these messages
+    message_ids = [msg.id for msg, _ in rows]
+    votes = session.exec(
+        select(MessageVote).where(MessageVote.message_id.in_(message_ids))
+    ).all() if message_ids else []
+
+    votes_by_msg: dict[int, list] = {}
+    for v in votes:
+        votes_by_msg.setdefault(v.message_id, []).append(v)
+
     response_messages = []
-    for msg in messages:
-        score = sum(v.value for v in msg.votes) if msg.votes else 0
-        user_vote = next((v.value for v in msg.votes if v.user_id == current_user.id), 0) if msg.votes else 0
-        user = session.get(User, msg.user_id)
-        
+    for msg, user in rows:
+        msg_votes = votes_by_msg.get(msg.id, [])
+        score = sum(v.value for v in msg_votes)
+        user_vote = next((v.value for v in msg_votes if v.user_id == current_user.id), 0)
+
         response_messages.append(MessageResponse(
             id=msg.id,
             content=msg.content,
@@ -463,8 +478,6 @@ async def get_channel_messages(
             user_profile_pic=user.profile_pic if user else None,
             score=score,
             user_vote=user_vote,
-            # Without these the client can't tell replies from top-level messages,
-            # so thread replies showed up in the main feed after a reload.
             parent_id=msg.parent_id,
             reply_count=msg.reply_count
         ))
@@ -1060,7 +1073,6 @@ async def search_users(
         {
             "id": u.id,
             "username": u.username,
-            "email": u.email,
             "profile_pic": u.profile_pic,
             "reputation_points": u.reputation_points,
         }
@@ -1173,22 +1185,34 @@ async def get_leaderboard(
         base_query.order_by(desc(User.reputation_points)).limit(_clamp_limit(limit))
     ).all()
     
+    # Batch-fetch badge counts and top badges for all leaderboard users
+    user_ids = [u.id for u in users]
+
+    badge_counts: dict[str, int] = {}
+    if user_ids:
+        count_rows = session.exec(
+            select(UserBadge.user_id, func.count(UserBadge.id))
+            .where(UserBadge.user_id.in_(user_ids))
+            .group_by(UserBadge.user_id)
+        ).all()
+        badge_counts = {uid: cnt for uid, cnt in count_rows}
+
+    # Fetch all user badges with badge info in one query, then pick top 3 per user
+    all_user_badges: dict[str, list] = {}
+    if user_ids:
+        ub_rows = session.exec(
+            select(UserBadge, Badge)
+            .join(Badge, UserBadge.badge_id == Badge.id)
+            .where(UserBadge.user_id.in_(user_ids))
+            .order_by(desc(Badge.criteria_value))
+        ).all()
+        for ub, badge in ub_rows:
+            all_user_badges.setdefault(ub.user_id, []).append(badge)
+
     entries = []
     for rank, user in enumerate(users, 1):
-        # Efficient badge count using COUNT
-        badge_count = session.exec(
-            select(func.count(UserBadge.id)).where(UserBadge.user_id == user.id)
-        ).one()
-        
-        # Get top 3 badges (highest criteria_value = most prestigious)
-        top_badge_rows = session.exec(
-            select(Badge)
-            .join(UserBadge, UserBadge.badge_id == Badge.id)
-            .where(UserBadge.user_id == user.id)
-            .order_by(desc(Badge.criteria_value))
-            .limit(3)
-        ).all()
-        
+        top_badge_rows = all_user_badges.get(user.id, [])[:3]
+
         top_badges = [
             BadgeResponse(
                 id=b.id,
@@ -1199,7 +1223,7 @@ async def get_leaderboard(
                 tier=b.tier
             ) for b in top_badge_rows
         ]
-        
+
         entries.append(LeaderboardEntryResponse(
             rank=rank,
             user_id=user.id,
@@ -1208,7 +1232,7 @@ async def get_leaderboard(
             reputation_points=user.reputation_points,
             total_messages=user.total_messages,
             helpful_votes=user.helpful_votes,
-            badge_count=badge_count,
+            badge_count=badge_counts.get(user.id, 0),
             top_badges=top_badges
         ))
     

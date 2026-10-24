@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import '../../src/datepicker-styles.css';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { API_BASE_URL } from '../services/progressService';
+import API_BASE_URL from '../config';
 
 const priorityConfig = {
   low: { color: 'text-blue-500', label: 'Low' },
@@ -59,7 +59,26 @@ const Tasks = () => {
   };
 
   useEffect(() => {
-    fetchTasks();
+    const controller = new AbortController();
+    const loadTasks = async () => {
+      setLoading(true);
+      setError(null);
+      const token = localStorage.getItem('accessToken');
+      if (!token) { setError("Authentication token not found."); setLoading(false); return; }
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/tasks/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          signal: controller.signal,
+        });
+        if (!response.ok) { const d = await response.json(); throw new Error(d.detail || 'Failed to fetch tasks'); }
+        setTasks(await response.json());
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        setError(err.message);
+      } finally { setLoading(false); }
+    };
+    loadTasks();
+    return () => controller.abort();
   }, []);
 
   const handleCreateTask = async (e) => {
