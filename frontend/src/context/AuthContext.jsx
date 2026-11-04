@@ -115,16 +115,52 @@ export const AuthProvider = ({ children }) => {
     }
   }, [fetchUserProfile]);
 
+  const rememberPic = (url) => {
+    setProfilePic(url);
+    if (url) localStorage.setItem('userProfilePic', url);
+    else localStorage.removeItem('userProfilePic');
+  };
+
+  // Accepts the cropped image as a data URL (or null to remove it). The image is
+  // uploaded as a file to storage and only its URL is saved on the account;
+  // base64 images in the database slowed down every query that loaded users.
   const updateProfilePic = useCallback(async (newPicBase64) => {
-    if (newPicBase64) {
-      setProfilePic(newPicBase64);
-      localStorage.setItem('userProfilePic', newPicBase64);
-    } else {
-      setProfilePic(null);
-      localStorage.removeItem('userProfilePic');
+    rememberPic(newPicBase64); // show it immediately
+
+    if (!accessToken) return;
+    const auth = { 'Authorization': `Bearer ${accessToken}` };
+
+    try {
+      if (!newPicBase64) {
+        const res = await fetch(`${API_BASE_URL}/api/v1/users/me/profile-pic`, { method: 'DELETE', headers: auth });
+        if (!res.ok) toast.error("Failed to remove profile picture.");
+        return;
+      }
+
+      const blob = await (await fetch(newPicBase64)).blob();
+      const ext = (blob.type.split('/')[1] || 'jpeg').replace('jpeg', 'jpg');
+      const form = new FormData();
+      form.append('file', blob, `avatar.${ext}`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/users/me/profile-pic`, { method: 'POST', headers: auth, body: form });
+      if (res.ok) {
+        const userData = await res.json();
+        setUser(userData);
+        rememberPic(userData.profile_pic);
+        return;
+      }
+      if (res.status !== 503) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || "Failed to save profile picture.");
+        return;
+      }
+      // 503 = storage not configured on the server: fall back to the old inline save below
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      toast.error("Network error while saving profile picture.");
+      return;
     }
 
-    if (accessToken) {
+    {
       try {
         const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
           method: 'PATCH',

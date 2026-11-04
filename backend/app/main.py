@@ -17,7 +17,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 # SQLModel imports
-from sqlmodel import Field, Session, SQLModel, select
+from sqlmodel import Field, Session, SQLModel, select, func
 from .database import engine, create_db_and_tables, get_session
 
 # --- IMPORTANT: Ensure you have a 'schemas.py' file in the same directory (app/)
@@ -25,6 +25,7 @@ from .schemas import (
     UserCreate, UserLogin, UserResponse, Token, User,
     Task, TaskCreate, TaskUpdate, TaskResponse,
     SessionLog, SessionLogCreate, SessionLogResponse,
+    SessionSummaryResponse, DailyFocus, TimerState, TimerStateIn, TimerStateOut,
     # Community Models
     Community, CommunityMember, Channel, Message, MessageVote,
     CommunityCreate, CommunityResponse, CommunityMemberResponse,
@@ -147,8 +148,8 @@ async def lifespan(app: FastAPI):
     logger.info("Application shutdown.")
 
 
-# --- Rate Limiter ---
-limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+# --- Rate Limiter (shared with the route modules, see rate_limit.py) ---
+from .rate_limit import limiter
 
 # --- FastAPI App Initialization ---
 app = FastAPI(
@@ -400,13 +401,25 @@ async def log_pomodoro_session(
             detail="Minutes spent must be greater than zero."
         )
         
+    # The same finished pomodoro can arrive twice (retries, or two synced devices
+    # both completing it). session_key identifies it, so only count it once.
+    if log_data.session_key:
+        existing = session.exec(
+            select(SessionLog)
+            .where(SessionLog.user_id == current_user.id)
+            .where(SessionLog.session_key == log_data.session_key)
+        ).first()
+        if existing:
+            return existing
+
     # Create the database record
     db_log = SessionLog(
         id=str(uuid4()),
         minutes_spent=log_data.minutes_spent,
         session_type=log_data.session_type,
         user_id=current_user.id,
-        completion_time=datetime.now(timezone.utc)
+        completion_time=datetime.now(timezone.utc),
+        session_key=log_data.session_key,
     )
 
     session.add(db_log)
@@ -414,6 +427,62 @@ async def log_pomodoro_session(
     session.refresh(db_log)
     
     return db_log
+
+@app.get("/api/v1/log/summary", response_model=SessionSummaryResponse, summary="Focus totals and per-day stats for the current user")
+async def get_session_summary(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """
+    All-time totals plus one row per day (UTC), computed in the database, so the
+    app never has to download the user's whole session history (which grows forever).
+    """
+    day = func.date(SessionLog.completion_time)
+    rows = session.exec(
+        select(day, func.count(SessionLog.id), func.coalesce(func.sum(SessionLog.minutes_spent), 0))
+        .where(SessionLog.user_id == current_user.id)
+        .where(SessionLog.session_type.in_(("focus", "pomodoro")))
+        .group_by(day)
+        .order_by(day)
+    ).all()
+    daily = [
+        DailyFocus(date=str(d)[:10], pomodoros=int(c), focus_minutes=int(m))
+        for d, c, m in rows if d is not None
+    ]
+    return SessionSummaryResponse(
+        total_sessions=sum(x.pomodoros for x in daily),
+        total_focus_minutes=sum(x.focus_minutes for x in daily),
+        daily=daily,
+    )
+
+# --- Pomodoro timer sync across devices ---
+
+@app.get("/api/v1/timer", response_model=Optional[TimerStateOut], summary="Get the user's synced Pomodoro timer")
+async def get_timer_state(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    return session.get(TimerState, current_user.id)
+
+@app.put("/api/v1/timer", response_model=TimerStateOut, summary="Save the user's Pomodoro timer so other devices can pick it up")
+async def put_timer_state(
+    body: TimerStateIn,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """Last write wins by the client's updated_at, so a late request from an old
+    device can't overwrite a newer change made on another one."""
+    state = session.get(TimerState, current_user.id)
+    if state and state.updated_at > body.updated_at:
+        return state
+    if state is None:
+        state = TimerState(user_id=current_user.id)
+    for key, value in body.model_dump().items():
+        setattr(state, key, value)
+    session.add(state)
+    session.commit()
+    session.refresh(state)
+    return state
 
 @app.get("/api/v1/log/sessions", response_model=List[SessionLogResponse], summary="Get session logs for the current user")
 async def get_session_logs(

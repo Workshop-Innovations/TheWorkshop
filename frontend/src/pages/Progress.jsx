@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'; // Added useCallback
-import { getProgressData, fetchCompletedSessions } from '../services/progressService'; // Added fetchCompletedSessions
+import { getProgressData, fetchSessionSummary } from '../services/progressService';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Calendar, CheckCircle2, Coins, Gift, Flame, Clock, Coffee } from 'lucide-react';
@@ -18,28 +18,15 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
   });
 
   // <--- NEW: API Data Aggregation Logic (useCallback ensures efficiency)
-  const calculateProgress = useCallback((sessions) => {
+  // The server returns totals and one row per day (UTC), so the whole history is
+  // counted (the old per-session list was paginated to the latest 50 sessions).
+  const calculateProgress = useCallback((summary) => {
     const stats = {};
-    let totalSessions = 0;
-    let totalFocusMinutes = 0;
+    const totalSessions = summary.total_sessions || 0;
+    const totalFocusMinutes = summary.total_focus_minutes || 0;
 
-    sessions.forEach(session => {
-      // Field names match the backend SessionLogResponse
-      // (completion_time / session_type / minutes_spent)
-      const date = session.completion_time ? new Date(session.completion_time).toISOString().split('T')[0] : 'Unknown';
-
-      if (session.session_type !== 'focus' && session.session_type !== 'pomodoro') return;
-
-      const durationMinutes = session.minutes_spent || 0;
-
-      if (!stats[date]) {
-        stats[date] = { pomodoros: 0, focusMinutes: 0 };
-      }
-
-      stats[date].pomodoros += 1;
-      stats[date].focusMinutes += durationMinutes;
-      totalSessions += 1;
-      totalFocusMinutes += durationMinutes;
+    (summary.daily || []).forEach(day => {
+      stats[day.date] = { pomodoros: day.pomodoros, focusMinutes: day.focus_minutes };
     });
 
     // Calculate Streak 
@@ -86,8 +73,8 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
     // 2. Fetch sessions from API (for accurate progress/streaks)
     const loadApiProgress = async () => {
       try {
-        const sessions = await fetchCompletedSessions();
-        if (sessions) calculateProgress(sessions);
+        const summary = await fetchSessionSummary();
+        if (summary) calculateProgress(summary);
       } catch (error) {
         console.error("Failed to load API progress data:", error);
       }

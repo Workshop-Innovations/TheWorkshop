@@ -116,7 +116,7 @@ def send_verification_email(user_id: str, email: str, username: str) -> bool:
 <div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;color:#0f172a">
   <h2 style="margin:0 0 16px">Confirm your email</h2>
   <p>Hi {escape(username)},</p>
-  <p>Welcome to The Workshop! Click the button below to confirm your email address.</p>
+  <p>Welcome to Workshop! Click the button below to confirm your email address.</p>
   <p style="margin:28px 0">
     <a href="{escape(link)}" style="background:#0f172a;color:#ffffff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:bold">Verify email</a>
   </p>

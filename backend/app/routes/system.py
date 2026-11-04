@@ -26,6 +26,21 @@ async def health_check(session: Session = Depends(get_session)):
         logger.exception("Health check DB failure")
         return {"status": "degraded", "database": "unreachable"}
 
+@router.get("/live", status_code=status.HTTP_200_OK, summary="Liveness: the process is up (no DB call)")
+async def liveness():
+    return {"status": "alive"}
+
+@router.get("/ready", summary="Readiness: the app can reach the database (503 if not)")
+async def readiness(session: Session = Depends(get_session)):
+    """Unlike /health (always 200, for uptime pingers), this returns 503 when the
+    database is unreachable, so a load balancer can stop sending traffic here."""
+    try:
+        session.exec(text("SELECT 1"))
+    except Exception:
+        logger.exception("Readiness check DB failure")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="database unreachable")
+    return {"status": "ready", "database": "connected"}
+
 def _verify_ping_secret(x_ping_secret: Optional[str] = Header(None)) -> None:
     if PING_SECRET and x_ping_secret != PING_SECRET:
         raise HTTPException(status_code=403, detail="Invalid or missing ping secret")

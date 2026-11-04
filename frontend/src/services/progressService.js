@@ -66,7 +66,7 @@ export const saveProgressData = (data) => {
     localStorage.setItem('progressData', JSON.stringify(data));
 };
 
-const sendSessionLog = async (minutes) => {
+const sendSessionLog = async (minutes, sessionKey) => {
     const authToken = getAuthToken();
     if (!authToken) {
         console.warn("User not authenticated. Skipping backend logging.");
@@ -84,6 +84,8 @@ const sendSessionLog = async (minutes) => {
                 body: JSON.stringify({
                     minutes_spent: minutes,
                     session_type: 'focus',
+                    // Same key from two synced devices = counted once by the server
+                    session_key: sessionKey !== undefined ? String(sessionKey) : undefined,
                 }),
             });
 
@@ -121,7 +123,7 @@ export const logPomodoro = (minutes, coinsEarned = 10, sessionKey) => {
     }
     lastLoggedSessionKey = sessionKey;
 
-    sendSessionLog(minutes);
+    sendSessionLog(minutes, sessionKey);
 
     const data = getProgressData();
     const today = getToday();
@@ -270,8 +272,52 @@ export const redeemReward = (reward) => {
     return data;
 };
 
+/**
+ * Totals and per-day focus stats, computed by the server. Use this instead of
+ * fetchCompletedSessions for progress numbers: the sessions list is paginated
+ * (most recent 50), so counting it undercounts anyone with a longer history.
+ * Returns null on failure.
+ */
+export const fetchSessionSummary = async () => {
+    const authToken = getAuthToken();
+    if (!authToken) return null;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/log/summary`, {
+            headers: { 'Authorization': `Bearer ${authToken}` },
+        });
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (error) {
+        console.error('Network error during summary fetch:', error);
+        return null;
+    }
+};
+
+// --- Timer state: kept in localStorage and mirrored to the server, so a timer
+// started on one device appears on the user's other devices. ---
+
+const pushTimerState = (state) => {
+    const authToken = getAuthToken();
+    if (!authToken) return;
+    const body = {
+        mode: state ? state.mode : 'idle',
+        pomodoro_count: state?.pomodoroCount || 0,
+        end_time: state?.endTime ?? null,
+        remaining_seconds: state?.remainingTime ?? null,
+        is_running: !!state?.endTime,
+        updated_at: state?.updatedAt || Date.now(),
+    };
+    fetch(`${API_BASE_URL}/api/v1/timer`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+        body: JSON.stringify(body),
+    }).catch(() => { /* offline: the next change will sync */ });
+};
+
 export const saveTimerState = (state) => {
-    localStorage.setItem('timerState', JSON.stringify(state));
+    const stamped = { ...state, updatedAt: Date.now() };
+    localStorage.setItem('timerState', JSON.stringify(stamped));
+    pushTimerState(stamped);
 };
 
 export const getTimerState = () => {
@@ -281,4 +327,47 @@ export const getTimerState = () => {
 
 export const clearTimerState = () => {
     localStorage.removeItem('timerState');
+    // Record the reset too (as idle), so other devices stop their copy
+    const updatedAt = Date.now();
+    localStorage.setItem('timerClearedAt', String(updatedAt));
+    pushTimerState({ mode: 'idle', updatedAt });
+};
+
+/**
+ * Returns the server's timer state if it is newer than this device's, else null.
+ * Shape matches getTimerState(); { cleared: true } means "another device reset it".
+ */
+export const fetchNewerServerTimer = async () => {
+    const authToken = getAuthToken();
+    if (!authToken) return null;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/timer`, {
+            headers: { 'Authorization': `Bearer ${authToken}` },
+        });
+        if (!response.ok) return null;
+        const server = await response.json();
+        if (!server) return null;
+        const local = getTimerState();
+        const localUpdated = Math.max(local?.updatedAt || 0, Number(localStorage.getItem('timerClearedAt')) || 0);
+        if (server.updated_at <= localUpdated) return null;
+
+        if (server.mode === 'idle') {
+            localStorage.removeItem('timerState');
+            localStorage.setItem('timerClearedAt', String(server.updated_at));
+            return { cleared: true };
+        }
+        const state = {
+            mode: server.mode,
+            pomodoroCount: server.pomodoro_count,
+            updatedAt: server.updated_at,
+            ...(server.is_running && server.end_time
+                ? { endTime: server.end_time }
+                : { remainingTime: server.remaining_seconds }),
+        };
+        // Adopt locally without pushing it back
+        localStorage.setItem('timerState', JSON.stringify(state));
+        return state;
+    } catch {
+        return null;
+    }
 };

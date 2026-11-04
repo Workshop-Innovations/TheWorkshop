@@ -12,6 +12,7 @@ import ProfilePictureGate from './components/ProfilePictureGate';
 import ScrollToTop from './components/ScrollToTop';
 import TopProgressBar from './components/TopProgressBar';
 import GlobalLoader from './components/GlobalLoader';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const Landing = lazy(() => import('./pages/Landing'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -49,6 +50,9 @@ const AppContent = () => {
     <div className="min-h-screen bg-background-secondary text-slate-900 font-sans selection:bg-primary-light selection:text-white">
       <ScrollToTop />
       <TopProgressBar />
+      {/* One error boundary per route: a crash on one page no longer takes down the
+          whole app, and moving to another page (new key) clears the error. */}
+      <ErrorBoundary scope="page" key={location.pathname}>
       <Suspense fallback={<GlobalLoader />}>
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -183,6 +187,7 @@ const AppContent = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       </Suspense>
+      </ErrorBoundary>
 
       {showMinimizedTimer && <MinimizedPomodoro />}
     </div>

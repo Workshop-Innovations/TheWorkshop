@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status, UploadFile, File, Form
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 from typing import List
 import os
 import logging
@@ -10,6 +11,7 @@ from datetime import datetime, timezone
 from pydantic import BaseModel as PydanticBaseModel
 from ..database import get_session
 from ..dependencies import get_current_user
+from ..rate_limit import limiter, user_or_ip, AI_LIMIT
 from ..schemas import (
     User, FlashcardSetLegacy, FlashcardLegacy,
     FlashcardSetResponse, FlashcardLegacyResponse, FlashcardSetDetailResponse,
@@ -48,10 +50,21 @@ if GEMINI_API_KEY:
 
 @router.get("/collections", response_model=List[FlashcardCollectionResponse])
 async def get_collections(
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
-    collections = session.exec(select(FlashcardCollection).where(FlashcardCollection.user_id == current_user.id)).all()
+    """The user's collections, newest first, paginated with limit/offset.
+    Cards are loaded for the whole page in one extra query (selectinload)."""
+    collections = session.exec(
+        select(FlashcardCollection)
+        .where(FlashcardCollection.user_id == current_user.id)
+        .options(selectinload(FlashcardCollection.cards))
+        .order_by(FlashcardCollection.date_created.desc())
+        .offset(offset)
+        .limit(limit)
+    ).all()
     return collections
 
 @router.get("/collections/{collection_id}", response_model=FlashcardCollectionResponse)
@@ -75,7 +88,9 @@ async def get_collection(
     )
 
 @router.post("/generate/file", response_model=FlashcardSetDetailResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(AI_LIMIT, key_func=user_or_ip)
 async def generate_flashcards_from_file(
+    request: Request,
     title: str = Form(...),
     category: str = Form(...),
     file: UploadFile = File(...),
@@ -223,10 +238,19 @@ async def create_flashcard_set(
 
 @router.get("/sets", response_model=List[FlashcardSetResponse])
 async def get_flashcard_sets(
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    sets = session.exec(select(FlashcardSetLegacy).where(FlashcardSetLegacy.user_id == current_user.id)).all()
+    """The user's (legacy) flashcard sets, newest first, paginated with limit/offset."""
+    sets = session.exec(
+        select(FlashcardSetLegacy)
+        .where(FlashcardSetLegacy.user_id == current_user.id)
+        .order_by(FlashcardSetLegacy.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    ).all()
     return sets
 
 @router.get("/sets/{set_id}", response_model=FlashcardSetDetailResponse)

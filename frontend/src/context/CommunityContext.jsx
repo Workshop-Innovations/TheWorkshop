@@ -459,6 +459,20 @@ export const CommunityProvider = ({ children }) => {
         }
     }, [currentChannel, token]);
 
+    // Tell the server which channel this tab is viewing (its "room"). Full message
+    // events are only sent to sockets in that room; others get a small
+    // channel_activity ping, which is enough to show an unread dot.
+    const sendSubscription = useCallback(() => {
+        const ws = wsRef.current;
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        const channelId = viewModeRef.current === 'community' ? (currentChannelRef.current?.id || null) : null;
+        ws.send(JSON.stringify({ type: 'subscribe', channel_id: channelId }));
+    }, []);
+
+    useEffect(() => {
+        if (isConnected) sendSubscription();
+    }, [currentChannel, viewMode, isConnected, sendSubscription]);
+
     // WebSocket connection for real-time messaging
     const connectWebSocket = useCallback(() => {
         if (!token) return;
@@ -478,6 +492,7 @@ export const CommunityProvider = ({ children }) => {
         ws.onopen = () => {
             setIsConnected(true);
             wsReconnectDelay.current = 1000; // Reset backoff on success
+            sendSubscription(); // rejoin the current channel's room after (re)connecting
             console.log('[WS] Connected');
         };
 
@@ -506,6 +521,11 @@ export const CommunityProvider = ({ children }) => {
                             reply_count: 0
                         }];
                     });
+                } else if (data.type === 'channel_activity') {
+                    // New message in a channel this tab isn't viewing
+                    if (data.channel_id !== currentChannelRef.current?.id || viewModeRef.current !== 'community') {
+                        setUnreadChannels(p => new Set([...p, data.channel_id]));
+                    }
                 } else if (data.type === 'message_edited') {
                     setMessages(prev => prev.map(msg =>
                         msg.id === data.id ? { ...msg, content: data.content } : msg

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Request, status, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlmodel import Session, select
 from typing import List, Optional
@@ -18,6 +18,7 @@ from ..database import get_session
 from ..dependencies import get_current_user, get_user_from_token
 from ..schemas import User, TutorDocument, TutorChatRequest, TutorChatResponse
 from ..utils import get_supabase
+from ..rate_limit import limiter, user_or_ip, AI_LIMIT, UPLOAD_LIMIT
 from .subscriptions import PLAN_LIMITS, effective_tier
 
 logger = logging.getLogger(__name__)
@@ -105,7 +106,9 @@ class DocumentContentResponse(BaseModel):
 # --- Endpoints ---
 
 @router.post("/upload", response_model=dict)
+@limiter.limit(UPLOAD_LIMIT, key_func=user_or_ip)
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
@@ -289,8 +292,10 @@ async def delete_document(
 
 
 @router.post("/chat", response_model=TutorChatResponse)
+@limiter.limit(AI_LIMIT, key_func=user_or_ip)
 async def chat_with_tutor(
-    request: TutorChatRequest,
+    request: Request,
+    payload: TutorChatRequest,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
@@ -306,7 +311,7 @@ async def chat_with_tutor(
 
     doc = session.exec(
         select(TutorDocument).where(
-            TutorDocument.id == request.document_id,
+            TutorDocument.id == payload.document_id,
             TutorDocument.user_id == current_user.id
         )
     ).first()
@@ -323,7 +328,7 @@ async def chat_with_tutor(
     # Convert frontend history to proper format.
     # Only the most recent turns are sent, to keep token cost per request bounded.
     formatted_history = []
-    for entry in request.history[-MAX_HISTORY_TURNS:]:
+    for entry in payload.history[-MAX_HISTORY_TURNS:]:
         role = entry.get("role", "user")
         parts = entry.get("parts", [])
         text_parts = [
@@ -333,7 +338,7 @@ async def chat_with_tutor(
 
     try:
         chat = client.aio.chats.create(model='gemini-2.5-flash', history=formatted_history)
-        response = await chat.send_message(context_prompt + f"Question: {request.message}")
+        response = await chat.send_message(context_prompt + f"Question: {payload.message}")
         return TutorChatResponse(response=response.text)
     except Exception as e:
         logger.exception("AI chat failed")
@@ -345,8 +350,10 @@ async def chat_with_tutor(
 
 
 @router.post("/generate/quiz", response_model=QuizResponse)
+@limiter.limit(AI_LIMIT, key_func=user_or_ip)
 async def generate_quiz(
-    request: GenerateRequest,
+    request: Request,
+    payload: GenerateRequest,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
@@ -361,7 +368,7 @@ async def generate_quiz(
 
     doc = session.exec(
         select(TutorDocument).where(
-            TutorDocument.id == request.document_id,
+            TutorDocument.id == payload.document_id,
             TutorDocument.user_id == current_user.id
         )
     ).first()
@@ -400,8 +407,10 @@ async def generate_quiz(
 
 
 @router.post("/generate/flashcards", response_model=FlashcardsResponse)
+@limiter.limit(AI_LIMIT, key_func=user_or_ip)
 async def generate_flashcards(
-    request: GenerateRequest,
+    request: Request,
+    payload: GenerateRequest,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
@@ -416,7 +425,7 @@ async def generate_flashcards(
 
     doc = session.exec(
         select(TutorDocument).where(
-            TutorDocument.id == request.document_id,
+            TutorDocument.id == payload.document_id,
             TutorDocument.user_id == current_user.id
         )
     ).first()

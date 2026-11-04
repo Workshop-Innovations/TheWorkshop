@@ -5,76 +5,166 @@ import re
 import os
 import logging
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from sqlmodel import Session, select, desc
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status, BackgroundTasks
+from sqlmodel import Session, select, desc, func
 from ..database import get_session
 from ..schemas import (
     Subject, SubjectResponse, Topic, TopicResponse, PastPaper, PastPaperResponse, 
-    TopicSummaryResponse, User,
+    TopicSummaryResponse, PastPaperSummaryResponse, User,
     SubjectCreate, SubjectUpdate, TopicCreate, TopicUpdate, PastPaperCreate, PastPaperUpdate,
     TestAttempt, TestAttemptCreate, TestAttemptResponse
 )
 from ..dependencies import get_current_user, get_current_admin_user
+from ..rate_limit import limiter, user_or_ip, AI_LIMIT
+from ..cache import cached, invalidate_content, CONTENT_PREFIX
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["Subjects & Content"])
 
 # --- Public Endpoints ---
+# Content changes only when an admin edits it, so these reads are cached in memory
+# (see cache.py) and every admin write below calls invalidate_content().
+
+def _paper_summaries(session: Session, subject_ids=None) -> List[PastPaperSummaryResponse]:
+    """Papers without their content column (it can be very large)."""
+    has_content = func.coalesce(func.length(PastPaper.content), 0) > 0
+    query = select(
+        PastPaper.id, PastPaper.subject_id, PastPaper.title, PastPaper.year,
+        PastPaper.exam_type, PastPaper.file_path, PastPaper.duration_minutes, has_content,
+    )
+    if subject_ids is not None:
+        query = query.where(PastPaper.subject_id.in_(subject_ids))
+    return [
+        PastPaperSummaryResponse(
+            id=r[0], subject_id=r[1], title=r[2], year=r[3], exam_type=r[4],
+            file_path=r[5], duration_minutes=r[6], has_content=bool(r[7]),
+        )
+        for r in session.exec(query).all()
+    ]
+
+def _subject_responses(session: Session, subjects) -> List[dict]:
+    """Subjects with topic titles and paper summaries, using 3 queries total
+    (instead of loading every topic/paper relationship one subject at a time)."""
+    ids = [s.id for s in subjects]
+    if not ids:
+        return []
+    topics: dict = {}
+    for t in session.exec(
+        select(Topic.id, Topic.subject_id, Topic.title, Topic.order)
+        .where(Topic.subject_id.in_(ids))
+        .order_by(Topic.order)
+    ).all():
+        topics.setdefault(t[1], []).append(TopicSummaryResponse(id=t[0], title=t[2], order=t[3]))
+    papers: dict = {}
+    for p in _paper_summaries(session, ids):
+        papers.setdefault(p.subject_id, []).append(p)
+    return [
+        SubjectResponse(
+            id=s.id, name=s.name, description=s.description,
+            topics=topics.get(s.id, []), papers=papers.get(s.id, []),
+        ).model_dump(mode="json")
+        for s in subjects
+    ]
 
 @router.get("/subjects", response_model=List[SubjectResponse], summary="Get all subjects")
-async def get_subjects(session: Session = Depends(get_session)):
+async def get_subjects(
+    limit: Optional[int] = Query(default=None, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+    session: Session = Depends(get_session),
+):
     """
-    Get all subjects and their topics/past papers.
+    Get subjects with their topic titles and past-paper summaries (no paper content;
+    fetch /papers/{id} for that). Optional `limit`/`offset` for pagination.
     """
-    subjects = session.exec(select(Subject)).all()
-    # Pydantic will handle the conversion to SubjectResponse, utilizing the relationships
-    return subjects
+    def load():
+        query = select(Subject).offset(offset)
+        if limit:
+            query = query.order_by(Subject.id).limit(limit)  # stable order for paging
+        return _subject_responses(session, session.exec(query).all())
+    return cached(f"{CONTENT_PREFIX}subjects:{limit}:{offset}", load)
 
 @router.get("/subjects/{subject_id}", response_model=SubjectResponse, summary="Get a specific subject")
 async def get_subject(subject_id: str, session: Session = Depends(get_session)):
-    subject = session.get(Subject, subject_id)
-    if not subject:
+    def load():
+        subject = session.get(Subject, subject_id)
+        return _subject_responses(session, [subject])[0] if subject else None
+    result = cached(f"{CONTENT_PREFIX}subject:{subject_id}", load)
+    if result is None:
         raise HTTPException(status_code=404, detail="Subject not found")
-    return subject
+    return result
 
 @router.get("/papers", response_model=List[PastPaperResponse])
 async def get_papers(
     subject: Optional[str] = None,
     year: Optional[str] = None,
     exam: Optional[str] = None,
+    include_content: bool = Query(default=True, description="false = skip the large content field (use has_content)"),
+    limit: Optional[int] = Query(default=None, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     session: Session = Depends(get_session)
 ):
-    """Get past papers, optionally filtered by subject name, year, or exam type."""
-    query = select(PastPaper)
-    
+    """Get past papers, optionally filtered by subject name, year, or exam type.
+    Pass include_content=false for list views (much smaller and cached)."""
+    if include_content:
+        query = select(PastPaper)
+    else:
+        has_content = func.coalesce(func.length(PastPaper.content), 0) > 0
+        query = select(
+            PastPaper.id, PastPaper.subject_id, PastPaper.title, PastPaper.year,
+            PastPaper.exam_type, PastPaper.file_path, PastPaper.duration_minutes, has_content,
+        )
+
     if subject:
-        # Join with Subject table to filter by name if needed, or just specific ID
-        # Here assuming filtering by subject name for simplicity in query params
-        query = query.join(Subject).where(Subject.name.ilike(f"%{subject}%"))
+        query = query.join(Subject, PastPaper.subject_id == Subject.id).where(Subject.name.ilike(f"%{subject}%"))
     if year:
         query = query.where(PastPaper.year == year)
     if exam:
-         query = query.where(PastPaper.exam_type == exam)
-         
-    papers = session.exec(query).all()
-    return papers
+        query = query.where(PastPaper.exam_type == exam)
+    query = query.offset(offset)
+    if limit:
+        query = query.order_by(PastPaper.id).limit(limit)
+
+    if include_content:
+        # Full content isn't cached (it's large and would sit in every worker's memory)
+        return session.exec(query).all()
+
+    def load():
+        return [
+            PastPaperResponse(
+                id=r[0], subject_id=r[1], title=r[2], year=r[3], exam_type=r[4],
+                file_path=r[5], duration_minutes=r[6], has_content=bool(r[7]),
+            ).model_dump(mode="json")
+            for r in session.exec(query).all()
+        ]
+    return cached(f"{CONTENT_PREFIX}papers:{subject}:{year}:{exam}:{limit}:{offset}", load)
 
 @router.get("/topics", response_model=List[TopicResponse], summary="Get all topics")
-async def get_topics(session: Session = Depends(get_session)):
+async def get_topics(
+    limit: Optional[int] = Query(default=None, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+    session: Session = Depends(get_session),
+):
     """
-    Get all topics (Subject Modules).
+    Get all topics (Subject Modules). Optional `limit`/`offset` for pagination.
     """
-    topics = session.exec(select(Topic)).all()
-    return topics
+    def load():
+        query = select(Topic).offset(offset)
+        if limit:
+            query = query.order_by(Topic.id).limit(limit)
+        return [TopicResponse.model_validate(t).model_dump(mode="json") for t in session.exec(query).all()]
+    return cached(f"{CONTENT_PREFIX}topics:{limit}:{offset}", load)
 
 @router.get("/topics/{topic_id}", response_model=TopicResponse)
 async def get_topic(topic_id: str, session: Session = Depends(get_session)):
     """Get a specific topic by ID with full content."""
-    topic = session.exec(select(Topic).where(Topic.id == topic_id)).first()
-    if not topic:
+    def load():
+        topic = session.get(Topic, topic_id)
+        return TopicResponse.model_validate(topic).model_dump(mode="json") if topic else None
+    result = cached(f"{CONTENT_PREFIX}topic:{topic_id}", load)
+    if result is None:
         raise HTTPException(status_code=404, detail="Topic not found")
-    return topic
+    return result
 
 @router.get("/papers/{paper_id}", response_model=PastPaperResponse, summary="Get full past paper")
 async def get_past_paper(paper_id: str, session: Session = Depends(get_session)):
@@ -98,6 +188,7 @@ async def create_subject(
     db_subject = Subject.model_validate(subject)
     session.add(db_subject)
     session.commit()
+    invalidate_content()
     session.refresh(db_subject)
     return db_subject
 
@@ -118,6 +209,7 @@ async def update_subject(
             
     session.add(db_subject)
     session.commit()
+    invalidate_content()
     session.refresh(db_subject)
     return db_subject
 
@@ -143,6 +235,7 @@ async def delete_subject(
 
     session.delete(subject)
     session.commit()
+    invalidate_content()
 
 # Topic CRUD
 @router.post("/topics", response_model=TopicResponse, status_code=status.HTTP_201_CREATED, summary="Create a new topic (Admin)")
@@ -154,6 +247,7 @@ async def create_topic(
     db_topic = Topic.model_validate(topic)
     session.add(db_topic)
     session.commit()
+    invalidate_content()
     session.refresh(db_topic)
     return db_topic
 
@@ -175,6 +269,7 @@ async def update_topic(
             
     session.add(db_topic)
     session.commit()
+    invalidate_content()
     session.refresh(db_topic)
     return db_topic
 
@@ -189,6 +284,7 @@ async def delete_topic(
         raise HTTPException(status_code=404, detail="Topic not found")
     session.delete(topic)
     session.commit()
+    invalidate_content()
 
 # Past Paper CRUD
 @router.post("/papers", response_model=PastPaperResponse, status_code=status.HTTP_201_CREATED, summary="Create a past paper (Admin)")
@@ -200,6 +296,7 @@ async def create_paper(
     db_paper = PastPaper.model_validate(paper)
     session.add(db_paper)
     session.commit()
+    invalidate_content()
     session.refresh(db_paper)
     return db_paper
 
@@ -221,6 +318,7 @@ async def update_paper(
 
     session.add(db_paper)
     session.commit()
+    invalidate_content()
     session.refresh(db_paper)
     return db_paper
 
@@ -241,6 +339,7 @@ async def delete_paper(
         
     session.delete(paper)
     session.commit()
+    invalidate_content()
 
 # --- Test Attempts & Grading ---
 
@@ -259,7 +358,9 @@ async def get_test_attempts(
     return attempts
 
 @router.post("/papers/{paper_id}/grade", response_model=TestAttemptResponse, summary="Grade paper using AI and save attempt")
+@limiter.limit(AI_LIMIT, key_func=user_or_ip)
 async def grade_paper(
+    request: Request,
     paper_id: str,
     attempt_data: TestAttemptCreate,
     current_user: User = Depends(get_current_user),

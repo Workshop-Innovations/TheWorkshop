@@ -16,7 +16,8 @@ const PastPapers = () => {
         const controller = new AbortController();
         const fetchData = async () => {
             try {
-                const papersRes = await fetch(`${API_BASE_URL}/api/v1/papers`, { signal: controller.signal });
+                // List view only needs metadata; the full text loads when a paper is opened
+                const papersRes = await fetch(`${API_BASE_URL}/api/v1/papers?include_content=false`, { signal: controller.signal });
                 if (papersRes.ok) {
                     setPapers(await papersRes.json());
                 }
@@ -125,7 +126,7 @@ const PastPapers = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        {paper.content ? (
+                                        {(paper.has_content || paper.content) ? (
                                             <Link
                                                 to={`/papers/${paper.id}`}
                                                 className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-md hover:bg-primary-dark transition-all transform hover:scale-105 flex items-center"

@@ -1,3 +1,4 @@
+import json
 import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, status
 from sqlmodel import Session
@@ -37,9 +38,18 @@ async def websocket_endpoint(
 
     try:
         while True:
-            # Keep connection alive; listen for any client pings
-            await websocket.receive_text()
-            # Could handle typing indicators here in the future
+            # Clients send keep-alive pings and room changes:
+            #   {"type": "subscribe", "channel_id": "<id>"}  (or null to leave)
+            # No access check is needed here: broadcasts are still filtered by the
+            # channel's audience, so subscribing to a private channel yields nothing.
+            raw = await websocket.receive_text()
+            try:
+                data = json.loads(raw)
+            except ValueError:
+                continue
+            if isinstance(data, dict) and data.get("type") == "subscribe":
+                channel_id = data.get("channel_id")
+                manager.subscribe(websocket, channel_id if isinstance(channel_id, str) else None)
     except WebSocketDisconnect:
         pass
     finally:

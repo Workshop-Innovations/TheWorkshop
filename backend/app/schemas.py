@@ -1,6 +1,7 @@
 from typing import Optional, List
 from sqlmodel import Field, SQLModel, Relationship # Import Relationship
-from pydantic import EmailStr, BaseModel, field_validator
+from sqlalchemy import Index
+from pydantic import EmailStr, BaseModel, field_validator, model_validator
 from datetime import datetime, timezone, date
 from uuid import uuid4 # Import uuid4 for generating UUIDs
 import re
@@ -152,6 +153,15 @@ class SessionLog(SQLModel, table=True):
     # Foreign Key to link the session log back to the User
     user_id: str = Field(foreign_key="user.id", index=True, nullable=False) 
 
+    # Client-generated id for one finished pomodoro, so the same session synced
+    # from two devices (or retried) is only counted once
+    session_key: Optional[str] = Field(default=None, max_length=64)
+
+    __table_args__ = (
+        Index("ix_sessionlog_user_completion", "user_id", "completion_time"),
+        Index("ix_sessionlog_user_session_key", "user_id", "session_key"),
+    )
+
     # Define relationship back to the User
     user: Optional[User] = Relationship(back_populates="sessions")
 
@@ -159,6 +169,7 @@ class SessionLog(SQLModel, table=True):
 class SessionLogCreate(BaseModel):
     minutes_spent: int
     session_type: str
+    session_key: Optional[str] = Field(default=None, max_length=64)
 
     @field_validator('minutes_spent')
     @classmethod
@@ -269,6 +280,8 @@ class MessageVote(SQLModel, table=True):
     user: Optional[User] = Relationship()
     message: Optional["Message"] = Relationship(back_populates="votes")
 
+    __table_args__ = (Index("ix_messagevote_user_message", "user_id", "message_id"),)
+
 class Channel(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     name: str = Field(index=True)
@@ -292,6 +305,11 @@ class Message(SQLModel, table=True):
     # Threading support
     parent_id: Optional[int] = Field(default=None, foreign_key="message.id", index=True)
     reply_count: int = Field(default=0)  # Number of direct replies
+
+    # Soft delete: set instead of removing the row, so moderators can recover it
+    deleted_at: Optional[datetime] = Field(default=None)
+
+    __table_args__ = (Index("ix_message_channel_timestamp", "channel_id", "timestamp"),)
     
     channel: Optional[Channel] = Relationship(back_populates="messages")
     user: Optional[User] = Relationship(back_populates="messages")
@@ -317,6 +335,8 @@ class DMMessage(SQLModel, table=True):
     conversation_id: str = Field(foreign_key="dmconversation.id", index=True)
     
     conversation: Optional[DMConversation] = Relationship(back_populates="messages")
+
+    __table_args__ = (Index("ix_dmmessage_conversation_timestamp", "conversation_id", "timestamp"),)
 
 # --- Pydantic Schemas for Community ---
 
@@ -517,6 +537,7 @@ class StudyGroup(SQLModel, table=True):
     is_public: bool = Field(default=True)  # Can anyone join?
     max_members: int = Field(default=20)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    deleted_at: Optional[datetime] = Field(default=None)  # soft delete
     
     members: List["StudyGroupMember"] = Relationship(back_populates="group")
 
@@ -579,6 +600,7 @@ class SharedNote(SQLModel, table=True):
     created_by: str = Field(foreign_key="user.id", index=True)
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     version: int = Field(default=1) # Optimistic locking
+    deleted_at: Optional[datetime] = Field(default=None)  # soft delete
     
     # Relationships
     channel: Optional["Channel"] = Relationship()
@@ -889,8 +911,15 @@ class PastPaperResponse(BaseModel):
     file_path: Optional[str] = None
     content: Optional[str] = None
     duration_minutes: Optional[int] = 60
-    
+    has_content: bool = False
+
     model_config = {"from_attributes": True}
+
+    @model_validator(mode="after")
+    def _derive_has_content(self):
+        if self.content:
+            self.has_content = True
+        return self
 
 class TestAttemptCreate(BaseModel):
     paper_id: str
@@ -907,12 +936,32 @@ class TestAttemptResponse(BaseModel):
     
     model_config = {"from_attributes": True}
 
+class PastPaperSummaryResponse(BaseModel):
+    """A past paper without its (large) content, for list views.
+    Fetch /papers/{id} for the full paper."""
+    id: str
+    subject_id: str
+    title: str
+    year: str
+    exam_type: str
+    file_path: Optional[str] = None
+    has_content: bool = False
+    duration_minutes: Optional[int] = 60
+
+    @classmethod
+    def from_paper(cls, paper) -> "PastPaperSummaryResponse":
+        return cls(
+            id=paper.id, subject_id=paper.subject_id, title=paper.title,
+            year=paper.year, exam_type=paper.exam_type, file_path=paper.file_path,
+            has_content=bool(paper.content), duration_minutes=paper.duration_minutes,
+        )
+
 class SubjectResponse(BaseModel):
     id: str
     name: str
     description: Optional[str] = None
     topics: List[TopicSummaryResponse] = []
-    papers: List[PastPaperResponse] = []
+    papers: List[PastPaperSummaryResponse] = []
     
     model_config = {"from_attributes": True}
 
@@ -937,3 +986,47 @@ class KeepAlive(SQLModel, table=True):
     """Table to be pinged by cron jobs to keep Supabase active."""
     id: Optional[str] = Field(default_factory=lambda: str(uuid4()), primary_key=True)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+# --- Pomodoro timer sync (cross-device) ---
+
+class TimerState(SQLModel, table=True):
+    """The latest Pomodoro timer state for a user, so a timer started on one
+    device shows up on the others."""
+    user_id: str = Field(foreign_key="user.id", primary_key=True)
+    mode: str = Field(default="pomodoro", max_length=20)
+    pomodoro_count: int = Field(default=0)
+    end_time: Optional[int] = None          # epoch ms when a running timer ends
+    remaining_seconds: Optional[int] = None  # set while paused
+    is_running: bool = Field(default=False)
+    updated_at: int = Field(default=0)       # epoch ms, set by the client that made the change
+
+class TimerStateIn(BaseModel):
+    mode: str = Field(max_length=20)
+    pomodoro_count: int = Field(default=0, ge=0, le=1000)
+    end_time: Optional[int] = None
+    remaining_seconds: Optional[int] = Field(default=None, ge=0, le=24 * 3600)
+    is_running: bool = False
+    updated_at: int
+
+    @field_validator('mode')
+    @classmethod
+    def validate_mode(cls, v):
+        if v not in ('pomodoro', 'shortBreak', 'longBreak', 'idle'):
+            raise ValueError("mode must be one of: pomodoro, shortBreak, longBreak, idle")
+        return v
+
+class TimerStateOut(TimerStateIn):
+    model_config = {"from_attributes": True}
+
+# --- Progress summary (computed in the database) ---
+
+class DailyFocus(BaseModel):
+    date: str  # YYYY-MM-DD (UTC)
+    pomodoros: int
+    focus_minutes: int
+
+class SessionSummaryResponse(BaseModel):
+    total_sessions: int
+    total_focus_minutes: int
+    daily: List[DailyFocus]

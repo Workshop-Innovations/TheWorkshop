@@ -1,8 +1,10 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from datetime import datetime, timezone
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status, Query
 from sqlmodel import Session, select, or_, and_, desc, func
-from ..database import get_session
+from ..database import get_session, engine
 from ..dependencies import get_current_user
+from ..rate_limit import limiter, user_or_ip, MESSAGE_LIMIT
 from ..schemas import (
     User, 
     Community, CommunityCreate, CommunityResponse, 
@@ -51,10 +53,23 @@ def _channel_audience(session: Session, channel: Channel) -> Optional[List[str]]
         ).all())
     return None
 
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+def get_active_group(session: Session, group_id: str) -> StudyGroup:
+    """A study group that hasn't been (soft) deleted, or 404."""
+    group = session.get(StudyGroup, group_id)
+    if not group or group.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Study group not found")
+    return group
+
 def require_channel_access(session: Session, channel: Channel, user: User) -> None:
     """Private study-group channels are limited to approved group members;
     community channels to community members."""
     if channel.study_group_id:
+        group = session.get(StudyGroup, channel.study_group_id)
+        if not group or group.deleted_at is not None:
+            raise HTTPException(status_code=404, detail="Channel not found")
         allowed = session.exec(
             select(StudyGroupMember)
             .where(StudyGroupMember.group_id == channel.study_group_id)
@@ -83,18 +98,51 @@ def get_channel_message(session: Session, channel_id: str, message_id: int) -> M
     """Fetch a message and make sure it really belongs to the channel in the URL,
     so channel permission checks can't be bypassed by mixing ids."""
     message = session.get(Message, message_id)
-    if not message or message.channel_id != channel_id:
+    if not message or message.channel_id != channel_id or message.deleted_at is not None:
         raise HTTPException(status_code=404, detail="Message not found")
     return message
 
 async def broadcast_channel_event(session: Session, channel: Channel, payload: dict) -> None:
     """Send a realtime event only to users who can see the channel
-    (broadcasting private group messages to everyone leaked their content)."""
+    (broadcasting private group messages to everyone leaked their content).
+
+    The full event goes only to sockets currently viewing the channel (the
+    channel's "room"). For new messages, other sockets in the audience get a tiny
+    `channel_activity` ping instead, which is all they need for unread dots."""
     audience = _channel_audience(session, channel)
-    if audience is None:
-        await manager.broadcast_all(payload)
-    else:
-        await manager.broadcast_to_users(payload, audience)
+    activity = None
+    if payload.get("type") in ("message", "reply"):
+        activity = {"type": "channel_activity", "channel_id": channel.id}
+    await manager.broadcast_to_channel(channel.id, payload, audience, activity)
+
+def _user_map(session: Session, user_ids) -> dict:
+    """Load several users in one query (instead of one session.get per row)."""
+    ids = {uid for uid in user_ids if uid}
+    if not ids:
+        return {}
+    return {u.id: u for u in session.exec(select(User).where(User.id.in_(ids))).all()}
+
+def _vote_map(session: Session, message_ids) -> dict:
+    """message_id -> list of votes, in one query."""
+    ids = list(message_ids)
+    out: dict = {}
+    if ids:
+        for v in session.exec(select(MessageVote).where(MessageVote.message_id.in_(ids))).all():
+            out.setdefault(v.message_id, []).append(v)
+    return out
+
+def _approved_counts(session: Session, group_ids) -> dict:
+    """group_id -> number of approved members, in one query."""
+    ids = list(group_ids)
+    if not ids:
+        return {}
+    rows = session.exec(
+        select(StudyGroupMember.group_id, func.count(StudyGroupMember.id))
+        .where(StudyGroupMember.group_id.in_(ids))
+        .where(StudyGroupMember.status == "approved")
+        .group_by(StudyGroupMember.group_id)
+    ).all()
+    return {gid: cnt for gid, cnt in rows}
 
 def _is_community_moderator(session: Session, community_id: str, user: User) -> bool:
     return session.exec(
@@ -366,6 +414,7 @@ async def get_community_channels(
         select(StudyGroupMember.group_id)
         .join(StudyGroup)
         .where(StudyGroup.community_id == community_id)
+        .where(StudyGroup.deleted_at.is_(None))
         .where(StudyGroupMember.user_id == current_user.id)
         .where(StudyGroupMember.status == "approved")  # pending requests don't grant access
     ).all()
@@ -445,6 +494,7 @@ async def get_channel_messages(
         select(Message, User)
         .join(User, Message.user_id == User.id)
         .where(Message.channel_id == channel_id)
+        .where(Message.deleted_at.is_(None))
     )
     if before is not None:
         query = query.where(Message.id < before)
@@ -485,9 +535,12 @@ async def get_channel_messages(
     return list(reversed(response_messages))
 
 @router.post("/channels/{channel_id}/messages", response_model=MessageResponse)
+@limiter.limit(MESSAGE_LIMIT, key_func=user_or_ip)
 async def create_message(
+    request: Request,
     channel_id: str,
     message_data: MessageCreate,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -508,8 +561,8 @@ async def create_message(
     session.commit()
     session.refresh(db_message)
     
-    # Check for new badges
-    await check_and_award_badges(session, current_user)
+    # Badge checks run after the response is sent, so they don't slow down sending
+    background_tasks.add_task(award_badges_for_user, current_user.id)
     
     # Broadcast via WebSocket
     await broadcast_channel_event(
@@ -543,6 +596,7 @@ async def vote_message(
     channel_id: str,
     message_id: int,
     vote_value: int,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -590,14 +644,14 @@ async def vote_message(
             message_author.helpful_votes -= 1
         session.add(message_author)
         
-        # Check for badge achievements after reputation update
-        await check_and_award_badges(session, message_author)
+        # Check for badge achievements after the response is sent
+        background_tasks.add_task(award_badges_for_user, message_author.id)
     
     session.commit()
     session.refresh(message)
     
     score = sum(v.value for v in message.votes) if message.votes else 0
-    user = session.get(User, message.user_id)
+    user = message_author
     
     return MessageResponse(
         id=message.id,
@@ -634,7 +688,7 @@ async def edit_message(
     session.commit()
     session.refresh(message)
 
-    user = session.get(User, message.user_id)
+    user = current_user  # only the author can edit
     score = sum(v.value for v in message.votes) if message.votes else 0
     user_vote = next((v.value for v in message.votes if v.user_id == current_user.id), 0) if message.votes else 0
 
@@ -669,7 +723,9 @@ async def delete_message(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """Delete a message. Author, community owner, or admins can delete."""
+    """Delete a message. Author, community owner, or admins can delete.
+    Soft delete: the row (and its replies and votes) is kept with `deleted_at`
+    set, so it can be restored; it's hidden everywhere in the app."""
     message = get_channel_message(session, channel_id, message_id)
     channel = session.get(Channel, channel_id)
 
@@ -687,20 +743,17 @@ async def delete_message(
         else:
             raise HTTPException(status_code=403, detail="You can only delete your own messages")
 
-    # Delete all votes on this message first
-    votes = session.exec(select(MessageVote).where(MessageVote.message_id == message_id)).all()
-    for vote in votes:
-        session.delete(vote)
+    now = _utcnow()
 
-    # Cascade-delete all child replies and their votes
+    # Hide its replies along with it
     child_replies = session.exec(
-        select(Message).where(Message.parent_id == message_id)
+        select(Message)
+        .where(Message.parent_id == message_id)
+        .where(Message.deleted_at.is_(None))
     ).all()
     for reply in child_replies:
-        child_votes = session.exec(select(MessageVote).where(MessageVote.message_id == reply.id)).all()
-        for cv in child_votes:
-            session.delete(cv)
-        session.delete(reply)
+        reply.deleted_at = now
+        session.add(reply)
 
     # Decrement parent reply count if this is a reply
     if message.parent_id:
@@ -709,8 +762,8 @@ async def delete_message(
             parent.reply_count -= 1
             session.add(parent)
 
-    session.flush()  # replies (FK to this message) must be gone before the parent
-    session.delete(message)
+    message.deleted_at = now
+    session.add(message)
     session.commit()
 
     await broadcast_channel_event(
@@ -727,10 +780,13 @@ async def delete_message(
 # ==================== THREADED DISCUSSIONS ====================
 
 @router.post("/channels/{channel_id}/messages/{message_id}/reply", response_model=MessageResponse)
+@limiter.limit(MESSAGE_LIMIT, key_func=user_or_ip)
 async def create_reply(
+    request: Request,
     channel_id: str,
     message_id: int,
     message_data: MessageCreate,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -758,8 +814,8 @@ async def create_reply(
     session.commit()
     session.refresh(reply)
     
-    # Check for badges
-    await check_and_award_badges(session, current_user)
+    # Badge checks run after the response is sent
+    background_tasks.add_task(award_badges_for_user, current_user.id)
     
     # Broadcast via WebSocket
     await broadcast_channel_event(
@@ -802,10 +858,21 @@ async def get_thread(
     get_accessible_channel(session, channel_id, current_user)
     parent_message = get_channel_message(session, channel_id, message_id)
 
+    # Replies, then everyone's user rows and votes in two batched queries
+    replies = session.exec(
+        select(Message)
+        .where(Message.parent_id == message_id)
+        .where(Message.deleted_at.is_(None))
+        .order_by(Message.timestamp)
+    ).all()
+    users = _user_map(session, [parent_message.user_id] + [r.user_id for r in replies])
+    votes = _vote_map(session, [parent_message.id] + [r.id for r in replies])
+
     # Get parent message response
-    parent_user = session.get(User, parent_message.user_id)
-    parent_score = sum(v.value for v in parent_message.votes) if parent_message.votes else 0
-    parent_vote = next((v.value for v in parent_message.votes if v.user_id == current_user.id), 0) if parent_message.votes else 0
+    parent_user = users.get(parent_message.user_id)
+    parent_votes = votes.get(parent_message.id, [])
+    parent_score = sum(v.value for v in parent_votes)
+    parent_vote = next((v.value for v in parent_votes if v.user_id == current_user.id), 0)
     
     parent_response = MessageResponse(
         id=parent_message.id,
@@ -821,18 +888,12 @@ async def get_thread(
         reply_count=parent_message.reply_count
     )
     
-    # Get replies
-    replies = session.exec(
-        select(Message)
-        .where(Message.parent_id == message_id)
-        .order_by(Message.timestamp)
-    ).all()
-    
     reply_responses = []
     for reply in replies:
-        reply_user = session.get(User, reply.user_id)
-        reply_score = sum(v.value for v in reply.votes) if reply.votes else 0
-        reply_vote = next((v.value for v in reply.votes if v.user_id == current_user.id), 0) if reply.votes else 0
+        reply_user = users.get(reply.user_id)
+        reply_votes = votes.get(reply.id, [])
+        reply_score = sum(v.value for v in reply_votes)
+        reply_vote = next((v.value for v in reply_votes if v.user_id == current_user.id), 0)
         
         reply_responses.append(MessageResponse(
             id=reply.id,
@@ -871,18 +932,36 @@ async def get_dm_conversations(
         )
     ).all()
     
+    other_ids = {
+        conv.id: (conv.user2_id if conv.user1_id == current_user.id else conv.user1_id)
+        for conv in conversations
+    }
+    users = _user_map(session, other_ids.values())
+
+    # Latest message per conversation in one query: join each conversation's
+    # max(timestamp) back to its message row
+    last_by_conv: dict = {}
+    if conversations:
+        latest = (
+            select(DMMessage.conversation_id, func.max(DMMessage.timestamp).label("ts"))
+            .where(DMMessage.conversation_id.in_([c.id for c in conversations]))
+            .group_by(DMMessage.conversation_id)
+            .subquery()
+        )
+        for m in session.exec(
+            select(DMMessage).join(
+                latest,
+                and_(DMMessage.conversation_id == latest.c.conversation_id,
+                     DMMessage.timestamp == latest.c.ts),
+            )
+        ).all():
+            last_by_conv[m.conversation_id] = m
+
     result = []
     for conv in conversations:
-        other_user_id = conv.user2_id if conv.user1_id == current_user.id else conv.user1_id
-        other_user = session.get(User, other_user_id)
-        
-        # Get last message
-        last_msg = session.exec(
-            select(DMMessage)
-            .where(DMMessage.conversation_id == conv.id)
-            .order_by(DMMessage.timestamp.desc())
-            .limit(1)
-        ).first()
+        other_user_id = other_ids[conv.id]
+        other_user = users.get(other_user_id)
+        last_msg = last_by_conv.get(conv.id)
         
         result.append(DMConversationResponse(
             id=conv.id,
@@ -970,9 +1049,10 @@ async def get_dm_messages(
         .limit(_clamp_limit(limit))
     ).all()
     
+    senders = _user_map(session, [m.sender_id for m in messages])
     result = []
     for msg in messages:
-        sender = session.get(User, msg.sender_id)
+        sender = senders.get(msg.sender_id)
         result.append(DMMessageResponse(
             id=msg.id,
             content=msg.content,
@@ -986,7 +1066,9 @@ async def get_dm_messages(
     return list(reversed(result))
 
 @router.post("/dms/{conversation_id}/messages", response_model=DMMessageResponse)
+@limiter.limit(MESSAGE_LIMIT, key_func=user_or_ip)
 async def send_dm_message(
+    request: Request,
     conversation_id: str,
     message_data: DMMessageCreate,
     session: Session = Depends(get_session),
@@ -1114,32 +1196,37 @@ async def get_online_users(
 
 # ==================== GAMIFICATION HELPER FUNCTIONS ====================
 
+def award_badges_for_user(user_id: str) -> None:
+    """Background task: the request's session is closed by the time this runs,
+    so open a fresh one. A plain (sync) function, so FastAPI runs it in a thread."""
+    try:
+        with Session(engine) as bg_session:
+            user = bg_session.get(User, user_id)
+            if user:
+                _award_badges(bg_session, user)
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Badge check failed for user %s", user_id)
+
+def _award_badges(session: Session, user: User) -> None:
+    # Only fetch badges the user doesn't own yet (one query)
+    owned = select(UserBadge.badge_id).where(UserBadge.user_id == user.id)
+    candidates = session.exec(select(Badge).where(Badge.id.not_in(owned))).all()
+    awarded = False
+    for badge in candidates:
+        if (
+            (badge.criteria_type == "reputation" and user.reputation_points >= badge.criteria_value)
+            or (badge.criteria_type == "messages" and user.total_messages >= badge.criteria_value)
+            or (badge.criteria_type == "upvotes" and user.helpful_votes >= badge.criteria_value)
+        ):
+            session.add(UserBadge(user_id=user.id, badge_id=badge.id))
+            awarded = True
+    if awarded:
+        session.commit()
+
 async def check_and_award_badges(session: Session, user: User):
-    """Check if user qualifies for any new badges and award them."""
-    # Get all badges user doesn't have yet
-    user_badge_ids = [ub.badge_id for ub in session.exec(
-        select(UserBadge).where(UserBadge.user_id == user.id)
-    ).all()]
-    
-    all_badges = session.exec(select(Badge)).all()
-    
-    for badge in all_badges:
-        if badge.id in user_badge_ids:
-            continue  # Already has this badge
-        
-        qualified = False
-        if badge.criteria_type == "reputation" and user.reputation_points >= badge.criteria_value:
-            qualified = True
-        elif badge.criteria_type == "messages" and user.total_messages >= badge.criteria_value:
-            qualified = True
-        elif badge.criteria_type == "upvotes" and user.helpful_votes >= badge.criteria_value:
-            qualified = True
-        
-        if qualified:
-            new_badge = UserBadge(user_id=user.id, badge_id=badge.id)
-            session.add(new_badge)
-    
-    session.commit()
+    """Award any newly earned badges right away (kept for callers that need it inline)."""
+    _award_badges(session, user)
 
 # ==================== GAMIFICATION ENDPOINTS ====================
 
@@ -1169,6 +1256,7 @@ async def get_leaderboard(
         active_user_ids = session.exec(
             select(Message.user_id)
             .where(Message.timestamp >= since)
+            .where(Message.deleted_at.is_(None))
             .distinct()
         ).all()
         base_query = base_query.where(User.id.in_(active_user_ids))
@@ -1177,6 +1265,7 @@ async def get_leaderboard(
         active_user_ids = session.exec(
             select(Message.user_id)
             .where(Message.timestamp >= since)
+            .where(Message.deleted_at.is_(None))
             .distinct()
         ).all()
         base_query = base_query.where(User.id.in_(active_user_ids))
@@ -1269,13 +1358,14 @@ async def get_user_reputation(
         raise HTTPException(status_code=404, detail="User not found")
     
     # Get user's badges
-    user_badges = session.exec(
-        select(UserBadge).where(UserBadge.user_id == user_id)
+    rows = session.exec(
+        select(UserBadge, Badge)
+        .join(Badge, UserBadge.badge_id == Badge.id)
+        .where(UserBadge.user_id == user_id)
     ).all()
-    
+
     badges = []
-    for ub in user_badges:
-        badge = session.get(Badge, ub.badge_id)
+    for ub, badge in rows:
         if badge:
             badges.append(BadgeResponse(
                 id=badge.id,
@@ -1448,24 +1538,24 @@ async def get_community_study_groups(
 ):
     """Get all study groups in a community."""
     groups = session.exec(
-        select(StudyGroup).where(StudyGroup.community_id == community_id)
+        select(StudyGroup)
+        .where(StudyGroup.community_id == community_id)
+        .where(StudyGroup.deleted_at.is_(None))
     ).all()
-    
+
+    group_ids = [g.id for g in groups]
+    counts = _approved_counts(session, group_ids)
+    my_groups = set(session.exec(
+        select(StudyGroupMember.group_id)
+        .where(StudyGroupMember.group_id.in_(group_ids))
+        .where(StudyGroupMember.user_id == current_user.id)
+        .where(StudyGroupMember.status == "approved")
+    ).all()) if group_ids else set()
+
     result = []
     for group in groups:
-        # Count only approved members (not pending)
-        member_count = session.exec(
-            select(func.count(StudyGroupMember.id))
-            .where(StudyGroupMember.group_id == group.id)
-            .where(StudyGroupMember.status == "approved")
-        ).one()
-        
-        is_member = session.exec(
-            select(StudyGroupMember)
-            .where(StudyGroupMember.group_id == group.id)
-            .where(StudyGroupMember.user_id == current_user.id)
-            .where(StudyGroupMember.status == "approved")
-        ).first() is not None
+        member_count = counts.get(group.id, 0)  # approved members only
+        is_member = group.id in my_groups
         
         result.append(StudyGroupResponse(
             id=group.id,
@@ -1489,17 +1579,17 @@ async def get_study_group(
     current_user: User = Depends(get_current_user)
 ):
     """Get details of a specific study group."""
-    group = session.get(StudyGroup, group_id)
-    if not group:
-        raise HTTPException(status_code=404, detail="Study group not found")
+    group = get_active_group(session, group_id)
     
-    members = session.exec(
-        select(StudyGroupMember).where(StudyGroupMember.group_id == group_id)
+    rows = session.exec(
+        select(StudyGroupMember, User)
+        .join(User, StudyGroupMember.user_id == User.id, isouter=True)
+        .where(StudyGroupMember.group_id == group_id)
     ).all()
-    
+    members = [m for m, _ in rows]
+
     member_responses = []
-    for member in members:
-        user = session.get(User, member.user_id)
+    for member, user in rows:
         member_responses.append(StudyGroupMemberResponse(
             id=member.id,
             user_id=member.user_id,
@@ -1533,9 +1623,7 @@ async def join_study_group(
     current_user: User = Depends(get_current_user)
 ):
     """Join a study group."""
-    group = session.get(StudyGroup, group_id)
-    if not group:
-        raise HTTPException(status_code=404, detail="Study group not found")
+    group = get_active_group(session, group_id)
     
     # Check if already a member
     existing = session.exec(
@@ -1664,9 +1752,7 @@ async def remove_group_member(
 ):
     """Remove a member from a study group (leader only)."""
     # Get group to check leader
-    group = session.get(StudyGroup, group_id)
-    if not group:
-        raise HTTPException(status_code=404, detail="Study group not found")
+    group = get_active_group(session, group_id)
         
     # Verify current user is leader
     leader_membership = session.exec(
@@ -1704,19 +1790,18 @@ async def get_my_study_groups(
     current_user: User = Depends(get_current_user)
 ):
     """Get all study groups the current user is a member of."""
-    memberships = session.exec(
-        select(StudyGroupMember).where(StudyGroupMember.user_id == current_user.id)
+    groups = session.exec(
+        select(StudyGroup)
+        .join(StudyGroupMember, StudyGroupMember.group_id == StudyGroup.id)
+        .where(StudyGroupMember.user_id == current_user.id)
+        .where(StudyGroup.deleted_at.is_(None))
     ).all()
-    
+    counts = _approved_counts(session, [g.id for g in groups])
+
     result = []
-    for membership in memberships:
-        group = session.get(StudyGroup, membership.group_id)
+    for group in groups:
         if group:
-            member_count = session.exec(
-                select(func.count(StudyGroupMember.id))
-                .where(StudyGroupMember.group_id == group.id)
-                .where(StudyGroupMember.status == "approved")
-            ).one()
+            member_count = counts.get(group.id, 0)
             
             result.append(StudyGroupResponse(
                 id=group.id,
@@ -1827,9 +1912,7 @@ async def update_study_group(
     current_user: User = Depends(get_current_user)
 ):
     """Update study group info (leader only)."""
-    group = session.get(StudyGroup, group_id)
-    if not group:
-        raise HTTPException(status_code=404, detail="Study group not found")
+    group = get_active_group(session, group_id)
     
     leader = session.exec(
         select(StudyGroupMember)
@@ -1871,10 +1954,8 @@ async def delete_study_group(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    """Delete a study group (leader only). Also removes the private channel."""
-    group = session.get(StudyGroup, group_id)
-    if not group:
-        raise HTTPException(status_code=404, detail="Study group not found")
+    """Delete a study group (leader only). Soft delete: hides the group and its private channel."""
+    group = get_active_group(session, group_id)
     
     leader = session.exec(
         select(StudyGroupMember)
@@ -1885,21 +1966,11 @@ async def delete_study_group(
     if not leader:
         raise HTTPException(status_code=403, detail="Only the group leader can delete the group")
     
-    # Delete all memberships
-    members = session.exec(select(StudyGroupMember).where(StudyGroupMember.group_id == group_id)).all()
-    for m in members:
-        session.delete(m)
-    
-    # Delete private channel and its messages
-    group_channel = session.exec(
-        select(Channel).where(Channel.study_group_id == group_id)
-    ).first()
-    if group_channel:
-        _delete_channel_contents(session, group_channel.id)
-        session.delete(group_channel)
-    session.flush()
-    
-    session.delete(group)
+    # Soft delete: memberships, the private channel and its messages are kept
+    # (so the group can be restored), but the group and its channel disappear
+    # from every listing and stop being accessible.
+    group.deleted_at = _utcnow()
+    session.add(group)
     session.commit()
 
 # ==================== SHARED NOTES ENDPOINTS ====================
@@ -1916,12 +1987,14 @@ async def get_channel_notes(
     notes = session.exec(
         select(SharedNote)
         .where(SharedNote.channel_id == channel_id)
+        .where(SharedNote.deleted_at.is_(None))
         .order_by(desc(SharedNote.updated_at))
     ).all()
-    
+    creators = _user_map(session, [n.created_by for n in notes])
+
     result = []
     for note in notes:
-        creator = session.get(User, note.created_by)
+        creator = creators.get(note.created_by)
         result.append(SharedNoteResponse(
             id=note.id,
             title=note.title,
@@ -1974,7 +2047,7 @@ async def update_channel_note(
     """Update a shared note (optimistic locking via version)."""
     from datetime import datetime, timezone
     note = session.get(SharedNote, note_id)
-    if not note:
+    if not note or note.deleted_at is not None:
         raise HTTPException(status_code=404, detail="Note not found")
     get_accessible_channel(session, note.channel_id, current_user)
 
@@ -2002,6 +2075,26 @@ async def update_channel_note(
         creator_email=creator.email if creator else None
     )
 
+@router.delete("/notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_channel_note(
+    note_id: str,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a shared note (its creator or a community owner/admin).
+    Soft delete: the note is hidden but kept, so it can be restored."""
+    note = session.get(SharedNote, note_id)
+    if not note or note.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Note not found")
+    channel = get_accessible_channel(session, note.channel_id, current_user)
+    if note.created_by != current_user.id and not (
+        channel.community_id and _is_community_moderator(session, channel.community_id, current_user)
+    ):
+        raise HTTPException(status_code=403, detail="You can only delete your own notes")
+    note.deleted_at = _utcnow()
+    session.add(note)
+    session.commit()
+
 # ==================== PEER REVIEW ENDPOINTS ====================
 
 @router.get("/channels/{channel_id}/submissions", response_model=List[PeerReviewSubmissionResponse])
@@ -2019,17 +2112,24 @@ async def get_channel_submissions(
         .order_by(desc(PeerReviewSubmission.created_at))
     ).all()
     
+    authors = _user_map(session, [s.author_id for s in submissions])
+    stats: dict = {}
+    if submissions:
+        for sid, cnt, avg in session.exec(
+            select(
+                PeerReviewFeedback.submission_id,
+                func.count(PeerReviewFeedback.id),
+                func.avg(PeerReviewFeedback.rating),
+            )
+            .where(PeerReviewFeedback.submission_id.in_([s.id for s in submissions]))
+            .group_by(PeerReviewFeedback.submission_id)
+        ).all():
+            stats[sid] = (cnt, avg)
+
     result = []
     for sub in submissions:
-        author = session.get(User, sub.author_id)
-        fb_count = session.exec(
-            select(func.count(PeerReviewFeedback.id))
-            .where(PeerReviewFeedback.submission_id == sub.id)
-        ).one()
-        avg_rating = session.exec(
-            select(func.avg(PeerReviewFeedback.rating))
-            .where(PeerReviewFeedback.submission_id == sub.id)
-        ).one()
+        author = authors.get(sub.author_id)
+        fb_count, avg_rating = stats.get(sub.id, (0, None))
         result.append(PeerReviewSubmissionResponse(
             id=sub.id, channel_id=sub.channel_id, author_id=sub.author_id,
             author_email=author.email if author else None,
@@ -2087,9 +2187,10 @@ async def get_submission_feedback(
         .order_by(desc(PeerReviewFeedback.created_at))
     ).all()
     
+    reviewers = _user_map(session, [fb.reviewer_id for fb in feedbacks])
     result = []
     for fb in feedbacks:
-        reviewer = session.get(User, fb.reviewer_id)
+        reviewer = reviewers.get(fb.reviewer_id)
         result.append(PeerReviewFeedbackResponse(
             id=fb.id, submission_id=fb.submission_id, reviewer_id=fb.reviewer_id,
             reviewer_email=reviewer.email if reviewer else None,

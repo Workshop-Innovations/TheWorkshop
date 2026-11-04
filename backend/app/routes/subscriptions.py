@@ -11,6 +11,7 @@ from typing import Optional
 from ..database import get_session
 from ..schemas import User, PaymentTransaction
 from ..dependencies import get_current_user
+from ..rate_limit import limiter, user_or_ip, PAYMENT_LIMIT
 
 router = APIRouter(
     prefix="/api/v1/subscriptions",
@@ -177,13 +178,15 @@ async def get_plans():
 
 
 @router.post("/initialize")
+@limiter.limit(PAYMENT_LIMIT, key_func=user_or_ip)
 async def initialize_payment(
-    request: InitializeRequest,
+    request: Request,
+    body: InitializeRequest,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
     """Initialize a Paystack payment transaction."""
-    plan = request.plan.lower()
+    plan = body.plan.lower()
     if plan not in PLAN_PRICES:
         raise HTTPException(status_code=400, detail="Invalid plan selected")
 

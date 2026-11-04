@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File,
 from sqlmodel import Session
 from ..database import get_session
 from ..schemas import PastPaper
+from ..cache import invalidate_content
 
 router = APIRouter(
     prefix="/api/v1/data-entry",
@@ -60,6 +61,7 @@ async def upload_past_paper(
     session.add(paper)
     session.commit()
     session.refresh(paper)
+    invalidate_content()
 
     try:
         async with httpx.AsyncClient() as client:
@@ -77,6 +79,7 @@ async def upload_past_paper(
         # Roll back the placeholder so it doesn't sit in the list forever as "processing"
         session.delete(paper)
         session.commit()
+        invalidate_content()
         raise HTTPException(status_code=500, detail=f"Failed to trigger Modal processing: {str(e)}")
 
     return {

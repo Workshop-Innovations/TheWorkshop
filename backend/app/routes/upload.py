@@ -9,6 +9,7 @@ from ..database import get_session
 from ..schemas import User, PastPaper
 from ..dependencies import get_current_admin_user
 from ..utils import get_supabase
+from ..cache import invalidate_content
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,7 @@ async def upload_diagram(
     paper.content = new_content
     session.add(paper)
     session.commit()
+    invalidate_content()
     session.refresh(paper)
     
     return {

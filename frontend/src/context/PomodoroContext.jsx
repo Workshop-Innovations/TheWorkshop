@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 // Note: setActiveReward is not yet imported here, but you will need it later.
 // FIX: Added .js extension to resolve bundler path error
-import { getProgressData, saveProgressData, logPomodoro, logBreak, getTimerState, saveTimerState, clearTimerState, fetchCompletedSessions } from '../services/progressService.js';
+import { getProgressData, saveProgressData, logPomodoro, logBreak, getTimerState, saveTimerState, clearTimerState, fetchSessionSummary, fetchNewerServerTimer } from '../services/progressService.js';
 import { toast } from 'react-toastify';
 
 const POMODORO_MINUTES = 30; // Base time for calculations (matches default setting)
@@ -103,13 +103,12 @@ export const PomodoroProvider = ({ children }) => {
         }
     }, [mode, pomodoroCount, settings]);
 
-    // 1. Initial Load of Timer State (runs once on mount)
-    useEffect(() => {
-        const savedState = getTimerState();
+    // Apply a saved timer state (from this device or another one)
+    const applyTimerState = useCallback((savedState) => {
         if (!savedState) return;
 
         setMode(savedState.mode);
-        setPomodoroCount(savedState.pomodoroCount);
+        setPomodoroCount(savedState.pomodoroCount || 0);
 
         if (savedState.endTime) {
             const remainingSeconds = Math.round((savedState.endTime - Date.now()) / 1000);
@@ -125,6 +124,43 @@ export const PomodoroProvider = ({ children }) => {
         }
     }, []);
 
+    // 1. Initial Load of Timer State (runs once on mount)
+    useEffect(() => {
+        applyTimerState(getTimerState());
+    }, [applyTimerState]);
+
+    // 1b. Cross-device sync: on load and whenever this tab/app comes back into view,
+    // adopt the server's timer if another device changed it more recently.
+    // Both devices log a finished pomodoro with the same key (its end time), so the
+    // server counts it once.
+    const settingsRef = React.useRef(settings);
+    useEffect(() => { settingsRef.current = settings; }, [settings]);
+    const modeRef = React.useRef(mode);
+    useEffect(() => { modeRef.current = mode; }, [mode]);
+
+    useEffect(() => {
+        const sync = async () => {
+            const remote = await fetchNewerServerTimer();
+            if (!remote) return;
+            if (remote.cleared) {
+                setIsRunning(false);
+                const s = settingsRef.current;
+                const m = modeRef.current;
+                setTime((m === 'shortBreak' ? s.shortBreak : m === 'longBreak' ? s.longBreak : s.pomodoro) * 60);
+                return;
+            }
+            applyTimerState(remote);
+        };
+        const onVisible = () => { if (document.visibilityState === 'visible') sync(); };
+        sync();
+        window.addEventListener('focus', sync);
+        document.addEventListener('visibilitychange', onVisible);
+        return () => {
+            window.removeEventListener('focus', sync);
+            document.removeEventListener('visibilitychange', onVisible);
+        };
+    }, [applyTimerState]);
+
     // 2. Initial Load of User Stats (Runs once on mount)
     useEffect(() => {
         try {
@@ -137,11 +173,11 @@ export const PomodoroProvider = ({ children }) => {
                 }));
             }
 
-            // Sync with backend
-            fetchCompletedSessions().then(sessions => {
-                if (sessions && Array.isArray(sessions)) {
-                    // Calculate totals from backend logs
-                    const totalPoms = sessions.filter(s => s.session_type === 'focus' || s.session_type === 'pomodoro').length;
+            // Sync with backend (totals are computed server-side; the sessions list
+            // is paginated, so counting it capped the total at 50)
+            fetchSessionSummary().then(summary => {
+                if (summary) {
+                    const totalPoms = summary.total_sessions;
 
                     setUserStats(prev => {
                         const newStats = {
