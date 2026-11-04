@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import API_BASE_URL from '../config';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -149,7 +150,7 @@ const PaperViewer = () => {
         const fetchPaper = async () => {
             try {
                 const response = await fetch(
-                    `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/papers/${paperId}`
+                    `${API_BASE_URL}/api/v1/papers/${paperId}`
                 );
                 if (!response.ok) throw new Error('Failed to fetch paper');
                 const data = await response.json();
@@ -191,7 +192,7 @@ const PaperViewer = () => {
             // FIXED: correct localStorage key ('accessToken' not 'access_token')
             const token = localStorage.getItem('accessToken');
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/papers/${paperId}/grade`,
+                `${API_BASE_URL}/api/v1/papers/${paperId}/grade`,
                 {
                     method: 'POST',
                     headers: {
@@ -313,7 +314,7 @@ const PaperViewer = () => {
         li:     ({ children }) => <li style={{ marginBottom: '0.25rem', color: '#475569' }}>{children}</li>,
         img: ({ src, alt }) => {
             const resolvedSrc = src && src.startsWith('/')
-                ? `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${src}`
+                ? `${API_BASE_URL}${src}`
                 : src;
             return (
                 <img src={resolvedSrc} alt={alt || ''} style={{

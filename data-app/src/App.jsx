@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 
-const API_BASE = 'https://api.workshop.com.ng'
+// Backend address comes from the VITE_API_URL environment variable (set it in the
+// Cloudflare project settings for production, or in data-app/.env.local for local dev).
+const API_BASE = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : '')).replace(/\/+$/, '')
+if (!API_BASE) console.error('VITE_API_URL is not set: the data app cannot reach the backend.')
 const CORRECT_CODE = 'WorkshopTheGOAT'
 
 // ─── Password Gate ────────────────────────────────────────────

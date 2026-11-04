@@ -23,7 +23,9 @@ const getBaseUrl = () => {
         return 'http://127.0.0.1:8000'; // iOS simulator
     }
 
-    return 'https://api.workshop.com.ng';
+    // Production builds must set EXPO_PUBLIC_API_URL (no hardcoded backend address).
+    console.error('EXPO_PUBLIC_API_URL is not set: the app cannot reach the backend.');
+    return '';
 };
 
 const api = axios.create({

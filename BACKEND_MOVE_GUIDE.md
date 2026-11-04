@@ -184,6 +184,60 @@ Note that the files the old service saved on its own disk (in the backend's `sta
 
 ---
 
+## Part 3: The backend address now comes only from environment variables
+
+I searched the whole project (website, data admin app, mobile app and backend) for any backend address typed directly into the code. I also searched all 121 text columns of the Supabase database for saved links to `onrender.com`, `api.workshop.com.ng` or `localhost:8000`. **The database search found none.** The code fixes:
+
+| App | Before | Now |
+|---|---|---|
+| **Website** (`frontend/src/config.js`) | Already used `VITE_API_URL` | Unchanged, except a trailing `/` in the value is now removed automatically. Every page, the live chat connection and file links all go through this one setting. |
+| **Data admin app** (`data-app/src/App.jsx`) | **Hardcoded** `https://api.workshop.com.ng` | Uses `VITE_API_URL` |
+| **Mobile app** (`mobile/src/services/api.js`) | **Hardcoded** production address | Uses `EXPO_PUBLIC_API_URL` only |
+| Old backup page (`frontend/src/pages/PaperViewer_backup.jsx`, not used by the app) | Read the variable itself, falling back to `localhost` | Uses the shared website setting |
+
+The only addresses left in the code are `localhost` ones used when running the apps on your own computer, never on the live site. The backend itself contains no link to its own address.
+
+### What you must set (or the app can't reach the backend)
+
+| App | Where to set it | Variable | Value |
+|---|---|---|---|
+| Website (`workshop.com.ng`) | Cloudflare → your website project → Settings → **Environment variables** (Production) | `VITE_API_URL` | `https://api.workshop.com.ng` (or the new `onrender.com` address) |
+| **Data admin app** (`data.workshop.com.ng`) | Cloudflare → the **data app's** project → Settings → **Environment variables** (Production) | `VITE_API_URL` | Same value as the website |
+| Mobile app | Your Expo / EAS build settings, or a `mobile/.env` file | `EXPO_PUBLIC_API_URL` | Same value |
+
+Rules for these settings:
+
+- **Don't put a `/` at the end** of the address.
+- **Redeploy the app after changing the setting.** The address is built into the app when it's built, so a change does nothing until the next deploy.
+- **The data admin app is the most urgent.** It never needed this setting before. If you deploy it without setting `VITE_API_URL`, it can't reach the backend, and the browser console (F12) shows `VITE_API_URL is not set`.
+
+To check it worked: open the site, press F12 → **Network** tab, reload, and confirm the API requests go to the address you set.
+
+I added example files showing these settings: `frontend/.env.example`, `data-app/.env.example` and `mobile/.env.example`. For running the apps on your own computer, copy one to `.env.local` (for `mobile`, copy it to `.env`).
+
+---
+
+## Part 4: Using Render's free plan with a cron pinger
+
+**Short answer: a pinger stops the service sleeping, but watch the hours limit while both services exist.**
+
+- **Sleeping:** a free service goes to sleep after **15 minutes** with no incoming requests. A pinger that runs **every 10 minutes** keeps it awake. Every 14 minutes is cutting it close if a ping is delayed.
+- **Point the pinger at the new service:**
+  - URL: `https://api.workshop.com.ng/api/system/ping` (GET).
+  - If `PING_SECRET` is set on the backend, add the header `X-Ping-Secret: <your secret>`. Without it, every ping gets a 403 error. The 403 still keeps Render awake, but the database part below doesn't happen.
+  - This URL also writes a small record to the database, which stops Supabase's free plan from pausing your database after a week of inactivity.
+- **⚠️ Hours limit (the real risk):** the free plan gives **750 instance hours per month for your whole Render account**, not per service. One service running all month uses about 720–744 hours. **If the old and new services are both free and both kept awake, together they use about 1,500 hours.** The account runs out partway through the month, and Render then **suspends all your free services until the next month**, which takes the app offline.
+  - **Fix:** turn off the pinger for the old service as soon as you switch, and suspend the old service once you've confirmed the new one works (Part 2, Step 9).
+  - You can check usage in Render → Billing.
+- **Other free-plan limits to know:**
+  - **Small machine:** 512 MB of memory and a small share of the processor, so heavy AI or file-upload traffic will be slow.
+  - **Unexpected restarts:** Render can restart free services at any time. Each restart briefly drops everyone's live chat connection (it reconnects automatically) and clears the in-memory cache.
+  - **No saved files on disk:** files saved to the service's own disk are lost on every restart or deploy.
+  - **Slow deploys:** free services build more slowly.
+- **When to upgrade:** if users regularly notice slowness or chat drops, the **Starter** plan ($7/month) never sleeps, so you won't need the pinger.
+
+---
+
 ## If something goes wrong
 
 | Problem | Likely cause and fix |
@@ -204,5 +258,10 @@ Note that the files the old service saved on its own disk (in the backend's `sta
 ## Files changed in this update
 
 - `backend/start.sh`: 1 worker, explicit timeouts, and `exec` so Render's stop/restart signals reach gunicorn directly.
-- `mobile/src/services/api.js`: production fallback address changed to `https://api.workshop.com.ng`.
+- `.python-version` and `backend/.python-version`: pin Python 3.13.1 for Render.
+- `mobile/src/services/api.js`: production address now comes only from `EXPO_PUBLIC_API_URL`.
+- `data-app/src/App.jsx`: backend address now comes from `VITE_API_URL`.
+- `frontend/src/config.js`: removes a trailing `/` from `VITE_API_URL`.
+- `frontend/src/pages/PaperViewer_backup.jsx`: uses the shared website setting.
+- `frontend/.env.example`, `data-app/.env.example`, `mobile/.env.example`: new example settings files.
 - `BACKEND_MOVE_GUIDE.md`: this file.

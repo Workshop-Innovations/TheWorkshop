@@ -332,7 +332,17 @@ const Onboarding = () => {
                             {step === 2 && (
                                 <motion.div key="step2" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.25 }}>
                                     <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Create your account</h1>
-                                    <p className="text-slate-500 font-medium mb-10">Your progress will be saved and synced across devices.</p>
+                                    <p className="text-slate-500 font-medium mb-8">Your progress will be saved and synced across devices.</p>
+
+                                    {GOOGLE_CLIENT_ID && (
+                                        <>
+                                            <div id="google-signin-btn-onboarding" ref={setGoogleBtnEl} className="flex justify-center min-h-[44px]" />
+                                            <div className="relative my-6">
+                                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+                                                <div className="relative flex justify-center text-sm"><span className="px-3 bg-white text-slate-400 font-medium">or sign up with email</span></div>
+                                            </div>
+                                        </>
+                                    )}
 
                                     <form onSubmit={handleSignupSubmit} className="space-y-5">
                                         <InputField label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. john_doe" required />
@@ -346,16 +356,6 @@ const Onboarding = () => {
                                             </button>
                                         </div>
                                     </form>
-
-                                    {GOOGLE_CLIENT_ID && (
-                                        <>
-                                            <div className="relative my-6">
-                                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
-                                                <div className="relative flex justify-center text-sm"><span className="px-3 bg-white text-slate-400 font-medium">or</span></div>
-                                            </div>
-                                            <div id="google-signin-btn-onboarding" ref={setGoogleBtnEl} className="flex justify-center min-h-[44px]" />
-                                        </>
-                                    )}
 
                                     <div className="mt-4">
                                         <button type="button" onClick={() => setStep(1)} className="w-full py-3 text-slate-500 text-sm font-semibold hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5">
