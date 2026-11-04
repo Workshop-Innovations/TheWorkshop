@@ -23,7 +23,7 @@ const getBaseUrl = () => {
         return 'http://127.0.0.1:8000'; // iOS simulator
     }
 
-    return 'https://your-production-url.theworkshop.app';
+    return 'https://api.workshop.com.ng';
 };
 
 const api = axios.create({
