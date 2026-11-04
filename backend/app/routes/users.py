@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
 from uuid import uuid4
 from ..database import get_session
 from ..schemas import User, UserResponse, UserUpdate
-from ..dependencies import get_current_admin_user, get_current_user
+from ..dependencies import get_current_admin_user, get_current_user, is_official_email
 from ..utils import get_password_hash
+from ..email_service import email_verification_enabled, send_verification_email
 from pydantic import BaseModel, EmailStr
 
 router = APIRouter(
@@ -27,6 +28,7 @@ async def list_users(
 @router.patch("/me", response_model=UserResponse, summary="Update current user profile")
 async def update_current_user(
     user_update: UserUpdate,
+    background_tasks: BackgroundTasks,
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
@@ -42,13 +44,26 @@ async def update_current_user(
     if user_data.get("email") and user_data["email"] != current_user.email:
         if session.exec(select(User).where(User.email == user_data["email"])).first():
             raise HTTPException(status_code=409, detail="Email already registered")
+        if is_official_email(user_data["email"]) and current_user.role != "admin":
+            raise HTTPException(status_code=400, detail="@workshop.com.ng addresses must sign in with Google.")
+
+    email_changed = bool(user_data.get("email")) and user_data["email"] != current_user.email
 
     for key, value in user_data.items():
         setattr(current_user, key, value)
-    
+
+    # A new address has to be confirmed before it can be used to sign in
+    if email_changed and email_verification_enabled():
+        current_user.email_verified = False
+
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
+
+    if email_changed and not current_user.email_verified:
+        background_tasks.add_task(
+            send_verification_email, current_user.id, current_user.email, current_user.username
+        )
     return current_user
 
 @router.put("/{user_id}/role", response_model=UserResponse, summary="Update user role (Admin)")
@@ -106,7 +121,8 @@ async def create_user(
         email=user_in.email,
         hashed_password=hashed_password,
         role=user_in.role,
-        is_active=True
+        is_active=True,
+        email_verified=True,  # created by an admin, who vouches for the address
     )
     session.add(user)
     session.commit()

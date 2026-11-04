@@ -32,4 +32,7 @@ def create_admin_user(username: str, email: str, password: str):
         print(f"Successfully created admin user {username}")
 
 if __name__ == "__main__":
-    create_admin_user("admin", "a@gmail.com", "admin123")
+    import sys
+    if len(sys.argv) != 4:
+        sys.exit("Usage: python create_admin.py <username> <email> <password>")
+    create_admin_user(sys.argv[1], sys.argv[2], sys.argv[3])

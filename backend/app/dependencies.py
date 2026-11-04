@@ -31,6 +31,17 @@ class Settings(BaseModel):
 
 settings = Settings()
 
+# --- Admin access policy ---
+# Users who sign in with Google using a verified address on this domain are made
+# admins automatically. Anyone else only becomes an admin if an existing admin
+# promotes them (PUT /api/v1/users/{id}/role or POST /api/v1/users).
+OFFICIAL_ADMIN_DOMAIN = "workshop.com.ng"
+
+def is_official_email(email: Optional[str]) -> bool:
+    if not email:
+        return False
+    return email.strip().lower().rsplit("@", 1)[-1] == OFFICIAL_ADMIN_DOMAIN
+
 _is_production = os.getenv("RENDER") or os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("FLY_APP_NAME") or os.getenv("ENV", "").lower() == "production"
 if settings.SECRET_KEY == _DEV_SECRET:
     if _is_production:

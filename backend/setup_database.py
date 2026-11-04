@@ -5,7 +5,6 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import create_db_and_tables
-from create_admin import create_admin_user
 from seed_from_text import main as seed_content
 
 def main():
@@ -20,12 +19,8 @@ def main():
         # We might continue if it's just that they already exist, 
         # but usually SQLModel matches them up.
         
-    print("\n2. Creating Admin User...")
-    try:
-        # Using default credentials found in previous scripts for consistency
-        create_admin_user("admin", "a@gmail.com", "admin123")
-    except Exception as e:
-        print(f"   Error creating admin: {e}")
+    print("\n2. Admin users: none created. Sign in with Google using a")
+    print("   @workshop.com.ng address to get admin access automatically.")
 
     print("\n3. Seeding Content (Subjects/Topics/Papers)...")
     try:

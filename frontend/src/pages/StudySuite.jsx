@@ -4,8 +4,9 @@ import {
     Bot, Send, Upload, Lightbulb, List, FileText, Loader2, X,
     ArrowLeft, ArrowRight, Trash2, MessageSquare,
     File, CheckCircle, XCircle, RotateCcw,
-    Zap, Brain, Sparkles
+    Zap, Brain, Sparkles, Monitor
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -294,6 +295,31 @@ const StudySuite = () => {
     // ─────────────────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
+            {/* Phones (< 768px): the split-pane layout doesn't fit, so blur the page and explain */}
+            <div
+                className="md:hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-white/60 backdrop-blur-md"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="study-suite-narrow-title"
+            >
+                <div className="w-full max-w-sm bg-white rounded-md border border-slate-200 shadow-xl p-6 text-center">
+                    <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                        <Monitor size={22} />
+                    </div>
+                    <h2 id="study-suite-narrow-title" className="text-lg font-bold text-slate-900 mb-2">
+                        Screen too narrow
+                    </h2>
+                    <p className="text-sm text-slate-500 font-medium mb-6">
+                        The Study Suite can only be used on a tablet or laptop screen. Please switch to a larger device to continue.
+                    </p>
+                    <Link
+                        to="/dashboard"
+                        className="inline-flex w-full items-center justify-center py-3 rounded-md bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
+                    >
+                        Back to Dashboard
+                    </Link>
+                </div>
+            </div>
             {/* Scoped styles for flashcard 3D flip & prose */}
             <style>{`
                 .fc-scene { perspective: 1200px; width: 100%; height: 100%; }

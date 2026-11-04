@@ -16,7 +16,7 @@ from google.oauth2 import id_token as google_id_token
 
 from ..database import get_session
 from ..schemas import User, Token, Community, CommunityMember
-from ..dependencies import settings, create_access_token
+from ..dependencies import settings, create_access_token, is_official_email
 from ..utils import get_password_hash
 
 logger = logging.getLogger(__name__)
@@ -75,6 +75,7 @@ async def google_login(body: GoogleLoginRequest, session: Session = Depends(get_
             email=email,
             hashed_password=get_password_hash(str(uuid4())),
             is_active=True,
+            email_verified=True,
         )
         session.add(user)
         session.commit()
@@ -94,6 +95,21 @@ async def google_login(body: GoogleLoginRequest, session: Session = Depends(get_
 
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account is deactivated.")
+
+    # Google has verified ownership of this address.
+    changed = False
+    if not user.email_verified:
+        user.email_verified = True
+        changed = True
+    # Staff on the official domain get admin access by default.
+    if is_official_email(email) and user.role != "admin":
+        user.role = "admin"
+        changed = True
+        logger.info("Granted admin role to official account %s", email)
+    if changed:
+        session.add(user)
+        session.commit()
+        session.refresh(user)
 
     access_token = create_access_token(
         data={"sub": user.username, "uid": user.id},

@@ -18,6 +18,24 @@ const Login = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  const handleResendVerification = async () => {
+    setIsResending(true);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/v1/auth/resend-verification`, { identifier: username });
+      setError('');
+      setSuccess(res.data.message || 'A new verification link is on its way.');
+      setNeedsVerification(false);
+    } catch (err) {
+      setError(err.response?.status === 429
+        ? 'Too many requests. Please wait a minute and try again.'
+        : 'Could not resend the email. Please try again.');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const { login } = useAuth();
 
@@ -76,6 +94,7 @@ const Login = () => {
 
     setError('');
     setSuccess('');
+    setNeedsVerification(false);
 
     try {
       setIsSubmitting(true);
@@ -95,6 +114,7 @@ const Login = () => {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response) {
+          setNeedsVerification(err.response.status === 403);
           setError(err.response.data.detail || 'Login failed. Please check your credentials.');
         } else if (err.request) {
           setError('No response from server. Please try again later.');
@@ -124,7 +144,21 @@ const Login = () => {
             </p>
           </div>
 
-          {error && <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">{error}</div>}
+          {error && (
+            <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100">
+              {error}
+              {needsVerification && (
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={isResending}
+                  className="block mx-auto mt-2 font-bold underline hover:text-red-700 disabled:opacity-60"
+                >
+                  {isResending ? 'Sending…' : 'Resend verification email'}
+                </button>
+              )}
+            </div>
+          )}
           {success && <div className="p-3 rounded-md bg-green-50 text-green-600 text-sm font-medium text-center border border-green-100">{success}</div>}
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

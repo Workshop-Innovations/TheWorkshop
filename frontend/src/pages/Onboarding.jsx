@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, BookOpen, Target, GraduationCap, MoreHorizontal, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Check, Loader2, BookOpen, Target, GraduationCap, MoreHorizontal, ArrowRight, ArrowLeft, Mail } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { PLANS, formatPrice } from './Pricing';
@@ -128,6 +128,7 @@ const Onboarding = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [authToken, setAuthToken] = useState(null);
+    const [awaitingVerification, setAwaitingVerification] = useState(false);
 
     useEffect(() => {
         const preselectedPlan = searchParams.get('plan');
@@ -149,18 +150,26 @@ const Onboarding = () => {
         }
     }, [login]);
 
+    // Step 2 mounts only after step 1's exit animation finishes (AnimatePresence
+    // mode="wait"), so track the button container via a callback ref instead of
+    // looking it up by id when `step` changes, when it doesn't exist yet.
+    const [googleBtnEl, setGoogleBtnEl] = useState(null);
+
     useEffect(() => {
-        if (!GOOGLE_CLIENT_ID || step !== 2) return;
+        if (!GOOGLE_CLIENT_ID || !googleBtnEl) return;
 
         const initGoogle = () => {
-            window.google?.accounts.id.initialize({
+            if (!window.google?.accounts) return;
+            window.google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
                 callback: handleGoogleResponse,
             });
-            window.google?.accounts.id.renderButton(
-                document.getElementById('google-signin-btn-onboarding'),
-                { theme: 'outline', size: 'large', width: '100%', text: 'signup_with' }
-            );
+            window.google.accounts.id.renderButton(googleBtnEl, {
+                theme: 'outline',
+                size: 'large',
+                text: 'signup_with',
+                width: Math.min(googleBtnEl.offsetWidth || 400, 400),
+            });
         };
 
         if (window.google?.accounts) {
@@ -171,7 +180,7 @@ const Onboarding = () => {
         const existing = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
         if (existing) {
             existing.addEventListener('load', initGoogle);
-            return;
+            return () => existing.removeEventListener('load', initGoogle);
         }
 
         const script = document.createElement('script');
@@ -180,7 +189,7 @@ const Onboarding = () => {
         script.defer = true;
         script.onload = initGoogle;
         document.head.appendChild(script);
-    }, [handleGoogleResponse, step]);
+    }, [handleGoogleResponse, googleBtnEl]);
 
     const handleQuestionSubmit = (e) => {
         e.preventDefault();
@@ -194,7 +203,12 @@ const Onboarding = () => {
 
         try {
             setLoading(true);
-            await axios.post(`${API_BASE_URL}/api/v1/auth/register`, { username, email, password, study_goal: studyGoal });
+            const registerResponse = await axios.post(`${API_BASE_URL}/api/v1/auth/register`, { username, email, password, study_goal: studyGoal });
+            if (registerResponse.data.email_verified === false) {
+                // Can't sign in until the emailed link is opened
+                setAwaitingVerification(true);
+                return;
+            }
             const loginResponse = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, { username, password });
 
             if (loginResponse.data.access_token) {
@@ -257,7 +271,26 @@ const Onboarding = () => {
             </header>
 
             <main className="flex-grow flex items-start justify-center px-6 py-16">
-                {step < 3 ? (
+                {awaitingVerification ? (
+                    <motion.div key="verify" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="w-full max-w-lg text-center">
+                        <div className="mx-auto mb-6 w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                            <Mail size={26} />
+                        </div>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-3">Check your inbox</h1>
+                        <p className="text-slate-500 font-medium mb-2">
+                            We've sent a verification link to <span className="font-bold text-slate-900">{email}</span>.
+                        </p>
+                        <p className="text-slate-500 font-medium mb-10">
+                            Open it to activate your account, then sign in. You can pick a plan any time from the Pricing page.
+                        </p>
+                        <Link to="/login" className="inline-flex w-full items-center justify-center py-3.5 bg-primary text-white rounded-md font-bold hover:bg-primary/90 transition-colors">
+                            Go to sign in
+                        </Link>
+                        <p className="text-xs text-slate-400 font-medium mt-6">
+                            Didn't get it? Check your spam folder, or try signing in and choose "Resend verification email".
+                        </p>
+                    </motion.div>
+                ) : step < 3 ? (
                     /* Narrow centered form for steps 1 and 2 */
                     <div className="w-full max-w-lg">
                         <StepIndicator current={step} />
@@ -320,7 +353,7 @@ const Onboarding = () => {
                                                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
                                                 <div className="relative flex justify-center text-sm"><span className="px-3 bg-white text-slate-400 font-medium">or</span></div>
                                             </div>
-                                            <div id="google-signin-btn-onboarding" className="flex justify-center" />
+                                            <div id="google-signin-btn-onboarding" ref={setGoogleBtnEl} className="flex justify-center min-h-[44px]" />
                                         </>
                                     )}
 

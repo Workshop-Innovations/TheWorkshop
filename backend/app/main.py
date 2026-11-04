@@ -35,7 +35,10 @@ from .schemas import (
 )
 
 from .routes import community, websocket, flashcards, tutor, subjects, users, system, subscriptions, upload, data_entry, google_auth
-from .dependencies import get_current_user, settings, create_access_token, create_refresh_token
+from .dependencies import get_current_user, settings, create_access_token, create_refresh_token, is_official_email
+from .email_service import email_verification_enabled, send_verification_email, decode_verification_token
+from fastapi import BackgroundTasks
+from pydantic import BaseModel
 
 # --- Password Utility Functions ---
 from .utils import verify_password, get_password_hash
@@ -43,6 +46,8 @@ from .utils import verify_password, get_password_hash
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+LEGACY_DEFAULT_ADMIN_EMAILS = ["a@gmail.com"]
 
 # --- Lifespan Context Manager (replaces deprecated @app.on_event) ---
 @asynccontextmanager
@@ -52,25 +57,20 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     logger.info("Database tables created/checked.")
     
-    # Auto-promote admin user (only when ADMIN_EMAIL is explicitly configured,
-    # a hardcoded fallback would let anyone register that address and become admin)
+    # Admin access is granted only to verified @workshop.com.ng Google accounts
+    # (see routes/google_auth.py) or by an existing admin. Strip admin from the
+    # old default seed account, whose credentials were committed to the repo.
     with Session(engine) as session:
-        admin_email = os.getenv("ADMIN_EMAIL")
-        user = None
-        if admin_email:
-            user = session.exec(select(User).where(User.email == admin_email)).first()
-        if user:
-            if user.role != "admin":
-                user.role = "admin"
-                session.add(user)
-                session.commit()
-                logger.info(f"User {admin_email} has been promoted to ADMIN.")
-            else:
-                logger.info(f"User {admin_email} is already ADMIN.")
-        elif admin_email:
-            logger.info(f"Admin candidate {admin_email} not found. Register with this email to become admin.")
-        else:
-            logger.warning("ADMIN_EMAIL is not set; no user will be auto-promoted to admin.")
+        for legacy in session.exec(
+            select(User).where(User.email.in_(LEGACY_DEFAULT_ADMIN_EMAILS), User.role == "admin")
+        ).all():
+            legacy.role = "user"
+            session.add(legacy)
+            logger.warning(f"Removed admin role from legacy default account {legacy.email}.")
+        session.commit()
+
+        # Owner for the default community, if it has to be created now
+        user = session.exec(select(User).where(User.role == "admin")).first()
 
         # Auto-create "The Workshop" default community if it doesn't exist.
         # It needs a real owner (FK to user.id); without an admin user yet, the
@@ -198,11 +198,19 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 @app.post("/api/v1/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED, summary="Register a new user")
 @limiter.limit("3/minute")
-async def register_user(request: Request, user_data: UserCreate, session: Session = Depends(get_session)):
+async def register_user(request: Request, user_data: UserCreate, background_tasks: BackgroundTasks, session: Session = Depends(get_session)):
     """
     Registers a new user with the provided username, email and password, storing in the database.
     Auto-adds the user to The Workshop community.
     """
+    # Official addresses grant admin access, so their ownership must be proven
+    # through Google; otherwise anyone could squat staff@workshop.com.ng.
+    if is_official_email(user_data.email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="@workshop.com.ng accounts must sign up with Google."
+        )
+
     existing_email = session.exec(select(User).where(User.email == user_data.email)).first()
     if existing_email:
         raise HTTPException(
@@ -225,7 +233,9 @@ async def register_user(request: Request, user_data: UserCreate, session: Sessio
         email=user_data.email,
         hashed_password=hashed_password,
         study_goal=user_data.study_goal,
-        is_active=True # Default is_active to True
+        is_active=True, # Default is_active to True
+        # Without SMTP there's no way to send the link, so don't lock people out
+        email_verified=not email_verification_enabled(),
     )
 
     session.add(db_user)
@@ -250,6 +260,9 @@ async def register_user(request: Request, user_data: UserCreate, session: Sessio
             session.add(membership)
             session.commit()
 
+    if not db_user.email_verified:
+        background_tasks.add_task(send_verification_email, db_user.id, db_user.email, db_user.username)
+
     return db_user
 
 @app.post("/api/v1/auth/login", response_model=Token, summary="Login user and get access token")
@@ -273,11 +286,56 @@ async def login_for_access_token(request: Request, user_data: UserLogin, session
             detail="Inactive user"
         )
 
+    if not user.email_verified:
+        # 403 is the frontend's signal to offer "resend verification email"
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Please verify your email address. Check your inbox for the link we sent you."
+        )
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     token_data = {"sub": user.username, "uid": user.id}
     access_token = create_access_token(data=token_data, expires_delta=access_token_expires)
     refresh_token = create_refresh_token(data=token_data)
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+class ResendVerificationRequest(BaseModel):
+    identifier: str  # username or email, like the login form
+
+@app.post("/api/v1/auth/verify-email", summary="Confirm an email address from the emailed link")
+@limiter.limit("10/minute")
+async def verify_email(request: Request, body: VerifyEmailRequest, session: Session = Depends(get_session)):
+    payload = decode_verification_token(body.token)
+    user = session.get(User, payload["uid"]) if payload else None
+    if not user or user.email != payload.get("email"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This verification link is invalid or has expired. Request a new one from the sign-in page."
+        )
+    if not user.email_verified:
+        user.email_verified = True
+        session.add(user)
+        session.commit()
+    return {"message": "Email verified. You can now sign in."}
+
+@app.post("/api/v1/auth/resend-verification", summary="Resend the verification email")
+@limiter.limit("3/minute")
+async def resend_verification(
+    request: Request,
+    body: ResendVerificationRequest,
+    background_tasks: BackgroundTasks,
+    session: Session = Depends(get_session),
+):
+    # Same response whether or not the account exists, so this can't be used
+    # to find out which emails are registered.
+    ident = body.identifier.strip()
+    user = session.exec(select(User).where((User.email == ident) | (User.username == ident))).first()
+    if user and user.is_active and not user.email_verified:
+        background_tasks.add_task(send_verification_email, user.id, user.email, user.username)
+    return {"message": "If that account needs verifying, a new link is on its way."}
 
 @app.get("/api/v1/users/me", response_model=UserResponse, summary="Get current authenticated user")
 async def read_users_me(current_user: User = Depends(get_current_user)):

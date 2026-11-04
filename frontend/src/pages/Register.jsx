@@ -93,10 +93,14 @@ const Register = () => {
       });
 
       if (response.status === 201) {
-        setSuccess('Registration successful! Redirecting to login...');
-        setTimeout(() => {
-          navigate('/login');
-        }, 1500);
+        if (response.data.email_verified === false) {
+          setSuccess(`Account created! We've sent a verification link to ${email}. Open it to activate your account, then sign in.`);
+        } else {
+          setSuccess('Registration successful! Redirecting to login...');
+          setTimeout(() => {
+            navigate('/login');
+          }, 1500);
+        }
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {

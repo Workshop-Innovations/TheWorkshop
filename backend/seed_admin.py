@@ -17,8 +17,6 @@ def promote_to_admin(email: str):
         print(f"Successfully promoted {user.email} to admin!")
 
 if __name__ == "__main__":
-    target_email = "a@gmail.com"
-    if len(sys.argv) > 1:
-        target_email = sys.argv[1]
-    
-    promote_to_admin(target_email)
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python seed_admin.py <email>")
+    promote_to_admin(sys.argv[1])

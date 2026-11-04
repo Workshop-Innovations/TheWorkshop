@@ -1,0 +1,5 @@
+# Only needed on your own machine to deploy the Modal functions
+# (modal_grader.py, modal_paper_processor.py, app/modal_upscaler.py).
+# NOT installed by the web server.
+modal
+litellm

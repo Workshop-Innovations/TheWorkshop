@@ -20,6 +20,7 @@ const Tasks = lazy(() => import('./pages/Tasks'));
 const Store = lazy(() => import('./pages/Store'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 const ComingSoon = lazy(() => import('./pages/ComingSoon'));
 const Progress = lazy(() => import('./pages/Progress'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -53,6 +54,7 @@ const AppContent = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/about" element={<About />} />

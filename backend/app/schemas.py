@@ -16,6 +16,7 @@ class User(SQLModel, table=True):
     hashed_password: str # Store the hashed password
     is_active: bool = Field(default=True) # Field is for SQLModel specific column options
     role: str = Field(default="user") # "user" or "admin"
+    email_verified: bool = Field(default=False) # Set via emailed link, Google sign-in, or admin creation
     profile_pic: Optional[str] = Field(default=None) # URL or Base64 string of profile picture
     study_goal: Optional[str] = Field(default=None) # The user's study goal from onboarding
     
@@ -113,6 +114,7 @@ class UserResponse(BaseModel): # Inherit from BaseModel for API response
     email: EmailStr
     is_active: bool
     role: str = "user"
+    email_verified: bool = True
     profile_pic: Optional[str] = None
     study_goal: Optional[str] = None
     subscription_tier: str = "basic"
