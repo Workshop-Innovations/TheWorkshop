@@ -30,6 +30,14 @@ exec gunicorn app.main:app -w 1 -k uvicorn.workers.UvicornWorker \
 bash start.sh
 ```
 
+This Start Command also works and is fine to use:
+
+```
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Plain uvicorn runs exactly 1 worker by default, so it fixes live chat the same way. Don't add `--workers` to it, and don't add `--reload`, which is for local development only. The only difference from `bash start.sh` is that gunicorn also restarts a stuck or crashed worker by itself. Without gunicorn, Render restarts the whole service instead, which takes a little longer. Either choice is fine.
+
 (If you keep the old service running for a while, check its Start Command too. If it says `gunicorn ... -w 4 ...`, it's still running 4 workers.)
 
 **Also changed:** in `mobile/src/services/api.js`, the mobile app's production address was a placeholder (`your-production-url.theworkshop.app`). It's now `https://api.workshop.com.ng`.
@@ -110,7 +118,7 @@ The new service gets an address like `https://workshop-backend-eu.onrender.com`.
 
 1. `https://<new-address>/api/system/ready` should show `{"status":"ready","database":"connected"}`. If it shows an error, `DATABASE_URL` is wrong.
 2. `https://<new-address>/docs` should show the API documentation page.
-3. In the Render **Logs** tab, near the top, you should see a single `Booting worker with pid ...` line, not four. That confirms 1 worker is running.
+3. In the Render **Logs** tab, near the top, you should see a single `Booting worker with pid ...` line, not four. If you used the plain `uvicorn` command, look for a single `Started server process [...]` line instead. That confirms 1 worker is running.
 
 The website can't use the new address yet, because the website still points at the old one. That's expected.
 
@@ -180,7 +188,7 @@ Note that the files the old service saved on its own disk (in the backend's `sta
 
 | Problem | Likely cause and fix |
 |---|---|
-| The deploy fails on a `pip install` error | Check `PYTHON_VERSION=3.13.1` is set and Root Directory is `backend`. |
+| The deploy fails on a `pip install` error, for example `maturin failed` / `Read-only file system` / `metadata-generation-failed ... watchfiles` | Render used Python 3.14 (you'll see `python3.14` in the error), and some packages have no ready-made download for 3.14 yet. Set `PYTHON_VERSION=3.13.1` in the Environment tab, then use **Manual Deploy → Clear build cache & deploy**. The repo now also has `.python-version` files (`3.13.1`) as a backup. Also check Root Directory is `backend`. |
 | `/api/system/ready` returns 503 | `DATABASE_URL` is wrong or has a typo. Copy it again from the old service. |
 | The website shows CORS errors in the browser console (F12), or "Failed to fetch" on every request | The site's exact address is missing from `FRONTEND_URLS`. Include `https://`, no trailing slash, commas with no spaces. Save, and Render redeploys. |
 | Everyone was logged out after the switch | `SECRET_KEY` doesn't match the old one. Copy the old value in. |
