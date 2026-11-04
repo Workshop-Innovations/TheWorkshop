@@ -49,8 +49,10 @@ async def update_current_user(
     if user_data.get("email") and user_data["email"] != current_user.email:
         if session.exec(select(User).where(User.email == user_data["email"])).first():
             raise HTTPException(status_code=409, detail="Email already registered")
-        if is_official_email(user_data["email"]) and current_user.role != "admin":
-            raise HTTPException(status_code=400, detail="@workshop.com.ng addresses must sign in with Google.")
+        # Switching to an official address is allowed: admin access is only
+        # granted once the new address is verified (see verify_email).
+        if is_official_email(user_data["email"]) and not email_verification_enabled():
+            raise HTTPException(status_code=400, detail="@workshop.com.ng addresses need email verification, which isn't set up on the server yet.")
 
     email_changed = bool(user_data.get("email")) and user_data["email"] != current_user.email
 

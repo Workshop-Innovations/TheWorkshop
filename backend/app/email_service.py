@@ -124,3 +124,64 @@ def send_verification_email(user_id: str, email: str, username: str) -> bool:
   <p style="font-size:13px;color:#64748b">The link expires in {VERIFY_TOKEN_HOURS} hours. If you didn't create an account, you can ignore this email.</p>
 </div>"""
     return send_email(email, "Verify your email for The Workshop", text, html)
+
+
+# --- Password reset ---
+RESET_TOKEN_TYPE = "reset_password"
+RESET_TOKEN_MINUTES = 60
+
+
+def _password_fingerprint(hashed_password: Optional[str]) -> str:
+    # Part of the current hash: once the password changes, older reset links
+    # stop matching, so each link works only once.
+    return (hashed_password or "")[-16:]
+
+
+def create_reset_token(user_id: str, email: str, hashed_password: Optional[str]) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_MINUTES)
+    payload = {
+        "uid": user_id,
+        "email": email,
+        "pw": _password_fingerprint(hashed_password),
+        "type": RESET_TOKEN_TYPE,
+        "exp": expire,
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def decode_reset_token(token: str) -> Optional[dict]:
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError:
+        return None
+    if payload.get("type") != RESET_TOKEN_TYPE or not payload.get("uid"):
+        return None
+    return payload
+
+
+def reset_token_matches(payload: dict, email: str, hashed_password: Optional[str]) -> bool:
+    return payload.get("email") == email and payload.get("pw") == _password_fingerprint(hashed_password)
+
+
+def send_password_reset_email(user_id: str, email: str, username: str, hashed_password: Optional[str]) -> bool:
+    link = f"{app_url()}/reset-password?token={create_reset_token(user_id, email, hashed_password)}"
+    text = (
+        f"Hi {username},\n\n"
+        "We received a request to set a new password for your Workshop account. "
+        "Open this link to choose one:\n\n"
+        f"{link}\n\n"
+        f"The link expires in {RESET_TOKEN_MINUTES} minutes and works once. "
+        "If you didn't ask for this, you can ignore this email; your password won't change.\n"
+    )
+    html = f"""\
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;color:#0f172a">
+  <h2 style="margin:0 0 16px">Set a new password</h2>
+  <p>Hi {escape(username)},</p>
+  <p>We received a request to set a new password for your Workshop account.</p>
+  <p style="margin:28px 0">
+    <a href="{escape(link)}" style="background:#0f172a;color:#ffffff;padding:12px 22px;border-radius:6px;text-decoration:none;font-weight:bold">Choose a new password</a>
+  </p>
+  <p style="font-size:13px;color:#64748b">Or paste this link into your browser:<br>{escape(link)}</p>
+  <p style="font-size:13px;color:#64748b">The link expires in {RESET_TOKEN_MINUTES} minutes and works once. If you didn't ask for this, you can ignore this email; your password won't change.</p>
+</div>"""
+    return send_email(email, "Set a new password for The Workshop", text, html)

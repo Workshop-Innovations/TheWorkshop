@@ -37,9 +37,12 @@ from .schemas import (
 
 from .routes import community, websocket, flashcards, tutor, subjects, users, system, subscriptions, upload, data_entry, google_auth
 from .dependencies import get_current_user, settings, create_access_token, create_refresh_token, is_official_email
-from .email_service import email_verification_enabled, send_verification_email, decode_verification_token
+from .email_service import (
+    email_verification_enabled, smtp_configured, send_verification_email, decode_verification_token,
+    send_password_reset_email, decode_reset_token, reset_token_matches,
+)
 from fastapi import BackgroundTasks
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 # --- Password Utility Functions ---
 from .utils import verify_password, get_password_hash
@@ -204,12 +207,13 @@ async def register_user(request: Request, user_data: UserCreate, background_task
     Registers a new user with the provided username, email and password, storing in the database.
     Auto-adds the user to The Workshop community.
     """
-    # Official addresses grant admin access, so their ownership must be proven
-    # through Google; otherwise anyone could squat staff@workshop.com.ng.
-    if is_official_email(user_data.email):
+    # Official addresses get admin access once the address is verified (see
+    # verify_email). Without SMTP there's no way to prove the person owns the
+    # mailbox, so email sign-up for them is only allowed when verification is on.
+    if is_official_email(user_data.email) and not email_verification_enabled():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="@workshop.com.ng accounts must sign up with Google."
+            detail="Email sign-up for @workshop.com.ng addresses needs email verification, which isn't set up on the server yet. Please use Google for now."
         )
 
     existing_email = session.exec(select(User).where(User.email == user_data.email)).first()
@@ -316,11 +320,71 @@ async def verify_email(request: Request, body: VerifyEmailRequest, session: Sess
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This verification link is invalid or has expired. Request a new one from the sign-in page."
         )
+    changed = False
     if not user.email_verified:
         user.email_verified = True
+        changed = True
+    # Clicking the emailed link proves they own the official mailbox.
+    if is_official_email(user.email) and user.role != "admin":
+        user.role = "admin"
+        changed = True
+        logger.info("Granted admin role to verified official account %s", user.email)
+    if changed:
         session.add(user)
         session.commit()
     return {"message": "Email verified. You can now sign in."}
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
+
+    @field_validator('password')
+    @classmethod
+    def password_strength(cls, v):
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        return v
+
+@app.post("/api/v1/auth/forgot-password", summary="Email a link to set a new password")
+@limiter.limit("3/minute")
+async def forgot_password(
+    request: Request,
+    body: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    session: Session = Depends(get_session),
+):
+    if not smtp_configured():
+        raise HTTPException(status_code=503, detail="Password reset isn't available right now. Please contact support.")
+    # Same response whether or not the account exists, so this can't be used
+    # to find out which emails are registered.
+    email = body.email.strip()
+    user = session.exec(select(User).where(User.email == email)).first()
+    if user and user.is_active:
+        background_tasks.add_task(send_password_reset_email, user.id, user.email, user.username, user.hashed_password)
+    return {"message": "If an account uses that email, a link to set a new password is on its way."}
+
+@app.post("/api/v1/auth/reset-password", summary="Set a new password from the emailed link")
+@limiter.limit("5/minute")
+async def reset_password(request: Request, body: ResetPasswordRequest, session: Session = Depends(get_session)):
+    payload = decode_reset_token(body.token)
+    user = session.get(User, payload["uid"]) if payload else None
+    if not user or not user.is_active or not reset_token_matches(payload, user.email, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This link is invalid, expired or already used. Request a new one from the sign-in page."
+        )
+    user.hashed_password = get_password_hash(body.password)
+    # The link was delivered to their inbox, which proves they own the address.
+    user.email_verified = True
+    if is_official_email(user.email) and user.role != "admin":
+        user.role = "admin"
+        logger.info("Granted admin role to verified official account %s", user.email)
+    session.add(user)
+    session.commit()
+    return {"message": "Your password has been set. You can now sign in."}
 
 @app.post("/api/v1/auth/resend-verification", summary="Resend the verification email")
 @limiter.limit("3/minute")

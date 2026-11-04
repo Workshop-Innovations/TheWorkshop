@@ -238,6 +238,43 @@ I added example files showing these settings: `frontend/.env.example`, `data-app
 
 ---
 
+## Part 5: Admins can sign up and sign in with email and password
+
+**@workshop.com.ng addresses no longer have to use Google.**
+
+**How it works:**
+1. **Sign up:** anyone with an @workshop.com.ng address can sign up with an email and password, the same way as everyone else.
+2. **Admin only after verifying:** the account is a **normal account until the email is verified**. Clicking the link in the verification email makes it an admin account automatically. This step is what stops a stranger from typing `someone@workshop.com.ng` into the sign-up form and getting admin access, because they can't open that mailbox.
+3. **Google still works:** signing in with Google using a @workshop.com.ng account still gives admin access straight away.
+
+**If you already signed up with Google:** that account has a random password you've never seen. To add a password:
+1. Go to the sign-in page and click **Forgot password?**
+2. Enter your @workshop.com.ng email.
+3. Open the emailed link and choose a password.
+4. You can now sign in with either Google or your email and password.
+
+**New: "Forgot password?" for everyone.**
+- There's now a **Forgot password?** link on the sign-in page.
+- The link in the email lasts **60 minutes** and **works only once**.
+- The page shows the same message whether or not an account exists for that email, so it can't be used to find out who has an account.
+
+**What you need on the backend (Render):**
+- The `SMTP_*` settings must be filled in, as they already should be.
+- `APP_URL=https://workshop.com.ng` must be set, so the links in emails go to the live site.
+- **If SMTP isn't set up:** email sign-up for @workshop.com.ng addresses is blocked with a message to use Google. Without email there's no way to prove the person owns the address. "Forgot password" also shows "not available".
+
+**Files changed:**
+- **Backend:**
+  - `backend/app/main.py`: sign-up rule, admin granted when an official email is verified, and the new `/api/v1/auth/forgot-password` and `/api/v1/auth/reset-password` endpoints.
+  - `backend/app/email_service.py`: password reset email and links.
+  - `backend/app/routes/users.py`: users may change their email to an official address; admin access comes only after the new address is verified.
+- **Website:**
+  - New pages `frontend/src/pages/ForgotPassword.jsx` and `frontend/src/pages/ResetPassword.jsx`.
+  - Their addresses (`/forgot-password` and `/reset-password`) in `frontend/src/App.jsx`.
+  - The "Forgot password?" link in `frontend/src/pages/Login.jsx`.
+
+---
+
 ## If something goes wrong
 
 | Problem | Likely cause and fix |
