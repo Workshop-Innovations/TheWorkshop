@@ -1,11 +1,13 @@
-import React, { useMemo } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { User, Mail, Calendar, Trash, Globe } from 'lucide-react';
+import { User, Mail, Trash, Globe, Compass } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Profile = () => {
   const { user, profilePic } = useAuth(); // fetch full user object and profile pic from context
+  const navigate = useNavigate();
 
   // Fallback for rendering if user data isn't fully loaded yet
   const displayUser = {
@@ -71,6 +73,18 @@ const Profile = () => {
           </div>
           <button disabled className="mt-8 w-full py-4 bg-slate-200 text-slate-400 rounded-md font-bold cursor-not-allowed">
             Edit Profile (Coming Soon)
+          </button>
+        </div>
+
+        <div className="max-w-2xl mx-auto bg-white p-8 rounded-md shadow-xl shadow-slate-200/50 mt-8 border border-slate-100">
+          <h2 className="text-2xl font-bold mb-2 text-slate-900">Finding your way around</h2>
+          <p className="text-slate-500 mb-6">Replay the guided tour. Page tips and your Getting Started checklist come back too.</p>
+          <button
+            onClick={() => navigate('/dashboard', { state: { replayTour: true } })}
+            className="w-full flex items-center justify-center gap-3 py-4 bg-primary text-white rounded-md font-bold hover:bg-primary/90 transition-colors"
+          >
+            <Compass className="w-5 h-5" />
+            Take the tour again
           </button>
         </div>
 

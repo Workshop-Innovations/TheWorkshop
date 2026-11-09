@@ -400,7 +400,7 @@ async def resend_verification(
     user = session.exec(select(User).where((User.email == ident) | (User.username == ident))).first()
     if user and user.is_active and not user.email_verified:
         background_tasks.add_task(send_verification_email, user.id, user.email, user.username)
-    return {"message": "If that account needs verifying, a new link is on its way."}
+    return {"message": "A new link is on its way."}
 
 @app.get("/api/v1/users/me", response_model=UserResponse, summary="Get current authenticated user")
 async def read_users_me(current_user: User = Depends(get_current_user)):

@@ -6,6 +6,7 @@ import { ArrowLeft, BookOpen, CheckCircle, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { REMARK_PLUGINS, REHYPE_PLUGINS, normalizeMarkdown, paperUrlTransform } from '../utils/markdownMath';
 import API_BASE_URL from '../config';
+import { useOnboarding } from '../context/OnboardingContext';
 
 export const PaperContext = createContext();
 
@@ -310,6 +311,10 @@ const PaperViewer = () => {
     const [timeRemaining, setTimeRemaining] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [testResult, setTestResult]     = useState(null);
+
+    // Ticks "Open a past paper" on the Getting Started checklist once it has loaded
+    const { markDid } = useOnboarding();
+    useEffect(() => { if (paper) markDid('paper_opened'); }, [paper, markDid]);
     const [submitError, setSubmitError]   = useState(null);
     const [showExitConfirm, setShowExitConfirm] = useState(false);
 

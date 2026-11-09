@@ -5,6 +5,7 @@ import ChannelList from "../components/community/ChannelList";
 import ChatArea from "../components/community/ChatArea";
 import MemberSidebar from "../components/community/MemberSidebar";
 import GlobalLoader from "../components/GlobalLoader";
+import PageHint from "../components/onboarding/PageHint";
 import { WifiOff, Menu, Users, X } from "lucide-react";
 
 const CommunityPage = () => {
@@ -74,6 +75,8 @@ const CommunityPage = () => {
                 ${showMembers ? 'max-md:translate-x-0' : 'max-md:translate-x-full'}`}>
                 <MemberSidebar />
             </div>
+
+            <PageHint page="community" />
 
             {/* Connection indicator */}
             {!isConnected && (

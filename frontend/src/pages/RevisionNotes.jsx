@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import PageHint from '../components/onboarding/PageHint';
 import Footer from "../components/Footer";
 import { BookOpen, Search, ChevronRight, FileText, Loader2, GraduationCap } from "lucide-react";
 import { API_BASE_URL } from "../services/progressService";
@@ -34,6 +35,7 @@ const RevisionNotes = () => {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <Navbar />
+            <PageHint page="revision-notes" />
 
             {/* Hero header */}
             <div className="bg-white border-b border-slate-200 pt-28 pb-12 px-6">

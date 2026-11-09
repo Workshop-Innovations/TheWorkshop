@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import PageHint from '../components/onboarding/PageHint';
 import {
     Bot, Send, Upload, Lightbulb, List, FileText, Loader2, X,
     ArrowLeft, ArrowRight, Trash2, MessageSquare,
@@ -350,6 +351,8 @@ const StudySuite = () => {
             `}</style>
 
             <Navbar />
+
+            <PageHint page="study-suite" />
 
             {/* Main content, fills viewport below navbar */}
             <div className="flex flex-col" style={{ marginTop: '64px', height: 'calc(100vh - 64px)' }}>

@@ -55,6 +55,11 @@ _NEW_COLUMNS = [
     ("studygroup", "deleted_at", "TIMESTAMP NULL"),
     # Lets the same finished pomodoro be logged from two devices without double-counting
     ("sessionlog", "session_key", "VARCHAR(64) NULL"),
+    # New-user walkthrough: existing accounts count as already welcomed
+    ("user", "welcome_seen", "BOOLEAN NOT NULL DEFAULT TRUE"),
+    ("user", "tour_status", "VARCHAR(20) NULL"),
+    ("user", "checklist_dismissed", "BOOLEAN NOT NULL DEFAULT FALSE"),
+    ("user", "onboarding_flags", "VARCHAR NULL"),
 ]
 
 # Composite indexes for the most common query shapes: (name, table, columns)

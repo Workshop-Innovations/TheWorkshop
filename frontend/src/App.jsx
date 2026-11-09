@@ -4,6 +4,9 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PomodoroProvider, usePomodoro } from './context/PomodoroContext';
 import { AuthProvider } from './context/AuthContext';
+import { OnboardingProvider, useOnboarding } from './context/OnboardingContext';
+import Tour from './components/onboarding/Tour';
+const WelcomeModal = lazy(() => import('./components/onboarding/WelcomeModal'));
 const CommunityProviderWrapper = lazy(() => import('./context/CommunityWrapper'));
 import MinimizedPomodoro from './components/MinimizedPomodoro';
 import PrivateRoute from './components/PrivateRoute';
@@ -42,6 +45,20 @@ const About = lazy(() => import('./pages/About'));
 const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+
+// First-login welcome (on the dashboard only) and the guided tour
+const OnboardingLayer = () => {
+  const { state, tourActive } = useOnboarding();
+  const location = useLocation();
+  const showWelcome = state && !state.welcome_seen && !tourActive && location.pathname === '/dashboard';
+
+  return (
+    <>
+      {showWelcome && <Suspense fallback={null}><WelcomeModal /></Suspense>}
+      <Tour />
+    </>
+  );
+};
 
 const AppContent = () => {
   const { isRunning } = usePomodoro();
@@ -194,6 +211,7 @@ const AppContent = () => {
       </ErrorBoundary>
 
       {showMinimizedTimer && <MinimizedPomodoro />}
+      <OnboardingLayer />
     </div>
   );
 };
@@ -202,9 +220,11 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <PomodoroProvider>
-          <AppContent />
-        </PomodoroProvider>
+        <OnboardingProvider>
+          <PomodoroProvider>
+            <AppContent />
+          </PomodoroProvider>
+        </OnboardingProvider>
       </AuthProvider>
 
       <ToastContainer

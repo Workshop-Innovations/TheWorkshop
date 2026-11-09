@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '../../src/datepicker-styles.css';
 import Navbar from '../components/Navbar';
+import PageHint from '../components/onboarding/PageHint';
 import Footer from '../components/Footer';
 import API_BASE_URL from '../config';
 
@@ -185,6 +186,7 @@ const Tasks = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
+      <PageHint page="tasks" />
 
       <div className="container mx-auto px-4 py-32">
         <div className="max-w-4xl mx-auto">

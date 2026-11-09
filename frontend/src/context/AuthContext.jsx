@@ -75,11 +75,9 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('userProfilePic');
         }
         toast.success("Login successful!");
-        if (!userData.study_goal && !userData.profile_pic) {
-          navigate('/onboarding', { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
+        // New accounts (including Google sign-ups with no study goal yet) are
+        // welcomed on the dashboard, which asks for anything still missing.
+        navigate('/dashboard', { replace: true });
         return;
       }
     } catch (error) {
@@ -182,6 +180,29 @@ export const AuthProvider = ({ children }) => {
     }
   }, [accessToken]);
 
+  // PATCH /users/me with simple profile fields (e.g. { study_goal }). Returns true on success.
+  const updateUser = useCallback(async (patch) => {
+    if (!accessToken) return false;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(typeof err.detail === 'string' ? err.detail : "Couldn't save your changes.");
+        return false;
+      }
+      setUser(await res.json());
+      return true;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Network error while saving your changes.");
+      return false;
+    }
+  }, [accessToken]);
+
   const authContextValue = {
     accessToken,
     user,
@@ -190,7 +211,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     isAuthenticated: !!accessToken,
     profilePic,
-    updateProfilePic
+    updateProfilePic,
+    updateUser
   };
 
   return (

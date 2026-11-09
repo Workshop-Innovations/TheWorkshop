@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Loader2, BookOpen, Target, GraduationCap, MoreHorizontal, ArrowRight, ArrowLeft, Mail } from 'lucide-react';
+import { Check, Loader2, ArrowRight, ArrowLeft, Mail } from 'lucide-react';
+import { STUDY_GOALS } from '../constants/studyGoals';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { PLANS, formatPrice } from './Pricing';
@@ -10,12 +11,6 @@ import { API_BASE_URL } from '../services/progressService';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-const STUDY_GOALS = [
-    { id: 'jamb', label: 'JAMB / UTME', description: 'Joint Admissions & Matriculation', icon: Target },
-    { id: 'waec', label: 'WAEC / SSCE', description: 'West African Senior Certificate', icon: BookOpen },
-    { id: 'uni', label: 'University Exams', description: 'Undergraduate coursework & tests', icon: GraduationCap },
-    { id: 'other', label: 'General Study', description: 'General learning & revision', icon: MoreHorizontal },
-];
 
 const STEPS = ['Goals', 'Account', 'Plan'];
 

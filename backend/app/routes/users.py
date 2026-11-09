@@ -1,11 +1,14 @@
 import os
+import json
 import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
 from sqlmodel import Session, select
 from typing import List, Optional
 from uuid import uuid4
 from ..database import get_session
-from ..schemas import User, UserResponse, UserUpdate
+from ..schemas import (
+    User, UserResponse, UserUpdate, OnboardingUpdate, OnboardingResponse, SessionLog, TestAttempt,
+)
 from ..dependencies import get_current_admin_user, get_current_user, is_official_email
 from ..utils import get_password_hash, get_supabase
 from ..rate_limit import limiter, user_or_ip, UPLOAD_LIMIT
@@ -72,6 +75,78 @@ async def update_current_user(
             send_verification_email, current_user.id, current_user.email, current_user.username
         )
     return current_user
+
+# --- New-user walkthrough (welcome, tour, Getting Started checklist, page hints) ---
+
+def _onboarding_flags(user: User) -> List[str]:
+    try:
+        flags = json.loads(user.onboarding_flags or "[]")
+        return [f for f in flags if isinstance(f, str)]
+    except (TypeError, ValueError):
+        return []
+
+
+def _onboarding_state(session: Session, user: User) -> OnboardingResponse:
+    flags = _onboarding_flags(user)
+    did_focus = session.exec(
+        select(SessionLog.id)
+        .where(SessionLog.user_id == user.id, SessionLog.session_type == "focus")
+        .limit(1)
+    ).first() is not None
+    did_paper = "did:paper_opened" in flags or session.exec(
+        select(TestAttempt.id).where(TestAttempt.user_id == user.id).limit(1)
+    ).first() is not None
+
+    return OnboardingResponse(
+        welcome_seen=user.welcome_seen,
+        tour_status=user.tour_status,
+        checklist_dismissed=user.checklist_dismissed,
+        flags=flags,
+        checklist={
+            "photo": bool(user.profile_pic),
+            "goal": bool(user.study_goal),
+            "paper": did_paper,
+            "focus": did_focus,
+            "tutor": user.last_ai_query_date is not None,
+            "community": (user.total_messages or 0) > 0,
+        },
+    )
+
+
+@router.get("/me/onboarding", response_model=OnboardingResponse, summary="Get your walkthrough progress")
+async def get_onboarding(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    return _onboarding_state(session, current_user)
+
+
+@router.patch("/me/onboarding", response_model=OnboardingResponse, summary="Update your walkthrough progress")
+async def update_onboarding(
+    body: OnboardingUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    if body.welcome_seen is not None:
+        current_user.welcome_seen = body.welcome_seen
+    if body.tour_status is not None:
+        current_user.tour_status = body.tour_status
+    if body.checklist_dismissed is not None:
+        current_user.checklist_dismissed = body.checklist_dismissed
+
+    flags = _onboarding_flags(current_user)
+    if body.reset:
+        flags = [f for f in flags if not f.startswith("hint:")]
+        current_user.tour_status = body.tour_status
+    for flag in body.add_flags:
+        if flag not in flags:
+            flags.append(flag)
+    current_user.onboarding_flags = json.dumps(flags)
+
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    return _onboarding_state(session, current_user)
 
 # --- Profile pictures (stored in Supabase Storage, only the URL in the database) ---
 

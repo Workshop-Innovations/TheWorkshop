@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Clock, Brain, UserCircle, Camera, X, Crown, BookOpen, Bot, Users, ArrowRight, Play, CheckCircle2, GraduationCap, MessageSquare } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -8,12 +8,16 @@ import { useAuth } from '../context/AuthContext';
 import { usePomodoro } from '../context/PomodoroContext';
 import { REWARDS } from '../constants/rewardConstants';
 import ImageUploaderModal from '../components/ImageUploaderModal';
+import GettingStartedCard from '../components/onboarding/GettingStartedCard';
+import { useOnboarding } from '../context/OnboardingContext';
 
 const Dashboard = () => {
     // Hooks and Context
     const { user, loading, profilePic: contextProfilePic, updateProfilePic } = useAuth();
     const { userStats, settings: pomodoroSettings } = usePomodoro();
     const navigate = useNavigate();
+    const location = useLocation();
+    const { loaded: onboardingLoaded, replayTour } = useOnboarding();
 
     // State
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -71,6 +75,14 @@ const Dashboard = () => {
         }
     }, [loading, user, navigate]);
 
+    // "Take the tour again" on the Profile page sends the user here to run it
+    useEffect(() => {
+        if (location.state?.replayTour && onboardingLoaded) {
+            navigate(location.pathname, { replace: true, state: null });
+            replayTour();
+        }
+    }, [location, onboardingLoaded, replayTour, navigate]);
+
     if (loading) return <GlobalLoader message="Loading Dashboard..." />;
     if (!user) return null;
 
@@ -90,7 +102,9 @@ const Dashboard = () => {
                 
                 {/* BENTO BOX GRID */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 max-w-7xl mx-auto">
-                    
+
+                    <GettingStartedCard />
+
                     {/* HERO TILE (Spans 8 columns) */}
                     <div className="md:col-span-8 bg-white rounded-md p-10 md:p-14 shadow-sm border border-slate-100/50 relative overflow-hidden flex flex-col justify-center card hover:shadow-md">
                         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-primary/5 to-accent/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import PageHint from '../components/onboarding/PageHint';
 import Footer from '../components/Footer';
 import { Search, Download, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -61,6 +62,7 @@ const PastPapers = () => {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <Navbar />
+            <PageHint page="past-papers" />
             <div className="container mx-auto px-4 py-24 flex-grow">
                 <div className="max-w-5xl mx-auto">
                     <div className="text-center mb-12">

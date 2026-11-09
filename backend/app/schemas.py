@@ -20,7 +20,14 @@ class User(SQLModel, table=True):
     email_verified: bool = Field(default=False) # Set via emailed link, Google sign-in, or admin creation
     profile_pic: Optional[str] = Field(default=None) # URL or Base64 string of profile picture
     study_goal: Optional[str] = Field(default=None) # The user's study goal from onboarding
-    
+
+    # New-user walkthrough. Accounts that existed before it shipped are migrated
+    # with welcome_seen = TRUE so they don't get the first-login welcome.
+    welcome_seen: bool = Field(default=False)
+    tour_status: Optional[str] = Field(default=None, max_length=20)  # None | "completed" | "skipped"
+    checklist_dismissed: bool = Field(default=False)
+    onboarding_flags: Optional[str] = Field(default=None)  # JSON list of seen hints / actions taken
+
     # Gamification fields
     reputation_points: int = Field(default=0)  # Karma from upvotes received
     total_messages: int = Field(default=0)  # Total messages sent
@@ -74,10 +81,20 @@ class UserLogin(BaseModel): # Inherit from BaseModel
     password: str
 
 # Schema for user updates (what the frontend sends for updating profile)
+STUDY_GOALS = {"jamb", "waec", "uni", "other"}
+
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     profile_pic: Optional[str] = None
+    study_goal: Optional[str] = None
+
+    @field_validator('study_goal')
+    @classmethod
+    def validate_study_goal(cls, v):
+        if v is not None and v not in STUDY_GOALS:
+            raise ValueError(f"study_goal must be one of: {', '.join(sorted(STUDY_GOALS))}")
+        return v
 
     @field_validator('username')
     @classmethod
@@ -123,6 +140,49 @@ class UserResponse(BaseModel): # Inherit from BaseModel for API response
     ai_queries_today: int = 0
 
     model_config = {"from_attributes": True}
+
+
+# --- New-user walkthrough ---
+
+# Ids the client may store in User.onboarding_flags. "hint:<page>" = that page's
+# first-visit tip was dismissed; "did:<action>" = an action the server can't see.
+ONBOARDING_FLAGS = {
+    "hint:past-papers", "hint:revision-notes", "hint:study-suite",
+    "hint:community", "hint:pomodoro", "hint:tasks", "hint:progress",
+    "did:paper_opened",
+}
+TOUR_STATUSES = {"completed", "skipped"}
+
+class OnboardingUpdate(BaseModel):
+    welcome_seen: Optional[bool] = None
+    tour_status: Optional[str] = None
+    checklist_dismissed: Optional[bool] = None
+    add_flags: List[str] = Field(default_factory=list, max_length=20)
+    # Replaying the tour clears the page hints so they show again
+    reset: bool = False
+
+    @field_validator('tour_status')
+    @classmethod
+    def validate_tour_status(cls, v):
+        if v is not None and v not in TOUR_STATUSES:
+            raise ValueError("tour_status must be 'completed' or 'skipped'")
+        return v
+
+    @field_validator('add_flags')
+    @classmethod
+    def validate_flags(cls, v):
+        unknown = [f for f in v if f not in ONBOARDING_FLAGS]
+        if unknown:
+            raise ValueError(f"Unknown onboarding flags: {', '.join(unknown)}")
+        return v
+
+class OnboardingResponse(BaseModel):
+    welcome_seen: bool
+    tour_status: Optional[str] = None
+    checklist_dismissed: bool
+    flags: List[str]
+    # Getting Started checklist, worked out from the user's data: step id -> done
+    checklist: dict
 
 
 # Schema for JWT token response

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { getProgressData, fetchSessionSummary } from '../services/progressService';
 import Navbar from '../components/Navbar';
+import PageHint from '../components/onboarding/PageHint';
 import Footer from '../components/Footer';
 import { Calendar, CheckCircle2, Coins, Gift, Flame, Clock, Coffee } from 'lucide-react';
 import ActivityHistory from '../components/ActivityHistory';
@@ -111,6 +112,7 @@ const Progress = ({ setCurrentView }) => { // <--- MODIFIED: Added setCurrentVie
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
       <Navbar />
+      <PageHint page="progress" />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-32">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-2">My Progress</h1>
