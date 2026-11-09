@@ -53,3 +53,23 @@ Existing users will notice the new checklist and tips. Desktop screens narrower 
 
 - `pytest` was installed in your local `backend/venv` so the tests could run on your machine. It doesn't affect deployment.
 - `npx eslint` reports "unused variable" errors on the new files. These are false alarms from your ESLint config, which doesn't count variables used only in JSX. The production build passes.
+
+## Does it work on both phone and PC in a browser?
+
+Yes. Everything (welcome screen, tour, checklist, page tips and "Take the tour again") works in any browser on phones, tablets and computers. It changes shape to fit the screen:
+
+| Screen width | What the user gets |
+|---|---|
+| Phone (under 640px) | Welcome screen slides up from the bottom. The tour opens the menu drawer and points at the links inside it, and its explanation card sits in whichever half of the screen isn't being highlighted. Tips run along the bottom of the screen. |
+| Tablet / small laptop (640px–1279px) | Same drawer-based tour as phones, with a centred welcome card. |
+| Desktop (1280px and wider) | Centred welcome card. The tour points at the links in the top nav bar. Tips sit in the bottom-left corner. |
+
+Progress is saved to the account, not the device. A user who finishes the tour on their PC won't see it again on their phone.
+
+**Tested:** in Chrome (headless) at phone (390px), small laptop (1024px) and desktop (1280px) widths.
+
+**Not tested yet:** a real iPhone (Safari) or a real Android phone. Please check one of each during step 4 above.
+
+**Doesn't cover:** the native mobile app built with Expo in `mobile/`. That's a separate app and needs its own version later. Opening the website in a phone's browser is fully covered.
+
+**One existing limit:** the Study Suite page is blocked on phone-width screens (this was already the case). The tour and the checklist mention that it works on tablets and laptops.
