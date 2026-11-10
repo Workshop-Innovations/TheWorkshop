@@ -10,12 +10,14 @@ from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
+from typing import Optional
+
 from pydantic import BaseModel
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
 from ..database import get_session
-from ..schemas import User, Token, Community, CommunityMember
+from ..schemas import User, Token, Community, CommunityMember, STUDY_GOALS
 from ..dependencies import settings, create_access_token, is_official_email
 from ..utils import get_password_hash
 
@@ -28,6 +30,8 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 
 class GoogleLoginRequest(BaseModel):
     credential: str  # the ID token from Google Identity Services
+    # Picked on the signup page before the Google button is pressed
+    study_goal: Optional[str] = None
 
 
 @router.post("/google", response_model=Token, summary="Sign in with Google")
@@ -98,6 +102,10 @@ async def google_login(body: GoogleLoginRequest, session: Session = Depends(get_
 
     # Google has verified ownership of this address.
     changed = False
+    # Keep the goal chosen on the signup page, without overwriting one already set
+    if body.study_goal in STUDY_GOALS and not user.study_goal:
+        user.study_goal = body.study_goal
+        changed = True
     if not user.email_verified:
         user.email_verified = True
         changed = True

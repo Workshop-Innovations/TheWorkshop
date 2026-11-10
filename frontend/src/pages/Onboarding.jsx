@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2, ArrowRight, ArrowLeft, Mail } from 'lucide-react';
@@ -132,10 +132,15 @@ const Onboarding = () => {
         }
     }, [searchParams, isAuthenticated, navigate]);
 
+    // Read through a ref: Google keeps the callback it was first given
+    const studyGoalRef = useRef(studyGoal);
+    studyGoalRef.current = studyGoal;
+
     const handleGoogleResponse = useCallback(async (response) => {
         try {
             const res = await axios.post(`${API_BASE_URL}/api/v1/auth/google`, {
                 credential: response.credential,
+                study_goal: studyGoalRef.current || undefined,
             });
             if (res.data.access_token) {
                 await login(res.data.access_token);

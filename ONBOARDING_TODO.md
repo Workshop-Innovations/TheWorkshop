@@ -73,3 +73,18 @@ Progress is saved to the account, not the device. A user who finishes the tour o
 **Doesn't cover:** the native mobile app built with Expo in `mobile/`. That's a separate app and needs its own version later. Opening the website in a phone's browser is fully covered.
 
 **One existing limit:** the Study Suite page is blocked on phone-width screens (this was already the case). The tour and the checklist mention that it works on tablets and laptops.
+
+## Fixed: Google sign-ups were asked their study goal twice
+
+**Why it happened:** on the signup page (`/onboarding`), step 1 asks "What are you studying for?" and step 2 offers "Sign up with Google". The Google button only sent Google's login token to the server. The goal picked in step 1 was never sent, so the account was created without one, and the Dashboard welcome screen asked for it again.
+
+**The fix:**
+- `frontend/src/pages/Onboarding.jsx`: the Google button now sends the chosen goal along with the Google token.
+- `backend/app/routes/google_auth.py`: the server now accepts that goal and saves it on the account. It only fills in an empty goal. An existing account that already has one keeps it.
+
+**Expected behaviour after the fix:**
+- **Google signup from the signup page** (goal picked first): the welcome screen skips the goal question.
+- **"Sign in with Google" on the Login or Register page** (no goal picked yet): the welcome screen still asks for the goal once. That is intended.
+- **Photo:** the welcome screen still asks for one, because the account doesn't copy the Google profile photo. It can be skipped.
+
+**Deploy:** both the backend and the frontend need redeploying for this fix, backend first. If only the frontend goes out, the server ignores the goal and the bug stays.
